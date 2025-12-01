@@ -1,0 +1,146 @@
+.auth-body {
+    background: linear-gradient(135deg, #8fe386 0%, #67d1aa 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+.auth-header h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.btn-full {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.auth-footer a {
+    color: #8786E3;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.alert-error {
+    background: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+}
+
+.alert-success {
+    background: #efe;
+    color: #363;
+    border: 1px solid #cfc;
+}
+
+
+.form-group {
+    margin-bottom: 1.5rem; 
+    
+}
+
+.form-group label {    
+    margin-bottom: 0.5rem; 
+    font-weight: bold; 
+    color: #333;
+    border-radius: 2px;
+}
+
+.form-group input {
+    width: 100%; 
+    padding: 0.8rem; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 16px; 
+    transition: border-color 0.3s; 
+}
+
+.form-group input:focus {
+    border-color: #007bff; 
+    outline: none; 
+}
+
+.form-group input:invalid {
+    border-color: red; 
+}
+.btn-primary {
+    background-color: #007bff;
+    color: #fff; 
+    border: none; 
+    border-radius: 4px; 
+    padding: 12px 20px; 
+    font-size: 16px;
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: background-color 0.3s, transform 0.2s; 
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; 
+    transform: translateY(-2px); 
+}
+
+.btn-primary:focus {
+    outline: none; 
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5); 
+}
+
+.btn-full {
+    width: 100%; 
+}
+
+@media (max-width: 600px) {
+    .btn-primary {
+        font-size: 14px; 
+        padding: 10px 15px; 
+    }
+}
