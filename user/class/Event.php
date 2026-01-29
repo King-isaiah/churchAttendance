@@ -5,17 +5,32 @@ class Event extends Database {
     
     public function getAllEvents() {
         try {
-            $sql = "
-                SELECT e.*, d.name as department_name, l.name as location_name
-                FROM events e
-                LEFT JOIN departments d ON e.department_id = d.id
-                LEFT JOIN locations l ON e.location_id = l.id
-                ORDER BY e.event_date DESC, e.event_time DESC
+            $sql = "SELECT events.*,events.description AS description,locations.name AS location,
+            attendance_methods.code AS code, categories.categories AS category, categories.color AS color  
+            FROM events LEFT JOIN attendance_methods ON events.attendance_method_id = attendance_methods.id 
+            LEFT JOIN categories ON events.category_id = categories.id 
+            LEFT JOIN locations ON events.location_id = locations.id ORDER BY event_date DESC
             ";
             return $this->fetchAll($sql);
         } catch (Exception $e) {
             error_log("Event getAll error: " . $e->getMessage());
             throw new Exception("Unable to retrieve events list");
+        }
+    }
+    public function getAllActivities() {
+        try {
+            $sql = "SELECT activities.*,activities.description AS description, activities.name AS activity,locations.name AS location,
+                attendance_methods.code AS code, statuses.name AS status, statuses.color AS color, categories.categories AS category FROM activities
+                LEFT JOIN attendance_methods ON  activities.attendance_method_id = attendance_methods.id 
+                LEFT JOIN statuses ON  activities.status_id = statuses.id 
+                LEFT JOIN locations ON activities.location_id = locations.id 
+                LEFT JOIN categories ON activities.category_id = categories.id
+                ORDER BY dayofactivity DESC, time DESC
+            ";
+            return $this->fetchAll($sql);
+        } catch (Exception $e) {
+            error_log("Activity getAll error: " . $e->getMessage());
+            return [];
         }
     }
     

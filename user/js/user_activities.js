@@ -260,24 +260,24 @@ class UserActivities {
                 </div>
                 
                 <div class="activity-footer">
-    ${activity.status !== 'Upcoming' ? `
-        ${activity.attendance_method === 'qr_code' ? `
-            <button class="btn-primary scan-btn" onclick="userActivities.openQRScanner(${activity.id})">
-                <i class="fas fa-qrcode"></i> Scan QR Code
-            </button>
-        ` : activity.attendance_method === 'numeric_code' ? `
-            <button class="btn-secondary" onclick="userActivities.enterNumericCode(${activity.id})">
-                <i class="fas fa-keyboard"></i> Enter Code
-            </button>
-        ` : ''}
-        
-        <button class="btn-outline" onclick="userActivities.viewActivityDetails(${activity.id})">
-            <i class="fas fa-info-circle"></i> Details
-        </button>
-    ` : `
-        <p style="color: #666; font-style: italic;">Attendance not available for upcoming activities</p>
-    `}
-</div>
+                    ${activity.status !== 'Upcoming' ? `
+                        ${activity.attendance_method === 'qr_code' ? `
+                            <button class="btn-primary scan-btn" onclick="userActivities.openQRScanner(${activity.id})">
+                                <i class="fas fa-qrcode"></i> Scan QR Code
+                            </button>
+                        ` : activity.attendance_method === 'numeric_code' ? `
+                            <button class="btn-secondary" onclick="userActivities.enterNumericCode(${activity.id})">
+                                <i class="fas fa-keyboard"></i> Enter Code
+                            </button>
+                        ` : ''}
+                        
+                        <button class="btn-outline" onclick="userActivities.viewActivityDetails(${activity.id})">
+                            <i class="fas fa-info-circle"></i> Details
+                        </button>
+                    ` : `
+                        <p style="color: #666; font-style: italic;">Attendance not available for upcoming activities</p>
+                    `}
+                </div>
             </div>
         `).join('');
     }
@@ -357,24 +357,7 @@ class UserActivities {
             }, 1000);
         });
 
-        // Actual implementation would be:
-        /*
-        try {
-            const response = await fetch('class/ApiHandler.php?entity=attendance&action=markWithCode', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    code: code,
-                    activity_id: this.currentActivityId
-                })
-            });
-            return await response.json();
-        } catch (error) {
-            throw new Error('Network error');
-        }
-        */
+        
     }
 
     async viewActivityDetails(activityId) {

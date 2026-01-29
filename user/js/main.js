@@ -1,17 +1,85 @@
-// Toastify Notification System
+
 function showError(message) {
     showToastify(message, 'error');
 }
 
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+// Utility functions
+
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+}
+function formatTime(timeString) {
+    if (!timeString) return 'N/A';
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+function formatDateTime(dateTimeString) {
+    if (!dateTimeString) return 'N/A';
+    return new Date(dateTimeString).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+function handleApiError(response, context = 'operation') {
+    console.error(`API Error in ${context}:`, response);
+    
+    switch (response.errorType) {
+        case 'validation':
+            showError(response.message);
+            break;
+            
+        case 'not_found':            
+            showError(response.message);
+            break;
+            
+        case 'server':
+        default:
+            showError('A server error occurred. Please try again.');
+            
+            // Log detailed error for developers
+            if (response.debugInfo) {
+                console.error('Debug Info:', response.debugInfo);
+            }
+            break;
+    }
+}
 function showSuccess(message) {
+    // alert('fucking work you fucking bastard')
     showToastify(message, 'success');
 }
 
 // Enhanced toastify function with more options
 function showToastify(message, type = 'info', duration = 5000) {
+    // alert('i am in the showTiastify fuunction ')
     const container = document.getElementById('toastifyContainer');
     if (!container) {
         console.error('Toastify container not found');
+        alert('is this where the problem is')
         return;
     }
 

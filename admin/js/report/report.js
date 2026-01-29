@@ -1,37 +1,377 @@
-function generateReport() {
-    // Get filter values
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    const department = document.getElementById('reportDepartment').value;
-    const activityType = document.getElementById('activityType').value;
-    
-    // Get all table rows (skip the header row)
-    const tableRows = document.querySelectorAll('.data-table tbody tr');
-    const reportData = [];
-
-    // Collect data from table
-    tableRows.forEach(row => {
-        // Skip empty rows or "no data" rows
-        if (row.classList.contains('no-data')) return;
+const attendanceData = [];
+const weeklyTrend = { labels: [], values: [] };
+const summary = { 
+    total_present: 0, 
+    total_absent: 0, 
+    total_activities: 0, 
+    avg_attendance_rate: 0 
+};
+const topDepartment = { department: 'N/A', attendance_rate: 0 };
+const departments = [];
+const activityTypes = [];
+async function loadInitialData() {
+    try {
+        // Load departments
+        const deptResponse = await fetch('class/ApiHandler.php?action=getAll&entity=departments');
+        const deptData = await deptResponse.json();
         
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 6) {
-            const rowData = {
-                date: cells[0].textContent.trim(),
-                activity: cells[1].textContent.trim(),
-                department: cells[2].textContent.trim(),
-                present: parseInt(cells[3].textContent.trim()),
-                absent: parseInt(cells[4].textContent.trim()),
-                attendanceRate: cells[5].querySelector('.progress-fill').textContent.trim()
-            };
-            reportData.push(rowData);
+        if (deptData.success) {
+            // showSuccess('succesfully gotten to department')
+            populateDepartments(deptData.data);
+        }
+
+        // Load activity types from activities
+        const activityResponse = await fetch('class/ApiHandler.php?action=getAll&entity=activities');
+        const activityData = await activityResponse.json();
+        
+        if (activityData.success) {
+            // showSuccess('succesfully gotten to activity')
+            populateSelect(activityData.data);
+        }
+        
+
+        const eventResponse = await fetch('class/ApiHandler.php?action=getAll&entity=events');
+        const eventData = await eventResponse.json();
+        
+        if (eventData.success) {
+            // showSuccess('succesfully gotten to event')
+            populateSelect(eventData.data);
+        }
+
+        // Load attendance data
+        await loadAttendanceData();
+        
+    } catch (error) {
+        console.error('Error loading initial data:', error);
+        showError('Failed to load initial data');
+    }
+}
+
+function populateDepartments(departments) {
+    const select = document.getElementById('department_id');
+    const currentDept = departments;
+    
+    departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept.id;
+        option.textContent = dept.name;
+        option.selected = (dept.name === currentDept);
+        select.appendChild(option);
+    });
+}
+
+    
+function populateSelect(activities) {
+    const select = document.getElementById('attendance_category_id');
+    const currentActivity = activityTypes;
+    
+    select.innerHTML = '';
+    
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'First Select A Category';
+    defaultOption.selected = (!currentActivity || currentActivity === '');
+    select.appendChild(defaultOption);
+    
+    // Create an array of unique activities by ID
+    const uniqueActivities = activities.reduce((acc, activity) => {
+        // Check if we already have this ID
+        if (!acc.find(item => item.id === activity.id)) {
+            acc.push({
+                id: activity.id,
+                displayText: activity.name || activity.title
+            });
+        }
+        return acc;
+    }, []);
+    
+    // Populate the select with options
+    uniqueActivities.forEach(activity => {
+        const option = document.createElement('option');
+        option.value = activity.id; 
+        option.textContent = activity.displayText;
+        option.selected = (activity.id.toString() === currentActivity.toString());
+        select.appendChild(option);
+    });
+}
+function getTableContainer(){
+    const tableContainer = document.getElementById('table-container');
+    content = ` <h3>Attendance Records</h3>
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="Search attendance records...">
+                    </div>
+                    <div class="results-count">
+                        Showing <span id="results-count">0</span> of <span id="total-count">0</span> records
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category Type</th>
+                            <th>Category Name</th>
+                            <th>Department</th>
+                            <th>Username</th>
+                            <th>FirstName</th>
+                            <th>LastName</th>
+                            <th>Status</th>                
+                            <th>Attendance Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody">
+                        <tr>
+                            <td colspan="6" class="no-data">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+    
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    
+                </div>
+                <div class="page-info" id="page-info">
+                    
+                </div>
+    `
+    tableContainer.innerHTML = content
+}
+getTableContainer()
+function getFilters(){
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDate = urlParams.get('start_date') || getFirstDayOfMonth();
+    const endDate = urlParams.get('end_date') || getCurrentDate();
+    const reportFilter = document.getElementById('report-filters');
+  
+
+    // Helper functions
+    function getFirstDayOfMonth() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+    }
+
+    function getCurrentDate() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    // console.log('Start Date:', startDate);
+    // console.log('End Date:', endDate);
+    content = `<div class="report-filters" id="report-filters">
+            <div class="filter-group">
+                <label>Date Range:</label>
+                <input type="date" id="startDate" value="${startDate}">
+                <span>to</span>
+                <input type="date" id="endDate" value="${endDate}">
+            </div>
+            <div class="filter-group">
+                <label>Department:</label>
+                <select id="department_id">
+                    <option value="all">All Departments</option>
+                    
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Category Type:</label>
+                <select id="attendance_category">
+                    <option value="all">All Categories</option>
+                    <option value="activity">Activity</option>
+                    <option value="event">Events</option>           
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Category Associate:</label>
+                <select id="attendance_category_id">
+                    <option>First select  category</option>                     
+                </select>
+            </div>
+            <div class="filter-group">
+                <button class="btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+            </div>
+        </div>`
+    reportFilter.innerHTML = content
+    const attendance_category = document.getElementById('attendance_category');
+    attendance_category.addEventListener('change', function() {
+        const selectedValue = this.value;
+        const categorySelect = document.getElementById('attendance_category_id');
+        
+        // Get the first option (default option)
+        const defaultOption = categorySelect.querySelector('option:first-child');
+        
+        if (selectedValue === 'event') {
+            defaultOption.textContent = 'All Events';
+            defaultOption.value = 'all'; 
+        } else if (selectedValue === 'activity') {
+            defaultOption.textContent = 'All Activities';
+            defaultOption.value = 'all'; 
+        } else {
+            defaultOption.textContent = 'First select category';
+            defaultOption.value = ''; 
+        }
+    })
+    
+
+}
+getFilters()
+
+async function loadAttendanceData() {
+    try {   
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;    
+        const department_id = document.getElementById('department_id').value;
+        const attendance_category = document.getElementById('attendance_category').value;
+        const attendance_category_id = document.getElementById('attendance_category_id').value;
+    
+        
+        const jsonData = {
+            start_date: startDate,
+            end_date: endDate,
+            department_id: department_id,
+            attendance_category: attendance_category,
+            attendance_category_id: attendance_category_id || 'all'
+        };
+        // showSuccess(jsonData);
+        
+        const url = 'class/ApiHandler.php?action=special&entity=reports';
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonData)
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            // showSuccess('succesfully worked');
+            allData = result.data;
+            filterData();
+            updateSummary();
+            loadWeeklyTrend();
+        } else {
+            showError('failed to work');
+            throw new Error(result.message || 'Failed to load attendance data');
+        }
+    } catch (error) {
+        console.error('Error loading attendance data:', error);
+        showError('Failed to load attendance data');
+    }
+}
+function renderTable() {
+    const tbody = document.getElementById('attendanceTableBody');
+    
+    if (!tbody) return;
+    
+    if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="no-data">No data found</td></tr>`;
+        return;
+    }
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+    
+    tbody.innerHTML = filteredData.slice(startIndex, endIndex).map((item, index) => {
+        const globalIndex = startIndex + index + 1;
+        return `<tr>
+            <td>${formatDate(item.created_at)}</td>                
+            <td>${escapeHtml(item.attendance_category)}</td>
+            <td>${escapeHtml(item.activity_name)}</td>
+            <td>${escapeHtml(item.department)}</td>
+            <td>${escapeHtml(item.user_name)}</td>
+            <td>${escapeHtml(item.first_name)}</td>
+            <td>${escapeHtml(item.last_name)}</td>
+            <td>${item.status}</td>                
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${item.attendance_rate}%">
+                        ${item.attendance_rate}%
+                    </div>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function updateSummary() {
+    if (allData.length === 0) {
+        document.getElementById('totalPresent').textContent = '0';
+        document.getElementById('avgAttendance').textContent = '0%';
+        document.getElementById('topDepartment').textContent = 'N/A';
+        document.getElementById('topDepartmentRate').textContent = '0% attendance';
+        document.getElementById('totalCategory').textContent = '0'; 
+        document.getElementById('totalCategoryNo').textContent = '0';
+        return;
+    }
+
+    // Calculate basic statistics
+    const totalPresent = allData.reduce((sum, item) => sum + parseInt(item.present_count), 0);
+    const totalAbsent = allData.reduce((sum, item) => sum + parseInt(item.absent_count), 0);
+    const avgAttendance = allData.length > 0 ? 
+        (allData.reduce((sum, item) => sum + parseFloat(item.attendance_rate), 0) / allData.length).toFixed(1) : 0;
+    
+    // Find top department
+    const departmentRates = {};
+    allData.forEach(item => {
+        if (item.department && item.attendance_rate) {
+            if (!departmentRates[item.department]) {
+                departmentRates[item.department] = [];
+            }
+            departmentRates[item.department].push(parseFloat(item.attendance_rate));
         }
     });
+
+    let topDept = 'N/A';
+    let topRate = 0;
+
+    Object.keys(departmentRates).forEach(dept => {
+        const avgRate = departmentRates[dept].reduce((a, b) => a + b) / departmentRates[dept].length;
+        if (avgRate > topRate) {
+            topRate = avgRate;
+            topDept = dept;
+        }
+    });
+
+    const uniqueCategories = new Set();
+    allData.forEach(item => {
+        if (item.attendance_category_id) {           
+            uniqueCategories.add(item.attendance_category_id);
+        }
+    });
+    const totalDistinctCategories = uniqueCategories.size;
+
+    const uniqueAttendanceIds = new Set();
+    allData.forEach(item => {
     
-    // Apply filters
-    let filteredData = reportData.filter(item => {
+        if (item.unique_id) {
+            uniqueAttendanceIds.add(item.unique_id);
+        } 
+    });
+    
+    const totalDistinctAttendanceRecords = uniqueAttendanceIds.size;
+
+    document.getElementById('totalPresent').textContent = totalPresent.toLocaleString();
+    document.getElementById('avgAttendance').textContent = avgAttendance + '%';
+    document.getElementById('topDepartment').textContent = topDept;
+    document.getElementById('topDepartmentRate').textContent = topRate.toFixed(1) + '% attendance';
+    document.getElementById('totalCategory').textContent = totalDistinctCategories.toString(); 
+    document.getElementById('totalCategoryNo').textContent = totalDistinctAttendanceRecords.toString()  + ' memebers in Toatal'; 
+}
+function generateReport() { 
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const department_id = document.getElementById('department_id').value;
+    const attendance_category = document.getElementById('attendance_category').value;
+    const attendance_category_id = document.getElementById('attendance_category_id').value;
+    
+    let reportData = filteredData || allData || [];
+    
+    // Apply additional filters if needed
+    reportData = reportData.filter(item => {
         // Date filter
-        const itemDate = new Date(item.date);
+        const itemDate = new Date(item.created_at);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
         
@@ -39,20 +379,87 @@ function generateReport() {
         if (end && itemDate > end) return false;
         
         // Department filter
-        if (department && item.department !== department && item.department !== 'All') return false;
+        if (department_id && department_id !== 'all' && 
+            item.department_id != department_id && 
+            item.department !== 'All') return false;
         
-        // Activity type filter
-        if (activityType && !item.activity.toLowerCase().includes(activityType.toLowerCase())) return false;
+        // Attendance category filter
+        if (attendance_category && attendance_category !== 'all' && 
+            item.attendance_category !== attendance_category) return false;
+        
+        // Specific activity/event filter
+        if (attendance_category_id && attendance_category_id !== 'all' && 
+            item.attendance_category_id != attendance_category_id) return false;
         
         return true;
     });
 
     // Calculate statistics
-    const totalPresent = filteredData.reduce((sum, item) => sum + item.present, 0);
-    const totalAbsent = filteredData.reduce((sum, item) => sum + item.absent, 0);
-    const totalActivities = filteredData.length;
-    const averageAttendance = totalActivities > 0 ? Math.round(totalPresent / totalActivities) : 0;
+    const totalRecords = reportData.length;
+    
+    // Count present/absent per unique date+category combination
+    const attendanceByDate = {};
+    
+    reportData.forEach(item => {
+        const key = `${item.created_at}_${item.attendance_category_id}_${item.department_id}`;
+        if (!attendanceByDate[key]) {
+            attendanceByDate[key] = {
+                date: item.created_at,
+                category_type: item.attendance_category,
+                activity_name: item.activity_name,
+                department: item.department,
+                first_name: item.first_name,
+                present: 0,
+                absent: 0,
+                total: 0
+            };
+        }
         
+        if (item.status === 'Present') {
+            attendanceByDate[key].present++;
+        } else if (item.status === 'Absent') {
+            attendanceByDate[key].absent++;
+        }
+        attendanceByDate[key].total++;
+    });
+
+    // Convert to array and calculate attendance rates
+    const summaryData = Object.values(attendanceByDate).map(item => {
+        const attendanceRate = item.total > 0 ? Math.round((item.present / item.total) * 100) : 0;
+        return {
+            ...item,
+            attendance_rate: attendanceRate
+        };
+    });
+
+    // Calculate overall statistics
+    const totalPresent = summaryData.reduce((sum, item) => sum + item.present, 0);
+    const totalAbsent = summaryData.reduce((sum, item) => sum + item.absent, 0);
+    const totalActivities = summaryData.length;
+    const totalParticipants = totalPresent + totalAbsent;
+    const averageAttendance = totalParticipants > 0 ? Math.round((totalPresent / totalParticipants) * 100) : 0;
+    
+    // Get category type display text
+    const categoryTypeDisplay = attendance_category === 'activity' ? 'Activity' :
+                              attendance_category === 'event' ? 'Event' :
+                              'Activity/Event';
+    
+    // Get department display text
+    const departmentSelect = document.getElementById('department_id');
+    const selectedDeptOption = departmentSelect.options[departmentSelect.selectedIndex];
+    const departmentDisplay = department_id === 'all' ? 'All Departments' : 
+                            selectedDeptOption ? selectedDeptOption.textContent : department_id;
+    
+    // Get activity/event display text
+    let activityDisplay = 'All';
+    if (attendance_category_id && attendance_category_id !== 'all') {
+        const categorySelect = document.getElementById('attendance_category_id');
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        if (selectedOption) {
+            activityDisplay = selectedOption.textContent;
+        }
+    }
+
     // Generate report HTML
     const reportHTML = `
         <div class="report-modal">
@@ -64,8 +471,9 @@ function generateReport() {
             <div class="report-filters-summary">
                 <h3>Report Criteria</h3>
                 <p><strong>Date Range:</strong> ${startDate || 'Any'} to ${endDate || 'Any'}</p>
-                <p><strong>Department:</strong> ${department || 'All Departments'}</p>
-                <p><strong>Activity Type:</strong> ${activityType || 'All Activities'}</p>
+                <p><strong>Department:</strong> ${departmentDisplay}</p>
+                <p><strong>Category Type:</strong> ${attendance_category === 'all' ? 'All Categories' : categoryTypeDisplay}</p>
+                <p><strong>Specific ${categoryTypeDisplay}:</strong> ${activityDisplay}</p>
             </div>
             
             <div class="report-statistics">
@@ -81,11 +489,11 @@ function generateReport() {
                     </div>
                     <div class="stat-item">
                         <span class="stat-number">${totalActivities}</span>
-                        <span class="stat-label">Activities</span>
+                        <span class="stat-label">Total ${categoryTypeDisplay}s</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">${averageAttendance}</span>
-                        <span class="stat-label">Average Attendance</span>
+                        <span class="stat-number">${averageAttendance}%</span>
+                        <span class="stat-label">Average Attendance Rate</span>
                     </div>
                 </div>
             </div>
@@ -96,22 +504,30 @@ function generateReport() {
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Activity</th>
-                            <th>Department</th>
-                            <th>Present</th>
-                            <th>Absent</th>
+                            <th>Category Type</th>
+                            <th>Activity/Event</th>
+                            <th>Department</th>                            
+                            <th>Members Name</th>                            
+                            <th>Total Members</th>
                             <th>Attendance Rate</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${filteredData.map(item => `
+                        ${summaryData.map(item => `
                             <tr>
-                                <td>${item.date}</td>
-                                <td>${item.activity}</td>
-                                <td>${item.department}</td>
-                                <td>${item.present}</td>
-                                <td>${item.absent}</td>
-                                <td>${item.attendanceRate}</td>
+                                <td>${formatDate(item.date)}</td>
+                                <td>${item.category_type === 'activity' ? 'Activity' : 'Event'}</td>
+                                <td>${escapeHtml(item.activity_name)}</td>
+                                <td>${escapeHtml(item.department)}</td>
+                                <td>${escapeHtml(item.first_name)}</td>                              
+                                <td>${item.total}</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${item.attendance_rate}%">
+                                            ${item.attendance_rate}%
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -134,188 +550,8 @@ function generateReport() {
     reportModal.className = 'report-modal-overlay';
     reportModal.innerHTML = reportHTML;
     document.body.appendChild(reportModal);
-        
-    // Add styles if not already added
-    if (!document.getElementById('report-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'report-styles';
-        styles.textContent = `
-            .report-modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                padding: 20px;
-            }
-            
-            .report-modal {
-                background: white;
-                border-radius: 12px;
-                padding: 2rem;
-                max-width: 90%;
-                max-height: 90vh;
-                overflow-y: auto;
-                width: 800px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            }
-            
-            .report-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 1.5rem;
-                padding-bottom: 1rem;
-                border-bottom: 2px solid #8786E3;
-            }
-            
-            .report-header h2 {
-                margin: 0;
-                color: #8786E3;
-            }
-            
-            .report-date {
-                color: #6c757d;
-                font-size: 0.9rem;
-            }
-            
-            .report-filters-summary {
-                background: #f8f9fa;
-                padding: 1rem;
-                border-radius: 8px;
-                margin-bottom: 1.5rem;
-            }
-            
-                .report-filters-summary h3 {
-                    margin: 0 0 0.5rem 0;
-                    color: #495057;
-                }
-                
-                .report-statistics {
-                    margin-bottom: 1.5rem;
-                }
-                
-                .report-statistics h3 {
-                    margin: 0 0 1rem 0;
-                    color: #495057;
-                }
-                
-                .stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 1rem;
-                }
-                
-                .stat-item {
-                    background: white;
-                    padding: 1rem;
-                    border-radius: 8px;
-                    text-align: center;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    border: 1px solid #e9ecef;
-                }
-                
-                .stat-number {
-                    display: block;
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    color: #8786E3;
-                    margin-bottom: 0.3rem;
-                }
-                
-                .stat-label {
-                    font-size: 0.8rem;
-                    color: #6c757d;
-                }
-                
-                .report-details {
-                    margin-bottom: 1.5rem;
-                }
-                
-                .report-details h3 {
-                    margin: 0 0 1rem 0;
-                    color: #495057;
-                }
-                
-                .report-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 0.9rem;
-                }
-                
-                .report-table th {
-                    background: #f8f9fa;
-                    padding: 0.75rem;
-                    text-align: left;
-                    font-weight: 600;
-                    color: #495057;
-                    border-bottom: 2px solid #dee2e6;
-                }
-                
-                .report-table td {
-                    padding: 0.75rem;
-                    border-bottom: 1px solid #e9ecef;
-                }
-                
-                .report-table tr:hover {
-                    background: #f8f9fa;
-                }
-                
-                .report-actions {
-                    display: flex;
-                    gap: 1rem;
-                    justify-content: flex-end;
-                }
-                
-                @media (max-width: 768px) {
-                    .report-modal {
-                        padding: 1rem;
-                        width: 95%;
-                    }
-                
-                    .report-header {
-                        flex-direction: column;
-                            align-items: flex-start;
-                            gap: 0.5rem;
-                        }
-                        
-                        .stats-grid {
-                            grid-template-columns: repeat(2, 1fr);
-                        }
-                        
-                        .report-actions {
-                            flex-direction: column;
-                        }
-                    }
-                    
-            @media print {
-                .report-modal-overlay {
-                    position: static;
-                    background: none;
-                    padding: 0;
-                }
-                
-                .report-modal {
-                    box-shadow: none;
-                    max-width: none;
-                    max-height: none;
-                }
-                
-                .report-actions {
-                    display: none;
-                }
-            }
-        `;
-        document.head.appendChild(styles);
-    }
 }
 
-    // Helper functions for the report modal
 function printReport() {
     const printContent = document.querySelector('.report-modal').innerHTML;
     const originalContent = document.body.innerHTML;
@@ -354,7 +590,7 @@ let chartVisible = false;
     
 // Pagination variables
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 5;
 let allData = [];
 let filteredData = [];
 let currentSearchTerm = '';
@@ -364,151 +600,30 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSearchAndPagination();
 });
 
-async function loadInitialData() {
+
+
+
+
+
+
+async function loadWeeklyTrend() {
     try {
-        // Load departments
-        const deptResponse = await fetch('class/ApiHandler.php?action=getAll&entity=departments');
-        const deptData = await deptResponse.json();
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
         
-        if (deptData.success) {
-            populateDepartments(deptData.data);
-        }
-
-        // Load activity types from activities
-        const activityResponse = await fetch('class/ApiHandler.php?action=getAll&entity=activities');
-        const activityData = await activityResponse.json();
+        const params = new URLSearchParams();
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
         
-        if (activityData.success) {
-            populateActivityTypes(activityData.data);
-        }
-
-        // Load attendance data
-        await loadAttendanceData();
-        
+        // Since we don't have a direct API for weekly trend, we'll calculate from existing data
+        // Or you can create a separate method in Report class if needed
+        initializeChart();
     } catch (error) {
-        console.error('Error loading initial data:', error);
-        showError('Failed to load initial data');
+        console.error('Error loading weekly trend:', error);
     }
 }
 
-function populateDepartments(departments) {
-    const select = document.getElementById('reportDepartment');
-    const currentDept = '<?php echo $department; ?>';
-    
-    departments.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept.name;
-        option.textContent = dept.name;
-        option.selected = (dept.name === currentDept);
-        select.appendChild(option);
-    });
-}
 
-function populateActivityTypes(activities) {
-    const select = document.getElementById('activityType');
-    const currentActivity = '<?php echo $activityType; ?>';
-    const uniqueActivities = [...new Set(activities.map(activity => activity.name))];
-    
-    uniqueActivities.forEach(activity => {
-        if (activity) {
-            const option = document.createElement('option');
-            option.value = activity;
-            option.textContent = activity;
-            option.selected = (activity === currentActivity);
-            select.appendChild(option);
-        }
-    });
-}
-
-    async function loadAttendanceData() {
-        try {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            const department = document.getElementById('reportDepartment').value;
-            const activityType = document.getElementById('activityType').value;
-            
-            // Build API URL with filters
-            const params = new URLSearchParams();
-            if (startDate) params.append('start_date', startDate);
-            if (endDate) params.append('end_date', endDate);
-            if (department) params.append('department', department);
-            if (activityType) params.append('activity_type', activityType);
-            
-            const response = await fetch(`class/ApiHandler.php?action=getAll&entity=attendance&${params.toString()}`);
-            const result = await response.json();
-            
-            if (result.success) {
-                allData = result.data;
-                filterData();
-                updateSummary();
-                loadWeeklyTrend();
-            } else {
-                throw new Error(result.message || 'Failed to load attendance data');
-            }
-        } catch (error) {
-            console.error('Error loading attendance data:', error);
-            showError('Failed to load attendance data');
-        }
-    }
-
-    async function loadWeeklyTrend() {
-        try {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            
-            const params = new URLSearchParams();
-            if (startDate) params.append('start_date', startDate);
-            if (endDate) params.append('end_date', endDate);
-            
-            // Since we don't have a direct API for weekly trend, we'll calculate from existing data
-            // Or you can create a separate method in Report class if needed
-            initializeChart();
-        } catch (error) {
-            console.error('Error loading weekly trend:', error);
-        }
-    }
-
-    function updateSummary() {
-        if (allData.length === 0) {
-            document.getElementById('totalPresent').textContent = '0';
-            document.getElementById('avgAttendance').textContent = '0%';
-            document.getElementById('topDepartment').textContent = 'N/A';
-            document.getElementById('topDepartmentRate').textContent = '0% attendance';
-            return;
-        }
-
-        const totalPresent = allData.reduce((sum, item) => sum + parseInt(item.present_count), 0);
-        const totalAbsent = allData.reduce((sum, item) => sum + parseInt(item.absent_count), 0);
-        const avgAttendance = allData.length > 0 ? 
-            (allData.reduce((sum, item) => sum + parseFloat(item.attendance_rate), 0) / allData.length).toFixed(1) : 0;
-        
-        // Find top department
-        const departmentRates = {};
-        allData.forEach(item => {
-            if (item.department && item.attendance_rate) {
-                if (!departmentRates[item.department]) {
-                    departmentRates[item.department] = [];
-                }
-                departmentRates[item.department].push(parseFloat(item.attendance_rate));
-            }
-        });
-
-        let topDept = 'N/A';
-        let topRate = 0;
-
-        Object.keys(departmentRates).forEach(dept => {
-            const avgRate = departmentRates[dept].reduce((a, b) => a + b) / departmentRates[dept].length;
-            if (avgRate > topRate) {
-                topRate = avgRate;
-                topDept = dept;
-            }
-        });
-
-        document.getElementById('totalPresent').textContent = totalPresent.toLocaleString();
-        document.getElementById('avgAttendance').textContent = avgAttendance + '%';
-        document.getElementById('topDepartment').textContent = topDept;
-        document.getElementById('topDepartmentRate').textContent = topRate.toFixed(1) + '% attendance';
-    }
 
     function initializeChart() {
         const ctx = document.getElementById('attendanceChart').getContext('2d');
@@ -673,37 +788,7 @@ function populateActivityTypes(activities) {
         updateResultsCount();
     }
     
-    function renderTable() {
-        const tbody = document.getElementById('attendanceTableBody');
-        
-        if (!tbody) return;
-        
-        if (filteredData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="no-data">No data found</td></tr>`;
-            return;
-        }
-        
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
-        
-        tbody.innerHTML = filteredData.slice(startIndex, endIndex).map((item, index) => {
-            const globalIndex = startIndex + index + 1;
-            return `<tr>
-                <td>${formatDate(item.date)}</td>
-                <td>${escapeHtml(item.activity_name)}</td>
-                <td>${escapeHtml(item.department)}</td>
-                <td>${item.present_count}</td>
-                <td>${item.absent_count}</td>
-                <td>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${item.attendance_rate}%">
-                            ${item.attendance_rate}%
-                        </div>
-                    </div>
-                </td>
-            </tr>`;
-        }).join('');
-    }
+    
     
     function renderPagination() {
         const pagination = document.getElementById('pagination');
@@ -784,22 +869,6 @@ function populateActivityTypes(activities) {
         }
     }
     
-    // Utility functions
-    function formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric' 
-        });
-    }
-    
-    function escapeHtml(unsafe) {
-        return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
+   
 
    

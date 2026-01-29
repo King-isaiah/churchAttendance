@@ -6,16 +6,14 @@
         
         public function getAllCategory() {
             try {
-                $sql = "
-                    SELECT * FROM categories 
-                    ORDER BY created_at DESC
-                ";
+                $sql = "SELECT * FROM categories";
                 return $this->fetchAll($sql);
             } catch (Exception $e) {
                 error_log("Category getAll error: " . $e->getMessage());
                 return [];
             }
         }
+        
         
         public function getCategory($id) {
             try {

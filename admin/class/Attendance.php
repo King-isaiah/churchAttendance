@@ -42,13 +42,66 @@ class Attendance extends Database {
     }
     
     public function createAttendance($data) {
-        try {
-            return $this->insert('attendance', $data);
-        } catch (Exception $e) {
-            error_log("Attendance create error: " . $e->getMessage());
-            return false;
+    try {
+        // 1. First, validate required fields
+        $this->validateAttendanceData($data);
+        
+        // 2. Check if attendance already exists
+        $existingAttendance = $this->checkAttendanceExists($data);
+        
+        if ($existingAttendance) {
+            // Attendance already exists - return a special result or throw an exception
+            throw new Exception("Attendance already recorded for this activity", 409);
+        }
+        
+        // 3. If no duplicate found, proceed with insertion
+        return $this->insert('attendance', $data);
+        
+    } catch (Exception $e) {
+        error_log("Attendance create error: " . $e->getMessage() . " | Data: " . json_encode($data));
+        throw $e; 
+    }
+}
+
+private function validateAttendanceData($data) {
+    $required = ['unique_id', 'dayofactivity', 'check_in_time', 'status'];
+    
+    foreach ($required as $field) {
+        if (empty($data[$field])) {
+            throw new Exception("$field is this you here is required", 400);
         }
     }
+}
+
+private function checkAttendanceExists($data) {
+    try {
+        // Check based on multiple criteria to avoid duplicates
+        $sql = "SELECT id FROM attendance WHERE 
+                unique_id = ? AND 
+                attendance_category = ? AND 
+                attendance_category_id = ? AND 
+                dayofactivity = ? AND 
+                status = ?";
+        
+        $params = [
+            $data['unique_id'],
+            $data['attendance_category'], 
+            $data['attendance_category_id'],
+            $data['dayofactivity'],
+            $data['status']
+        ];
+        
+        $result = $this->fetchOne($sql, $params);
+        
+        // Return true if attendance already exists
+        return !empty($result);
+        
+    } catch (Exception $e) {
+        error_log("Attendance check exists error: " . $e->getMessage());
+        
+        return false;
+    }
+}
     
     public function updateAttendance($id, $data) {
         try {

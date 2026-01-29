@@ -105,6 +105,7 @@
             const truncatedTitle = truncateString(event.title || '', 5);
             const truncatedDescription = event.description ? truncateString(event.description, 5) : '';
             const truncatedLocation = truncateString(event.location_name || 'N/A', 5);
+            const truncatedCategory = truncateString(event.categories || 'N/A', 5);
             const truncatedDepartment = truncateString(departmentName, 5);
             const truncatedTime = formatTime(event.event_time);
             const truncatedTimeShort = truncateString(truncatedTime, 5);
@@ -173,7 +174,7 @@
         detailsContainer.innerHTML = `
             <div class="event-details">
                 <div class="detail-row">
-                    <label>Event Title:</label>
+                    <label>Event donfTitle:</label>
                     <span>${escapeHtml(event.title || 'N/A')}</span>
                 </div>
                 <div class="detail-row">
@@ -191,6 +192,10 @@
                 <div class="detail-row">
                     <label>Location:</label>
                     <span>${escapeHtml(event.location_name || 'N/A')}</span>
+                </div>
+                <div class="detail-row">
+                    <label>Category:</label>
+                    <span>${escapeHtml(event.categories || 'N/A')}</span>
                 </div>
                 <div class="detail-row">
                     <label>Department:</label>
@@ -273,8 +278,10 @@
                 document.getElementById('eventDate').value = event.event_date || '';
                 document.getElementById('eventTime').value = event.event_time || '';
                 document.getElementById('eventLocation').value = event.location_id || '';
+                document.getElementById('eventCategory').value = event.categories || '';
                 document.getElementById('eventDepartment').value = event.department_id || '';
                 document.getElementById('expectedAttendance').value = event.expected_attendance || '';
+                document.getElementById('eventCategory').value = event.categories || '';
             } else {
                 handleApiError(data, 'load event data');
             }

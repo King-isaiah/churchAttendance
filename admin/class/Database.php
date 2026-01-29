@@ -130,21 +130,21 @@ protected function insert($table, $data) {
     }
 }
 
-protected function update($table, $data, $where, $whereParams) {
-    try {
-        $setClause = implode(' = ?, ', array_keys($data)) . ' = ?';
-        $values = array_merge(array_values($data), $whereParams);
-        
-        $sql = "UPDATE $table SET $setClause WHERE $where";
-        
-        $stmt = $this->executeQuery($sql, $values);
-        return $stmt->rowCount();
-        
-    } catch (PDOException $e) {
-        // Let classifyError handle ALL errors - it will throw the appropriate exception
-        $this->classifyError($e);
-    }
-}
+        protected function update($table, $data, $where, $whereParams) {
+            try {
+                $setClause = implode(' = ?, ', array_keys($data)) . ' = ?';
+                $values = array_merge(array_values($data), $whereParams);
+                
+                $sql = "UPDATE $table SET $setClause WHERE $where";
+                
+                $stmt = $this->executeQuery($sql, $values);
+                return $stmt->rowCount();
+                
+            } catch (PDOException $e) {
+                // Let classifyError handle ALL errors - it will throw the appropriate exception
+                $this->classifyError($e);
+            }
+        }
         protected function delete($table, $where, $params) {
             $sql = "DELETE FROM $table WHERE $where";
             

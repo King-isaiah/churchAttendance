@@ -42,6 +42,55 @@ class Member extends Database {
         }
     }
     
+    public function createMember($data) {
+        try {
+            // Validate required fields
+            $this->validateMemberData($data);
+            
+            // Generate unique_id
+            $random_id = rand(time(), 10000000);
+            $data['unique_id'] = $random_id;
+            
+            // $fullname = $data['first_name'] . $data['last_name'];
+            // $randomLetters = substr(str_shuffle($fullname), 0, 2);
+           
+            try {
+               
+                $memberTitle = $data['first_name'] ?? '';
+                $eventDescription = $data['first_name'] . ' ' . 'has joined your department workforce.';                          
+                $notification = new Notification();
+                error_log("Creating notification for newMember: " . $memberTitle);
+                $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
+                $defs = [
+                    'title' => $memberTitle,                
+                    'message' => $eventDescription,
+                    'notification_type'=> 'member',
+                    'department_id'=> $data['department_id'],
+                    'expires_at' =>  $expiresAt  
+                ];
+                $result = $notification->createNotification($defs);
+               
+                error_log("Notification result: " . print_r($result, true));
+                
+            } catch (Exception $e) {
+                error_log("Failed to create notification for event: " . $e->getMessage());
+            }
+            
+            // Set default values
+            $data['created_at'] = date('Y-m-d H:i:s');
+            
+            $membersP = $this->insert('members', $data);
+            return [
+                'members' => $membersP,
+                'notification_result' => $result
+            ];
+        
+
+        } catch (Exception $e) {
+            error_log("Member create error: " . $e->getMessage() . " | Data: " . json_encode($data));
+            throw $e;
+        }
+    }
     // public function createMember($data) {
     //     try {
     //         // Validate required fields
@@ -57,24 +106,7 @@ class Member extends Database {
     //     }
     // }
 
-    public function createMember($data) {
-        try {
-            // Validate required fields
-            $this->validateMemberData($data);
-            
-            // Generate unique_id
-            $random_id = rand(time(), 10000000);
-            $data['unique_id'] = $random_id;
-            
-            // Set default values
-            $data['created_at'] = date('Y-m-d H:i:s');
-            
-            return $this->insert('members', $data);
-        } catch (Exception $e) {
-            error_log("Member create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-            throw $e;
-        }
-    }
+   
     
     public function updateMember($id, $data) {
         try {

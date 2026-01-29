@@ -17,7 +17,297 @@ class UserHeader {
         this.setupAnimations();
         this.loadUserData();
         this.applyInitialNavState();       
+        // this.trackAttendanceLocation();    
+        this.trackActivity();    
     }
+    
+
+
+   
+    async trackActivity() {        
+        try {   
+            // Function to calculate distance in METERS
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371000; // Earth's radius in METERS (6371km = 6371000m)
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = 
+                    Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const distanceMeters = R * c; // Distance in meters
+                
+                return distanceMeters;
+            }    
+           
+            function getCurrentTime() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                
+                return `${hours}:${minutes}:${seconds}`; // Returns "14:30:45"
+            }
+
+            const time = getCurrentTime();
+        
+            const response = await fetch(`class/ApiHandler.php?entity=activities&action=getOthers`);
+            // const response = await fetch(`class/ApiHandler.php?entity=activities&action=getOthers&department=${departmentId}`);             
+            const data = await response.json();
+          
+            if (data.success) {                  
+                if (!data.data.length > 0){
+                    showError('it is not more than one')
+                    return false;
+                }else{
+                    showSuccess('it is more than 1');
+                    showSuccess(data.data.length );
+                    const userInfo = await this.trackUserInfo();
+                    data.data.forEach(activity => {
+                        let activityId = activity.id; 
+                        let activityName = activity.name; 
+                        let activityCategoryId = activity.category_id;
+                        let activityDayofactivity = activity.dayofactivity;
+                        let activityAttendance_method_id = activity.attendance_method_id;
+                        let activityTime = activity.time;
+                        let activityLocationId = activity.location_id;
+                        let activityTimeIn = activity.time;
+                        let activityLatitude = activity.latitude;
+                        let activityLongtitude = activity.longtitude;
+                        
+                        console.log('Activity:', activityName);
+                        console.log('Activity longtitude:', activityLongtitude);
+                        console.log('Activity latitude:', activityLatitude);
+                        console.log('Activity locationid:', activityLocationId);
+                        console.log('Activity methodid:', activityAttendance_method_id);
+                        // console.log('Activity latitude:', activityLatitude);
+
+                        const distance = calculateDistance(                            
+                            userInfo.latitude, userInfo.longitude,
+                            activityLatitude, activityLongtitude
+                        );
+                        
+                        console.log(`Distance to "${activityName}": ${distance.toFixed(2)} meters`);
+                        
+                        
+                        if (distance <= 100) {
+                            showSuccess(`You are at "${activityName}" location! (${distance.toFixed(0)}m away)`); 
+
+                            const formData = {         
+                                department_id: document.getElementById('department_id').value,
+                                attendance_category: 'activity',
+                                attendance_category_id: activityId,
+                                unique_id: document.getElementById('unique_id').value,                                           
+                                dayofactivity: activityDayofactivity,
+                                check_in_time: time,                                
+                                location_id: activityLocationId,
+                                attendance_method_id: activityAttendance_method_id,                                
+                                status: 'present',
+                            };
+                            // Send to API
+                            fetch('class/ApiHandler.php?entity=attendance&action=create', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(formData)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showSuccess('Attendance successfully!', 'success');
+                                  
+                                } else {
+                                    showError('Error: ' + data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                showError('Network error: ' + error, 'error');
+                            });
+                            
+                        } else {
+                            showError(`You are not at "${activityName}" location (${distance.toFixed(0)}m away)`); 
+                        }
+                    });
+                    
+
+
+                    
+                
+            
+                    console.log('User latitude:', userInfo.latitude);
+                    console.log('User longtitude:', userInfo.longitude);
+                    // console.log('Full userInfo:', userInfo);
+                }
+            } else {
+                showError('Something went wrong. Cnt dvlp');
+                
+            }
+            
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            throw new Error('Failed to fetch activities: ' + error.message);
+        }
+        
+    }
+    
+
+async trackUserInfo() {
+    try {
+        // First try to get high-accuracy GPS coordinates
+        const position = await this.getCurrentPosition();
+        
+        const userInfo = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy, // Important: check this!
+            altitude: position.coords.altitude,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            heading: position.coords.heading,
+            speed: position.coords.speed,
+            timestamp: new Date(position.timestamp).toISOString(),
+            source: 'gps', // Mark that this is GPS data
+            userAgent: navigator.userAgent
+        };
+        
+        console.log('GPS User Information:', userInfo);
+        
+        // Check if accuracy is good enough (in meters)
+        if (userInfo.accuracy > 100) {
+            console.warn(`GPS accuracy is ${userInfo.accuracy}m, may not be precise enough for 100m check`);
+        }
+        
+        return userInfo;
+    } catch (gpsError) {
+        console.error('GPS Error:', gpsError);
+        // Fallback to IP geolocation (less accurate)
+        return this.getIPLocation();
+    }
+}
+
+getCurrentPosition() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported'));
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            resolve,
+            reject,
+            {
+                enableHighAccuracy: true, // Request GPS if available
+                timeout: 10000, // Wait up to 10 seconds
+                maximumAge: 0 // Don't use cached position
+            }
+        );
+    });
+}
+
+async getIPLocation() {
+    try {
+        const response = await fetch('http://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,timezone,query');
+        const locationData = await response.json();
+        
+        if (locationData.status !== 'success') {
+            throw new Error(locationData.message || 'Failed to get location');
+        }
+        
+        return {
+            latitude: parseFloat(locationData.lat),
+            longitude: parseFloat(locationData.lon),
+            accuracy: 50000, // IP geolocation accuracy is typically 5-50km
+            city: locationData.city,
+            region: locationData.regionName,
+            country: locationData.country,
+            ip: locationData.query,
+            source: 'ip',
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        };
+    } catch (error) {
+        console.error('IP Location Error:', error);
+        return this.getDefaultLocation();
+    }
+}
+
+
+// not from the new
+// async trackUserInfo() {
+//     try {
+//         // IP-API.com (no API key needed for free tier)
+//         const response = await fetch('http://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,timezone,query');
+//         const locationData = await response.json();
+        
+//         if (locationData.status !== 'success') {
+//             throw new Error(locationData.message || 'Failed to get location');
+//         }
+        
+//         const userInfo = {
+//             ip: locationData.query,
+//             city: locationData.city,
+//             region: locationData.regionName,
+//             country: locationData.country,
+//             latitude: parseFloat(locationData.lat),
+//             longitude: parseFloat(locationData.lon),
+//             timezone: locationData.timezone,
+//             userAgent: navigator.userAgent,
+//             timestamp: new Date().toISOString()
+//         };
+        
+//         console.log('User Information:', userInfo);
+//         return userInfo;
+//     } catch (error) {
+//         console.error('Error tracking user info:', error);
+//         return this.getDefaultLocation();
+//     }
+// }
+
+    
+    // Method to track attendance location
+    async trackAttendanceLocation() {
+        try {
+            // First track user info
+            const userInfo = await this.trackUserInfo();
+            
+            if (userInfo) {
+                // Add to attendance data
+                const attendanceData = {
+                    // userId: this.getCurrentUserId(),
+                    // activityId: this.getCurrentActivityId(),
+                    location: {
+                        city: userInfo.city,
+                        region: userInfo.region,
+                        country: userInfo.country,
+                        latitude: userInfo.latitude,
+                        longitude: userInfo.longitude
+                    },
+                    userAgent: userInfo.userAgent,
+                    timestamp: userInfo.timestamp
+                };
+                
+                console.log('Attendance Tracking Data:', attendanceData);
+                
+                // Send to your server
+                const response = await fetch('attendance.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(attendanceData)
+                });
+                
+                if (response.ok) {
+                    console.log('Attendance location tracked successfully');
+                }
+                
+                return attendanceData;
+            }
+        } catch (error) {
+            console.error('Error tracking attendance location:', error);
+            return null;
+        }
+    }
+    
 
     async loadUserData() {
         // showSuccess('whast up from loadUserData');
@@ -31,7 +321,8 @@ class UserHeader {
             console.error('Error loading user data:', error);
         }
     }
-    async fetchUserData() {      
+    async fetchUserData() {   
+           
         try {
             // showSuccess('fetchUserData try');
             const response = await fetch('class/ApiHandler.php?action=getCurrentUser&entity=members', {

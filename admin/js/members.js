@@ -134,6 +134,7 @@ function renderTable() {
         
         return `
             <tr data-member-id="${member.id}">
+                <td>${escapeHtml(member.user_name)}</td>
                 <td>${escapeHtml(member.first_name + ' ' + member.last_name)}</td>
                 <td>${escapeHtml(member.email || 'N/A')}</td>
                 <td>${escapeHtml(member.phone || 'N/A')}</td>
@@ -264,6 +265,7 @@ async function loadMemberData(id) {
         if (data.success) {
             const member = data.data;
             document.getElementById('memberId').value = member.id;
+            document.getElementById('userName').value = member.user_name || '';
             document.getElementById('firstName').value = member.first_name || '';
             document.getElementById('lastName').value = member.last_name || '';
             document.getElementById('email').value = member.email || '';
@@ -285,10 +287,27 @@ async function handleMemberSubmit(event) {
     
     const formData = new FormData(event.target);
     const memberId = formData.get('id');
-    const action = memberId ? 'update' : 'create';
-    
-    // Convert FormData to JSON
+    const action = memberId ? 'update' : 'create';    
     const jsonData = {};
+    const departmentValues = formData.getAll('department_id');
+    if (departmentValues.includes('0')) {
+        jsonData.department_id = null;
+    }else {
+        // Filter out empty values and keep only valid numbers
+        const validDepartments = departmentValues
+            .filter(val => val !== '' && val !== '0')
+            .map(val => parseInt(val));
+        
+        console.log('Valid departments:', validDepartments);
+        
+        if (validDepartments.length === 0) {
+            jsonData.department_id = null;
+        } else if (validDepartments.length === 1) {
+            jsonData.department_id = validDepartments[0];
+        } else {
+            jsonData.department_id = validDepartments; // This will be an array [3,4,5]
+        }
+    }
     formData.forEach((value, key) => {
         if (key !== 'id' && value !== '') {
             jsonData[key] = value;
@@ -376,23 +395,7 @@ function hideLoading() {
     // Hide loading spinner if implemented
 }
 
-// Use the existing API error handler from main.js
-function handleApiError(response, context = 'operation') {
-    console.error(`API Error in ${context}:`, response);
-    
-    switch (response.errorType) {
-        case 'validation':
-            showError(response.message);
-            break;
-        case 'not_found':
-            showError('The requested member was not found.');
-            break;
-        case 'server':
-        default:
-            showError('A server error occurred. Please try again.');
-            break;
-    }
-}
+
 
 // Close modal when clicking outside
 window.onclick = function(event) {

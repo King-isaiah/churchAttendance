@@ -1,5 +1,5 @@
 <?php
-    // session_start();
+    session_start();
     include "class/Member.php";
     // include "../class/ApiHandler.php";
 
@@ -21,14 +21,17 @@
             
             if ($user) {
                 $_SESSION['unique_id'] = $user['unique_id'];
-                $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+                $_SESSION['user_name'] = $user['user_name'];
+                $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_department'] = $user['department_name'];
-                // $_SESSION['user_role'] = 'user';
+                $_SESSION['department_id'] = $user['department_id'];
+                
                 echo  $_SESSION['unique_id'] ;
                 echo  $_SESSION['user_name'] ;
                 echo  $_SESSION['user_email'] ;
                 echo  $_SESSION['user_department'] ;
+                echo  $_SESSION['department_id'] ;
             
                 
                 header('Location: user_dashboard.php');

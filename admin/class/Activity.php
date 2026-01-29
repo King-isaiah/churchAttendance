@@ -5,15 +5,16 @@ class Activity extends Database {
     
     public function getAllActivities() {
         try {
-            $sql = "
-                SELECT activities.*,locations.name AS location,attendance_methods.code AS code, statuses.name AS status,
+            $sql = "SELECT activities.*,locations.name AS location,attendance_methods.code AS code, statuses.name AS status,
                 categories.categories AS category FROM activities
                 LEFT JOIN attendance_methods ON  activities.attendance_method_id = attendance_methods.id 
                 LEFT JOIN statuses ON  activities.status_id = statuses.id 
                 LEFT JOIN locations ON activities.location_id = locations.id 
                 LEFT JOIN categories ON activities.category_id = categories.id
-                ORDER BY dayofactivity DESC, time DESC
+                WHERE deleted IS NULL
+                ORDER BY dayofactivity DESC, time DESC 
             ";
+           
             return $this->fetchAll($sql);
         } catch (Exception $e) {
             error_log("Activity getAll error: " . $e->getMessage());
@@ -90,11 +91,14 @@ class Activity extends Database {
     public function deleteActivity($id) {
         try {
             $existing = $this->getActivity($id);
+            
             if (!$existing) {
                 throw new Exception("Activity not found", 404);
             }
             
-            return $this->delete('activities', 'id = ?', [$id]);
+            $data = ['deleted' => 'yes'];
+            // return $this->delete('activities', 'id = ?', [$id]);
+            return $this->update('activities', $data, 'id = ?', [$id]);
         } catch (Exception $e) {
             error_log("Activity delete error [ID: $id]: " . $e->getMessage());
             throw $e;

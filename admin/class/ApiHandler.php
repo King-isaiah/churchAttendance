@@ -16,6 +16,9 @@
     require_once 'Status.php';
     require_once 'LocationValidator.php';
     require_once 'QRGenerator.php';
+    require_once 'RSVP.php';
+    require_once 'Report.php';
+    require_once 'Notification.php';
 
     class ApiHandler {
         private $entity;
@@ -101,6 +104,9 @@
                 case 'generateQR': // Add this case
                     $this->generateQR();
                     break;
+                case 'special':
+                    $this->special();
+                    break;
                 default:
                     $this->sendResponse([
                         'success' => false, 
@@ -163,8 +169,8 @@
                 'activities' => 'getAllActivities',
                 'attendance_methods' => 'getAllAttendanceMethods',
                 'statuses' => 'getAllStatuses',
-                'attendance' => 'getAllAttendanceReports',
-
+                'reports' => 'getAttendanceReports',
+                'notifications' => 'getAllNotifications',
             ];
             
             $method = $methodMap[$this->entity] ?? 'getAll';
@@ -198,7 +204,7 @@
             if (!$entityClass) {
                 $this->sendResponse([
                     'success' => false, 
-                    'message' => 'Invalid entity',
+                    'message' => 'Invalid entity, entity is not part of the getEntityClass',
                     'errorType' => 'client'
                 ], 400);
                 return;
@@ -219,11 +225,10 @@
                 'attendance_methods'=>'getAttendanceMethod',
                 'statuses'=>'getStatus',
                 'attendance'=>'getAttendanceReports',
-                'attendance'=>'getWeeklyAttendanceTrend',
-                // 'attendance'=>'getStatus',
-                // 'attendance'=>'getStatus',
-                // 'attendance'=>'getStatus',
-                // 'attendance'=>'getStatus'
+                'notifications' => 'getNotificationsForUser',
+                'rsvp'=>'getRSVPDetails',
+                'reports' => 'getWeeklyAttendanceTrend',
+               
             ];
             
             $method = $methodMap[$this->entity] ?? 'get';
@@ -239,7 +244,7 @@
                 } else {
                     $this->sendResponse([
                         'success' => false, 
-                        'message' => 'Not found',
+                        'message' => 'Method or function came out false',
                         'errorType' => 'client'
                     ], 404);
                 }
@@ -290,6 +295,68 @@
                 $this->handleException($e);
             }
         }
+        private function special() {
+            if (empty($this->input)) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid data',
+                    'errorType' => 'client'
+                ], 400);
+                return;
+            }
+            
+            $entityClass = $this->getEntityClass();
+            if (!$entityClass) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid entity',
+                    'errorType' => 'client'
+                ], 400);
+                return;
+            }
+            
+            $entity = new $entityClass();
+            
+            // Map entity to method name
+            $methodMap = [
+                'locations' => 'createLocation',
+                'departments' => 'createDepartment',
+                'categories' => 'createCategory',
+                'speakers' => 'createSpeaker',
+                'events' => 'createEvent',
+                'members' => 'createMember',
+                'attendance' => 'createAttendance',
+                'activities' => 'createActivity',
+                'attendance_methods'=>'createAttendanceMethod',
+                'statuses'=>'createStatus',
+                'activity_qr_codes'=>'generateQRCode',
+                'reports' => 'creatAReport',
+            ];
+            
+            $method = $methodMap[$this->entity] ?? 'special';
+            
+            if (method_exists($entity, $method)) {
+                $result = $entity->$method($this->input);
+               
+                if ($result !== false) {
+                    $this->sendResponse([
+                        'success' => true, 
+                        'data' => $result
+                    ], 200);  
+                } else {
+                    $this->sendResponse([
+                        'success' => false, 
+                        'message' => 'Query failed'
+                    ], 500);
+                }
+            } else {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Query failed'
+                ], 500);
+            }
+            
+        }
         private function create() {
             if (empty($this->input)) {
                 $this->sendResponse([
@@ -325,6 +392,8 @@
                 'attendance_methods'=>'createAttendanceMethod',
                 'statuses'=>'createStatus',
                 'activity_qr_codes'=>'generateQRCode',
+                'reports' => 'exportToCSV',
+                'notifications' => 'createNotification',
             ];
             
             $method = $methodMap[$this->entity] ?? 'create';
@@ -451,6 +520,7 @@
                 'statuses' => 'deleteStatus',
                 'attendance_methods' => 'deleteAttendanceMethod',
                 'activity_qr_codes' => 'deleteAttendanceMethod',
+                'notifications' => 'deleteNotification',
             ];
             
             $method = $methodMap[$this->entity] ?? 'delete';
@@ -592,6 +662,9 @@
                 'statuses'=>'Status',
                 'reports' => 'Report',
                 'activity_qr_codes' => 'QRGenerator',
+                'rsvp' => 'RSVP',
+                'rsvp' => 'RSVP',
+                'notifications'=>'Notification'
             ];
             
             return $entityMap[$this->entity] ?? null;

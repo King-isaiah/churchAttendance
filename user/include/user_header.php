@@ -1,4 +1,10 @@
 <?php session_start() ?>
+<?php 
+    if (!isset($_SESSION['unique_id'])) {
+    header('Location: user/login.php');
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,10 +95,10 @@
                     </button>
                     <div class="user-welcome">
                         <div class="welcome-content">
-                            <h6 class="welcome-text">Welcome, <span class="user-name"> Eshioze</span>! 👋</h6>
+                            <h6 class="welcome-text">Welcome, <span class="user-name"> <?php  echo $_SESSION['user_name'] ?></span>! 👋</h6>
                             <span class="user-role">
                                 <i class="fas fa-users"></i>
-                                Member - exco
+                                Member - <?php echo $_SESSION['user_department'] ?>
                             </span>
                         </div>
                         <div class="user-stats">
@@ -165,7 +171,8 @@
                             <div class="user-avatar">
                                 <i class="fas fa-user"></i>
                             </div>
-                            <span class="user-name-short">ES</span>
+                            <span class="user-name-short"> <?php  $randomLetters = strtoupper(substr(str_shuffle($_SESSION['full_name'] ), 0, 2));
+                             echo $randomLetters ?></span>
                         </button>
                         <div class="user-dropdown">
                             <div class="user-info">
@@ -173,23 +180,29 @@
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div class="user-details">
-                                    <h4>Eshioze</h4>
-                                    <p>Member - Ushering</p>
-                                    <span class="user-id">ID: MEM-223983</span>
+                                    <h4> <?php echo $_SESSION['user_name'] ?></h4>
+                                    <p>Member - <?php echo $_SESSION['user_department'] ?></p>
+                                    <span class="user-id">ID: MEM-22<?php echo $_SESSION['unique_id'] ?>3983</span>
+                                
+                                    <input id='unique_id' type="hidden" value="<?php echo $_SESSION['unique_id']; ?>">
+                                    <input id='department_id' type="hidden" value="<?php echo $_SESSION['department_id']; ?>">
                                 </div>
                             </div>
+
+                           
+            
                             <div class="user-links">
                                 <a href="user_dashboard.php" class="user-link">
-                                    <i class="fas fa-user-cog"></i>
+                                   <i class="fas fa-home"></i>
                                     <span>Dashboard</span>
                                 </a>
                                 <a href="activities.php" class="user-link">
-                                    <i class="fas fa-user-cog"></i>
+                                    <i class="fas fa-clipboard-list"></i>
                                     <span>Activities</span>
                                 </a>                              
                                 <a href="events.php" class="user-link">
                                     <i class="fas fa-calendar"></i>
-                                    <span>My Events</span>
+                                    <span>Events</span>
                                 </a>
                                 <a href="attendance_history.php" class="user-link">
                                     <i class="fas fa-history"></i>

@@ -450,3 +450,54 @@
     border-radius: 50%;
     flex-shrink: 0;
 }
+
+.department-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.department-field select {
+    flex: 1;
+}
+
+.remove-department {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.remove-department:hover {
+    background: #c82333;
+}
+
+.add-department-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.add-department-btn:hover {
+    background: #218838;
+}
+
+.add-department-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.hint {
+    display: block;
+    color: #6c757d;
+    margin-top: 5px;
+}

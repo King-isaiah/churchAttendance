@@ -148,6 +148,9 @@ foreach ($activities as $activityItem) {
                             <button class="btn-sm btn-edit edit-activity-btn" data-id="<?php echo $activity['id']; ?>">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
+                            <button class="btn-sm delete-activity-btn" style="background-color: #dc3545;" data-id="<?php echo $activity['id']; ?>">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -247,93 +250,33 @@ foreach ($activities as $activityItem) {
                 </div>
                 
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="dayofactivity">Day Of The Week *</label>                        
-                        <select id="dayofactivity" required>
-                            <option value="Sunday's">Sundays</option>
-                            <option value="Monday's">Mondays</option>
-                            <option value="Tuesday's">Tuesdays</option>
-                            <option value="Wednesday's">Wednedays</option>
-                            <option value="Thursday's">Thursdays</option>
-                            <option value="Friday's">Fridays</option>
-                            <option value="Saturday's">Saturdays</option>
-                        </select>                        
-                    </div>
+                    
                     
                     <div class="form-group">
-                        <label for="time">Time *</label>
+                        <label for="time">Attendance Start Time *</label>
                         <input type="time" id="time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="time_exp">Attendance Expired Time *</label>
+                        <input type="time" id="time_exp" required>
                     </div>
                 </div>
 
                <!-- In your activities.php file, fix the form row section -->
-<div class="form-row">
-    <div class="form-group">
-        <label for="department_id">Department Participating *</label>
-        <select id="department_id" required>
-            <option value="">Select Department</option>
-            <?php if(!empty($locations)): ?>
-                <?php foreach($locations as $location): ?>
-                    <?php 
-                    if (is_array($location)) {
-                        $locationName = $location['name'] ?? $location;
-                        $locationId = $location['id'] ?? $location;
-                    } else {
-                        $locationName = $location;
-                        $locationId = $location;
-                    }
-                    ?>
-                    <option value="<?php echo htmlspecialchars($locationId); ?>">
-                        <?php echo htmlspecialchars($locationName); ?>
-                    </option>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <option value="">No departments available</option>
-            <?php endif; ?>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="location_id">Location *</label>
-        <select id="location_id" required>
-            <option value="">Select Location</option>
-            <?php if(!empty($locations)): ?>
-                <?php foreach($locations as $location): ?>
-                    <?php 
-                    if (is_array($location)) {
-                        $locationName = $location['name'] ?? $location;
-                        $locationId = $location['id'] ?? $location;
-                    } else {
-                        $locationName = $location;
-                        $locationId = $location;
-                    }
-                    ?>
-                    <option value="<?php echo htmlspecialchars($locationId); ?>">
-                        <?php echo htmlspecialchars($locationName); ?>
-                    </option>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <option value="">No locations available</option>
-            <?php endif; ?>
-        </select>
-    </div>
-</div>
-                
-               <div class="form-row">
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="location_id">Department Participating *</label>
-                        <select id="location_id" required>
-                            <option value="">Select Location</option>
+                        <label for="department_id">Department Participating *</label>
+                        <select id="department_id" required>
+                            <option value="">Select Department</option>
                             <?php if(!empty($locations)): ?>
                                 <?php foreach($locations as $location): ?>
                                     <?php 
-                                    // Handle different possible data structures
                                     if (is_array($location)) {
-                                        $locationValue = $location['name'] ?? $location['id'] ?? $location;
                                         $locationName = $location['name'] ?? $location;
                                         $locationId = $location['id'] ?? $location;
                                     } else {
-                                        $locationValue = $location;
                                         $locationName = $location;
+                                        $locationId = $location;
                                     }
                                     ?>
                                     <option value="<?php echo htmlspecialchars($locationId); ?>">
@@ -341,10 +284,25 @@ foreach ($activities as $activityItem) {
                                     </option>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <option value="">No locations available</option>
+                                <option value="">No departments available</option>
                             <?php endif; ?>
                         </select>
                     </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dayofactivity">Day Of The Week *</label>                        
+                        <select id="dayofactivity" required>
+                            <option value="Sunday">Sundays</option>
+                            <option value="Monday">Mondays</option>
+                            <option value="Tuesday">Tuesdays</option>
+                            <option value="Wednesday">Wednedays</option>
+                            <option value="Thursday">Thursdays</option>
+                            <option value="Friday">Fridays</option>
+                            <option value="Saturday">Saturdays</option>
+                        </select>                        
+                    </div>
+                    
                     <div class="form-group">
                         <label for="location_id">Location *</label>
                         <select id="location_id" required>
@@ -352,14 +310,12 @@ foreach ($activities as $activityItem) {
                             <?php if(!empty($locations)): ?>
                                 <?php foreach($locations as $location): ?>
                                     <?php 
-                                    // Handle different possible data structures
                                     if (is_array($location)) {
-                                        $locationValue = $location['name'] ?? $location['id'] ?? $location;
                                         $locationName = $location['name'] ?? $location;
                                         $locationId = $location['id'] ?? $location;
                                     } else {
-                                        $locationValue = $location;
                                         $locationName = $location;
+                                        $locationId = $location;
                                     }
                                     ?>
                                     <option value="<?php echo htmlspecialchars($locationId); ?>">
@@ -371,7 +327,9 @@ foreach ($activities as $activityItem) {
                             <?php endif; ?>
                         </select>
                     </div>
-               </div>
+                </div>
+                
+                
                 
                 <div class="form-row">
                     

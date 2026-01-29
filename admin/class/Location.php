@@ -61,6 +61,9 @@ class Location extends Database {
     
     public function getAllLocations() {
         try {
+            // $sql = "SELECT *, latitude AS gps FROM locations 
+            //     ORDER BY created_at DESC
+            // ";
             $sql = "
                 SELECT * FROM locations 
                 ORDER BY created_at DESC
@@ -94,40 +97,102 @@ class Location extends Database {
     }
     
 
-    private function geocodeAddress($address) {
-        if (empty($address)) {
+    // private function geocodeAddress($address) {
+    //     if (empty($address)) {
+    //         return null;
+    //     }
+        
+    //     try {
+    //         // Use OpenStreetMap Nominatim (free, no API key needed)
+    //         $url = "https://nominatim.openstreetmap.org/search?format=json&q=" . urlencode($address);
+            
+    //         $context = stream_context_create([
+    //             'http' => [
+    //                 'header' => "User-Agent: ChurchApp/1.0\r\n"
+    //             ]
+    //         ]);
+            
+    //         $response = file_get_contents($url, false, $context);
+    //         $data = json_decode($response, true);
+            
+    //         if (!empty($data)) {
+    //             return [
+    //                 'latitude' => $data[0]['lat'],
+    //                 'longitude' => $data[0]['lon']
+    //             ];
+    //         }
+            
+    //         return null;
+    //     } catch (Exception $e) {
+    //         error_log("Geocoding error for address: $address - " . $e->getMessage());
+    //         return null;
+    //     }
+    // }
+
+private function geocodeAddress($address) {
+    if (empty($address)) {
+        error_log("🚨 Geocoding: Empty address received");
+        return null;
+    }
+    
+    try {
+        // REPLACE THIS WITH YOUR ACTUAL LOCATIONIQ TOKEN
+        $apiKey = 'pk.6f5cef3bfb39d96452613eccf69240d5';
+        
+        // LocationIQ API endpoint
+        $url = "https://us1.locationiq.com/v1/search?" . 
+               http_build_query([
+                   'key' => $apiKey,
+                   'q' => $address,
+                   'format' => 'json',
+                   'limit' => 1
+               ]);
+        
+        // 🔍 DEBUG: Log the URL (masking API key)
+        error_log("📍 Geocoding URL: " . str_replace($apiKey, 'REDACTED', $url));
+        
+        // Context with timeout
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 40
+            ]
+        ]);
+        
+        $response = file_get_contents($url, false, $context);
+        
+        // 🔍 DEBUG: Log raw response
+        error_log("📡 Raw API Response: " . substr($response, 0, 200) . "...");
+        
+        // Check if response is HTML/error
+        if (strpos($response, '<html') !== false || strpos($response, '<!DOCTYPE') !== false) {
+            error_log("❌ API returned HTML instead of JSON. Full response: " . $response);
             return null;
         }
         
-        try {
-            // Use OpenStreetMap Nominatim (free, no API key needed)
-            $url = "https://nominatim.openstreetmap.org/search?format=json&q=" . urlencode($address);
-            
-            $context = stream_context_create([
-                'http' => [
-                    'header' => "User-Agent: ChurchApp/1.0\r\n"
-                ]
-            ]);
-            
-            $response = file_get_contents($url, false, $context);
-            $data = json_decode($response, true);
-            
-            if (!empty($data)) {
-                return [
-                    'latitude' => $data[0]['lat'],
-                    'longitude' => $data[0]['lon']
-                ];
-            }
-            
-            return null;
-        } catch (Exception $e) {
-            error_log("Geocoding error for address: $address - " . $e->getMessage());
-            return null;
+        $data = json_decode($response, true);
+        
+        // 🔍 DEBUG: Log parsed data
+        error_log("📊 Parsed Data: " . print_r($data, true));
+        
+        // LocationIQ returns data in a different structure
+        if (!empty($data) && isset($data[0]['lat'])) {
+            error_log("✅ Geocoding SUCCESS for: '$address' -> Lat: {$data[0]['lat']}, Lon: {$data[0]['lon']}");
+            return [
+                'latitude' => $data[0]['lat'],
+                'longitude' => $data[0]['lon']
+            ];
+        } else {
+            error_log("❌ Geocoding FAILED for: '$address'. No coordinates found.");
+            error_log("   Data structure: " . print_r($data, true));
         }
+        
+        return null;
+    } catch (Exception $e) {
+        error_log("🚨 Geocoding ERROR for address: $address - " . $e->getMessage());
+        return null;
     }
-     /**
-     * UPDATED: createLocation method with auto-geocoding
-     */
+}
+    
     public function createLocation($data) {
         try {
             // Validate required fields
@@ -149,9 +214,7 @@ class Location extends Database {
         }
     }
     
-    /**
-     * UPDATED: updateLocation method with auto-geocoding
-     */
+   
     public function updateLocation($id, $data) {
         try {
             // Check if location exists first
@@ -169,8 +232,10 @@ class Location extends Database {
                 if ($coordinates) {
                     $data['latitude'] = $coordinates['latitude'];
                     $data['longitude'] = $coordinates['longitude'];
+                    //  throw new Exception("Location was found", 200);
                 }
             }
+            
             
             // Let the database handle duplicates
             return $this->update('locations', $data, 'id = ?', [$id]);
@@ -180,38 +245,7 @@ class Location extends Database {
             throw $e;
         }
     }
-    // public function createLocation($data) {
-    //     try {
-    //         // Validate required fields
-    //         $this->validateLocationData($data);
-            
-    //         return $this->insert('locations', $data);
-    //     } catch (Exception $e) {
-    //         error_log("Location create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-    //         throw $e; // Re-throw so ApiHandler can handle it properly
-    //     }
-    // }
     
-    
-    // public function updateLocation($id, $data) {
-    //     try {
-    //         // Check if location exists first
-    //         $existing = $this->getLocation($id);
-    //         if (!$existing) {
-    //             throw new Exception("Location not found", 404);
-    //         }
-            
-    //         // Validate data
-    //         $this->validateLocationData($data, true);
-            
-    //         // Let the database handle duplicates
-    //         return $this->update('locations', $data, 'id = ?', [$id]);
-            
-    //     } catch (Exception $e) {
-    //         error_log("Location update error [ID: $id]: " . $e->getMessage());
-    //         throw $e;
-    //     }
-    // }
     
     public function deleteLocation($id) {
         try {

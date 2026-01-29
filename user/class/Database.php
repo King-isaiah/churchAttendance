@@ -41,24 +41,24 @@
          * Extract meaningful information from duplicate entry errors
          */
        
-private function extractDuplicateFieldMessage($errorMessage) {
-    // MySQL pattern: Duplicate entry 'value' for key 'column_name'
-    if (preg_match("/Duplicate entry '([^']*)' for key '([^']*)'/", $errorMessage, $matches)) {
-        $value = $matches[1];
-        $field = $matches[2];
+    private function extractDuplicateFieldMessage($errorMessage) {
+        // MySQL pattern: Duplicate entry 'value' for key 'column_name'
+        if (preg_match("/Duplicate entry '([^']*)' for key '([^']*)'/", $errorMessage, $matches)) {
+            $value = $matches[1];
+            $field = $matches[2];
+            
+            // Convert field name to readable format
+            $readableField = $this->getReadableFieldName($field);
+            return "The $readableField '$value' already exists. Please choose a different one.";
+        }
         
-        // Convert field name to readable format
-        $readableField = $this->getReadableFieldName($field);
-        return "The $readableField '$value' already exists. Please choose a different one.";
+        // Generic unique constraint message
+        if (stripos($errorMessage, 'unique') !== false || stripos($errorMessage, 'duplicate') !== false) {
+            return "This value already exists. Please choose a different one.";
+        }
+        
+        return null;
     }
-    
-    // Generic unique constraint message
-    if (stripos($errorMessage, 'unique') !== false || stripos($errorMessage, 'duplicate') !== false) {
-        return "This value already exists. Please choose a different one.";
-    }
-    
-    return null;
-}
         
         /**
          * Ultra-simple dynamic field name converter
@@ -111,37 +111,37 @@ private function extractDuplicateFieldMessage($errorMessage) {
         
      
 
-protected function insert($table, $data) {
-    try {
-        $columns = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
-        $values = array_values($data);
-        
-        $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
-        
-        $this->executeQuery($sql, $values);
-        return $this->db->lastInsertId();
-    } catch (PDOException $e) {
-        // This will now throw exceptions with proper HTTP status codes
-        $this->classifyError($e);
-    }
-}
+        protected function insert($table, $data) {
+            try {
+                $columns = implode(', ', array_keys($data));
+                $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                $values = array_values($data);
+                
+                $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+                
+                $this->executeQuery($sql, $values);
+                return $this->db->lastInsertId();
+            } catch (PDOException $e) {
+                // This will now throw exceptions with proper HTTP status codes
+                $this->classifyError($e);
+            }
+        }
 
-protected function update($table, $data, $where, $whereParams) {
-    try {
-        $setClause = implode(' = ?, ', array_keys($data)) . ' = ?';
-        $values = array_merge(array_values($data), $whereParams);
-        
-        $sql = "UPDATE $table SET $setClause WHERE $where";
-        
-        $stmt = $this->executeQuery($sql, $values);
-        return $stmt->rowCount();
-        
-    } catch (PDOException $e) {
-        // Let classifyError handle ALL errors - it will throw the appropriate exception
-        $this->classifyError($e);
-    }
-}
+        protected function update($table, $data, $where, $whereParams) {
+            try {
+                $setClause = implode(' = ?, ', array_keys($data)) . ' = ?';
+                $values = array_merge(array_values($data), $whereParams);
+                
+                $sql = "UPDATE $table SET $setClause WHERE $where";
+                
+                $stmt = $this->executeQuery($sql, $values);
+                return $stmt->rowCount();
+                
+            } catch (PDOException $e) {
+                // Let classifyError handle ALL errors - it will throw the appropriate exception
+                $this->classifyError($e);
+            }
+        }
         protected function delete($table, $where, $params) {
             $sql = "DELETE FROM $table WHERE $where";
             
@@ -160,9 +160,7 @@ protected function update($table, $data, $where, $whereParams) {
             }
         }
         
-        /**
-         * Additional helper method to check if a value already exists
-         */
+       
         protected function valueExists($table, $column, $value, $excludeId = null) {
             $sql = "SELECT COUNT(*) as count FROM $table WHERE $column = ?";
             $params = [$value];
@@ -176,59 +174,85 @@ protected function update($table, $data, $where, $whereParams) {
             return $result['count'] > 1;
         }
 
-private function classifyError(PDOException $e) {
-    $errorCode = $e->getCode();
-    $errorMessage = $e->getMessage();
-    $sqlState = $e->errorInfo[0] ?? '';
-    
-    error_log("Database Error - Code: $errorCode, SQLState: $sqlState, Message: $errorMessage");
-    
-    // Check for any kind of unique constraint violation
-    $isUniqueViolation = 
-        $errorCode === 1062 ||
-        $sqlState === '23000' ||
-        stripos($errorMessage, 'duplicate') !== false ||
-        stripos($errorMessage, 'unique') !== false;
-    
-    if ($isUniqueViolation) {
-        $userMessage = $this->extractDuplicateFieldMessage($errorMessage);
-        throw new Exception(
-            $userMessage ?: 'This value already exists. Please use a different one.',
-            409 // CONFLICT status code for duplicate entries
-        );
-    }
-    
-    // Foreign key constraint violations
-    $isForeignKeyViolation = 
-        $errorCode === 1451 ||
-        stripos($errorMessage, 'foreign key') !== false ||
-        stripos($errorMessage, 'constraint') !== false;
-    
-    if ($isForeignKeyViolation) {
-        throw new Exception(
-            'This operation cannot be completed because it is linked to other records.',
-            409 // CONFLICT status code
-        );
-    }
-    
-    // Data validation errors
-    if ($errorCode === 1406 || stripos($errorMessage, 'data too long') !== false) {
-        throw new Exception(
-            'The data you entered is too long. Please shorten it.',
-            400 // BAD REQUEST
-        );
-    }
-    
-    if ($errorCode === 1364 || stripos($errorMessage, 'doesn\'t have a default value') !== false) {
-        throw new Exception(
-            'Required fields are missing. Please fill in all required information.',
-            400 // BAD REQUEST
-        );
-    }
-    
-    // All other errors are for developers only
-    throw new Exception("A database error occurred. Please try again.");
-}
+        protected function recordExists($table, $conditions, $excludeId = null) {
+            $whereClauses = [];
+            $params = [];
+            
+            foreach ($conditions as $column => $value) {
+                $whereClauses[] = "$column = ?";
+                $params[] = $value;
+            }
+            
+            $sql = "SELECT COUNT(*) as count FROM $table WHERE " . implode(' AND ', $whereClauses);
+            
+            if ($excludeId) {
+                $sql .= " AND id != ?";
+                $params[] = $excludeId;
+            }
+            
+            $result = $this->fetchOne($sql, $params);
+            return $result['count'] > 0;
+        }
+
+        /**
+         * Alternative method name for recordExists - if you prefer valueExistsMultiple
+         */
+        protected function valueExistsMultiple($table, $conditions, $excludeId = null) {
+            return $this->recordExists($table, $conditions, $excludeId);
+        }
+        private function classifyError(PDOException $e) {
+            $errorCode = $e->getCode();
+            $errorMessage = $e->getMessage();
+            $sqlState = $e->errorInfo[0] ?? '';
+            
+            error_log("Database Error - Code: $errorCode, SQLState: $sqlState, Message: $errorMessage");
+            
+            // Check for any kind of unique constraint violation
+            $isUniqueViolation = 
+                $errorCode === 1062 ||
+                $sqlState === '23000' ||
+                stripos($errorMessage, 'duplicate') !== false ||
+                stripos($errorMessage, 'unique') !== false;
+            
+            if ($isUniqueViolation) {
+                $userMessage = $this->extractDuplicateFieldMessage($errorMessage);
+                throw new Exception(
+                    $userMessage ?: 'This value already exists. Please use a different one.',
+                    409 // CONFLICT status code for duplicate entries
+                );
+            }
+            
+            // Foreign key constraint violations
+            $isForeignKeyViolation = 
+                $errorCode === 1451 ||
+                stripos($errorMessage, 'foreign key') !== false ||
+                stripos($errorMessage, 'constraint') !== false;
+            
+            if ($isForeignKeyViolation) {
+                throw new Exception(
+                    'This operation cannot be completed because it is linked to other records.',
+                    409 // CONFLICT status code
+                );
+            }
+            
+            // Data validation errors
+            if ($errorCode === 1406 || stripos($errorMessage, 'data too long') !== false) {
+                throw new Exception(
+                    'The data you entered is too long. Please shorten it.',
+                    400 // BAD REQUEST
+                );
+            }
+            
+            if ($errorCode === 1364 || stripos($errorMessage, 'doesn\'t have a default value') !== false) {
+                throw new Exception(
+                    'Required fields are missing. Please fill in all required information.',
+                    400 // BAD REQUEST
+                );
+            }
+            
+            // All other errors are for developers only
+            throw new Exception("A database error occurred. Please try again.");
+        }
 
         /**
          * Additional helper method for transaction support

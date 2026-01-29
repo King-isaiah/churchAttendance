@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             category_id: document.getElementById('category').value,            
             dayofactivity: document.getElementById('dayofactivity').value,
             time: document.getElementById('time').value,
+            time_exp: document.getElementById('time_exp').value,
             location_id: document.getElementById('location_id').value,
             attendance_method_id: document.getElementById('attendance_method_id').value,
             target_audience: document.getElementById('target_audience').value,
@@ -250,6 +251,13 @@ document.addEventListener('DOMContentLoaded', () => {
             editActivity(activityId);
         });
     });
+    // Delete functionality
+    document.querySelectorAll('.delete-activity-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const activityId = this.dataset.id;
+            deleteActivity(activityId);
+        });
+    });
     // QR functionality - UPDATED VERSION
     document.querySelectorAll('.generate-qr-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
@@ -259,23 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // QR functionality
-    // document.querySelectorAll('.generate-qr-btn').forEach(function(btn) {
-    //     // const carousel = new ActivitiesCarousel();
-    
-    //     // // Load dynamic chart data only once
-    //     // if (!chartInitialized) {
-    //     //     setTimeout(() => {
-    //     //         loadChartData();
-    //     //         chartInitialized = true;
-    //     //     }, 500);
-    //     // }
-    //     btn.addEventListener('click', function() {
-    //         const activityId = this.dataset.id;
-    //         const attendanceMethod = this.dataset.attendanceMethod;
-            // showQRCodeModal(activityId);
-    //     });
-    // });
+   
    
     
     // Live session buttons
@@ -444,6 +436,34 @@ async function viewActivityDetails(activityId) {
     }
 }
 
+// Delete Activity Function
+async function deleteActivity(activityId) {
+    if (!confirm('Are you sure you want to delete this member?')) return;
+    if (!confirm('Deleting this may delete attendnace records relating to this activity')) return;
+    
+    try {       
+        const response = await fetch(`class/ApiHandler.php?action=delete&entity=activities&id=${activityId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess('Activity Succesfully Deleted')
+            location.reload()
+            
+        } else {
+            // handleApiError(result, 'delete activities');
+            showError('Error deleting activity: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showError('Error: ' + error.message);
+    }
+}
+
+      
+       
+   
 // Edit Activity Function
 async function editActivity(activityId) {
     try {
@@ -503,6 +523,10 @@ function showActivityDetailsModal(activity) {
                                 <div class="detail-item">
                                     <label>Time:</label>
                                     <span>${activity.time}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Time Expired:</label>
+                                    <span>${activity.time_exp}</span>
                                 </div>
                                 <div class="detail-item">
                                     <label>Location:</label>
@@ -601,29 +625,37 @@ function showEditActivityModal(activity) {
                             <div class="form-group">
                                 <label for="edit_dayofactivity">Day Of The Week *</label>                        
                                 <select id="edit_dayofactivity" required>
-                                    <option value="Sunday's">Sundays</option>
-                                    <option value="Monday's">Mondays</option>
-                                    <option value="Tuesday's">Tuesdays</option>
-                                    <option value="Wednesday's">Wednesdays</option>
-                                    <option value="Thursday's">Thursdays</option>
-                                    <option value="Friday's">Fridays</option>
-                                    <option value="Saturday's">Saturdays</option>
+                                    <option value="Sunday">Sundays</option>
+                                    <option value="Monday">Mondays</option>
+                                    <option value="Tuesday">Tuesdays</option>
+                                    <option value="Wednesday">Wednesdays</option>
+                                    <option value="Thursday">Thursdays</option>
+                                    <option value="Friday">Fridays</option>
+                                    <option value="Saturday">Saturdays</option>
                                 </select>                        
                             </div>
                             
+                            
                             <div class="form-group">
-                                <label for="edit_time">Time *</label>
-                                <input type="time" id="edit_time" value="${activity.time}" required>
+                                <label for="edit_location">Location *</label>
+                                <select id="edit_location" required>
+                                    <option value="">Select Location</option>
+                                </select>
                             </div>
                         </div>
                         
-                        
-                        <div class="form-group">
-                            <label for="edit_location">Location *</label>
-                            <select id="edit_location" required>
-                                <option value="">Select Location</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit_time">Attendance To Start *</label>
+                                <input type="time" id="edit_time" value="${activity.time}" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit_time">Attendance To Expire *</label>
+                                <input type="time" id="edit_time_exp" value="${activity.time_exp}" required>
+                            </div>
                         </div>
+                       
                         
                         <div class="form-row">
                             <div class="form-group">
@@ -815,6 +847,7 @@ async function handleEditFormSubmit(e) {
         status_id: document.getElementById('edit_status').value,
         dayofactivity: document.getElementById('edit_dayofactivity').value,
         time: document.getElementById('edit_time').value,
+        time_exp: document.getElementById('edit_time_exp').value,
         location_id: document.getElementById('edit_location').value,
         attendance_method_id: document.getElementById('edit_attendance_method').value,
         target_audience: document.getElementById('edit_target_audience').value,

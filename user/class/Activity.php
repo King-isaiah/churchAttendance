@@ -3,6 +3,50 @@ require_once 'Database.php';
 
 class Activity extends Database {
     
+    public function getLocationActivitiesWithLocationCoordinate() {
+       try {  
+            function getToday() {
+                $today = new DateTime();
+                $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                return $days[$today->format('w')]; 
+            }   
+            function getCurrentTime() {
+                $now = new DateTime();
+                $hours = (int)$now->format('G');  // 0-23, no leading zeros
+                $minutes = (int)$now->format('i'); // 00-59
+                $seconds = (int)$now->format('s'); // 00-59
+                
+                return [
+                    'hours' => $hours,
+                    'minutes' => $minutes,
+                    'seconds' => $seconds
+                ];
+            }
+
+           
+            $time = getCurrentTime();                
+            $day = getToday(); 
+            $test = 'Sunday';   
+            $timeString = sprintf('%02d:%02d:%02d', $time['hours'], $time['minutes'], $time['seconds']);          
+            $sql = "SELECT activities.*, locations.longitude AS longtitude, locations.latitude AS latitude 
+            FROM activities LEFT JOIN locations ON activities.location_id = locations.id 
+            WHERE status_id = 1 AND attendance_method_id = 3 AND time_exp > ? AND dayofactivity = ?";            
+                  
+            $result = $this->fetchAll($sql, [$timeString, $day]);
+            // $result = $this->fetchAll($sql, [$timeString, $test]);            
+            if(count($result) > 0 ){
+                return $result;
+            }else{
+                return []; 
+            }
+        } catch (Exception $e) {
+            error_log("Activity to get error [department: $day]: " . $e->getMessage());
+            if ($e->getCode() === 404) {
+                throw $e; 
+            }
+            throw new Exception("Unable to retrieve activity information for checking for submition of attendance");
+        }
+    }
     public function getAllActivities() {
         try {
             $sql = "SELECT activities.*,activities.description AS description, activities.name AS activity,locations.name AS location,

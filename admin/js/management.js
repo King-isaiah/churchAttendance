@@ -3,7 +3,7 @@ const managementConfig = {
     locations: {
         title: 'Locations Management',
         addButton: 'Add Location',
-        columns: ['#', 'Location Name', 'Capacity', 'Address', 'Created At', 'Actions'],
+        columns: ['#', 'Location Name', 'Capacity', 'Address', 'Gps','Created At', 'Actions'],
         formFields: `
             <div class="form-group">
                 <label for="locationName">Location Name</label>
@@ -18,7 +18,8 @@ const managementConfig = {
                 <textarea id="locationAddress" name="address" rows="3"></textarea>
             </div>
         `,
-        entity: 'locations'
+        entity: 'locations',
+        actionButtons: ['view', 'edit', 'delete']
     },
     departments: {
         title: 'Departments Management',
@@ -46,7 +47,8 @@ const managementConfig = {
                 <textarea id="description" name="description" rows="3"></textarea>
             </div>
         `,
-        entity: 'departments'
+        entity: 'departments',
+        actionButtons: ['view', 'edit', 'delete']
     },
     speakers: {
         title: 'Speakers Management',
@@ -70,55 +72,34 @@ const managementConfig = {
                 <input type="text" id="speciality" name="speciality">
             </div>
         `,
-        entity: 'speakers'
+        entity: 'speakers',
+        actionButtons: ['view', 'edit', 'delete']
     },
+    
     categories: {
         title: 'Categories Management',
         addButton: 'Add Category',
-        columns: ['#', 'Category', 'Created At', 'Actions'],
+        columns: ['#', 'Category','Description', 'Created At', 'Actions'],
         formFields: `
             <div class="form-group">
                 <label for="name">Category Name</label>
                 <input type="text" id="categories" name="categories" required>
             </div>
-           
-            
+            <div class="form-group">
+                <label for="categoriesColor">Color *</label>
+                <input type="color" id="color" name="color" value="#6c757d" required>
+                <small class="form-text text-muted">Choose a color for this category</small>
+            </div>
+            <div class="form-group">
+                <label for="categoriesDescription">Description</label>
+                <textarea id="description" name="description" rows="3" placeholder="Brief description of this category"></textarea>
+            </div>            
             
         `,
-        entity: 'categories'
-    },
-    // events: {
-    //     title: 'Categories Management',
-    //     addButton: 'Add Category',
-    //     columns: ['#', 'Event Name', 'Date', 'Location', 'Speaker', 'Attendees', 'Created At', 'Actions'],
-    //     formFields: `
-    //         <div class="form-group">
-    //             <label for="name">Category Name</label>
-    //             <input type="text" id="name" name="name" required>
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="eventDate">Date</label>
-    //             <input type="datetime-local" id="eventDate" name="date" required>
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="eventLocation">Location</label>
-    //             <select id="eventLocation" name="location_id">
-    //                 <option value="">Select Location</option>
-    //             </select>
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="eventSpeaker">Speaker</label>
-    //             <select id="eventSpeaker" name="speaker_id">
-    //                 <option value="">Select Speaker</option>
-    //             </select>
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="eventDescription">Description</label>
-    //             <textarea id="eventDescription" name="description" rows="3"></textarea>
-    //         </div>
-    //     `,
-    //     entity: 'categories'
-    // },
+        entity: 'categories',
+        actionButtons: ['view', 'edit', 'delete']
+    },    
+   
     attendance_methods: {
         title: 'Attendance Methods',
         addButton: 'Add Attendance Method',
@@ -145,12 +126,13 @@ const managementConfig = {
                 </select>
             </div>
         `,
-        entity: 'attendance_methods'
+        entity: 'attendance_methods',
+        actionButtons: ['view']
     },
     statuses: {
         title: 'Status Management',
         addButton: 'Add Status',
-        columns: ['#', 'Status Name', 'Color', 'Description', 'Created At', 'Actions'],
+        columns: ['#', 'Status Name', 'Description', 'Created At', 'Actions'],
         formFields: `
             <div class="form-group">
                 <label for="statusName">Status Name *</label>
@@ -159,77 +141,17 @@ const managementConfig = {
             <div class="form-group">
                 <label for="statusColor">Color *</label>
                 <input type="color" id="color" name="color" value="#6c757d" required>
-                <small class="form-text text-muted">Choose a color for this status (used in badges and UI)</small>
+                <small class="form-text text-muted">Choose a color for this status</small>
             </div>
             <div class="form-group">
                 <label for="statusDescription">Description</label>
                 <textarea id="description" name="description" rows="3" placeholder="Brief description of this status"></textarea>
             </div>
         `,
-        entity: 'statuses'
-    },
-    // members: {
-    //     title: 'Members Management',
-    //     addButton: 'Add Member',
-    //     columns: ['#', 'Member Name', 'Email', 'Phone', 'Department', 'Join Date', 'Actions'],
-    //     formFields: `
-    //         <div class="form-group">
-    //             <label for="memberName">Member Name</label>
-    //             <input type="text" id="memberName" name="name" required>
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="memberEmail">Email</label>
-    //             <input type="email" id="memberEmail" name="email">
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="memberPhone">Phone</label>
-    //             <input type="tel" id="memberPhone" name="phone">
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="memberDepartment">Department</label>
-    //             <select id="memberDepartment" name="department_id">
-    //                 <option value="">Select Department</option>
-    //             </select>
-    //         </div>
-    //         <div class="form-group">
-    //             <label for="memberAddress">Address</label>
-    //             <textarea id="memberAddress" name="address" rows="3"></textarea>
-    //         </div>
-    //     `,
-    //     entity: 'members'
-    // },
-    attendance: {
-        title: 'Attendance Management',
-        addButton: 'Add Attendance',
-        columns: ['#', 'Event', 'Member', 'Check-in Time', 'Status', 'Actions'],
-        formFields: `
-            <div class="form-group">
-                <label for="attendanceEvent">Event</label>
-                <select id="attendanceEvent" name="event_id" required>
-                    <option value="">Select Event</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="attendanceMember">Member</label>
-                <select id="attendanceMember" name="member_id" required>
-                    <option value="">Select Member</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="attendanceStatus">Status</label>
-                <select id="attendanceStatus" name="status" required>
-                    <option value="present">Present</option>
-                    <option value="absent">Absent</option>
-                    <option value="late">Late</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="attendanceNotes">Notes</label>
-                <textarea id="attendanceNotes" name="notes" rows="3"></textarea>
-            </div>
-        `,
-        entity: 'attendance'
-    }
+        entity: 'statuses',
+        actionButtons: ['view']
+    },   
+    
 };
 
 // Navigation history stack
@@ -243,44 +165,16 @@ let allData = [];
 let filteredData = [];
 let currentSearchTerm = '';
 
-// Enhanced API error handler
-function handleApiError(response, context = 'operation') {
-    console.error(`API Error in ${context}:`, response);
-    
-    // Check error type and show appropriate message
-    switch (response.errorType) {
-        case 'validation':
-            // User input errors - show the specific message
-            showError(response.message);
-            break;
-            
-        case 'not_found':
-            // Not found errors
-            // showError('The requested item was not found.');
-            showError(response.message);
-            break;
-            
-        case 'server':
-        default:
-            // Server errors - show generic message
-            showError('A server error occurred. Please try again.');
-            
-            // Log detailed error for developers
-            if (response.debugInfo) {
-                console.error('Debug Info:', response.debugInfo);
-            }
-            break;
-    }
-}
 
-// Updated the switchView function
+
+
 function switchView(viewType, addToHistory = true) {
     if (!managementConfig[viewType]) return;
     
     // Save to localStorage
     localStorage.setItem('managementView', viewType);
     
-    // Add to navigation history if requested
+
     if (addToHistory) {
         // Remove any future history if we're navigating back then forward
         if (currentHistoryIndex < navigationHistory.length - 1) {
@@ -435,6 +329,9 @@ function updateTable(type, data) {
                         <td>${truncateString(item.name || 'N/A', 5)}</td>                       
                         <td>${truncateString(item.capacity || '', 5)}</td>
                         <td>${truncateString(item.address || '',5)}</td>
+                        <td>${truncateString(item.latitude || '',5)}</td>
+                        <td>${truncateString(item.longitude || '',5)}</td>
+                        
                         <td>${truncateString(item.created_at ? formatDate(item.created_at) : '',5)}</td>
                     `;
                     break;
@@ -463,6 +360,8 @@ function updateTable(type, data) {
                 case 'categories':
                     row += `                                              
                         <td>${item.categories || ''}</td>                        
+                        <td>${item.color || ''}</td>                        
+                        <td>${item.description || ''}</td>                       
                         <td>${item.created_at ? formatDate(item.created_at) : ''}</td>
                     `;
                     break;
@@ -479,7 +378,7 @@ function updateTable(type, data) {
                 case 'statuses':
                     row += `
                         <td>${item.name || ''}</td>                        
-                        <td>${item.color|| ''}</td>
+                        <td>${item.color || ''}</td> 
                         <td>${item.description || ''}</td>                        
                         <td>${item.created_at ? formatDate(item.created_at) : ''}</td>
                     `;
@@ -616,6 +515,8 @@ function showItemDetails(type, item) {
                 <tr><th>Name</th><td>${item.name || 'N/A'}</td></tr>
                 <tr><th>Capacity</th><td>${item.capacity || 'N/A'}</td></tr>
                 <tr><th>Address</th><td>${item.address || 'N/A'}</td></tr>
+                <tr><th>Gps</th><td>${(item.latitude && item.longitude) ? 'GPS Available' : 'Not Available'}</td></tr>
+                
             `;
             break;
             
@@ -640,14 +541,15 @@ function showItemDetails(type, item) {
         case 'categories':
             htmlContent += `
                 <tr><th>Name</th><td>${item.categories || 'N/A'}</td></tr>
+                <tr><th>Name</th><td>${item.description || 'N/A'}</td></tr>
                 
             `;
             break;
         case 'statuses':
             htmlContent += `
                 <tr><th>Name</th><td>${item.name || 'N/A'}</td></tr>               
-                <tr><th>Color</th><td>${item.color || 'N/A'}</td></tr>
-                 <tr><th>Description</th><td>${item.description	|| 'N/A'}</td></tr>
+               
+                <tr><th>Description</th><td>${item.description	|| 'N/A'}</td></tr>
             `;
             break;
         case 'attendance_methods':
@@ -752,7 +654,7 @@ async function loadItemData(type, id) {
                     document.getElementById('locationCapacity').value = item.capacity || '';
                     document.getElementById('locationAddress').value = item.address || '';
                     break;
-                    
+                      
                 case 'departments':
                     document.getElementById('name').value = item.name || '';
                     document.getElementById('HOD').value = item.HOD || '';
@@ -769,6 +671,8 @@ async function loadItemData(type, id) {
                     break;
                 case 'categories':
                     document.getElementById('categories').value = item.categories|| ''; 
+                    document.getElementById('color').value = item.color|| ''; 
+                    document.getElementById('description').value = item.description|| ''; 
                     break;     
                 case 'attendance_methods':
                     document.getElementById('name').value = item.name|| '';      
@@ -863,6 +767,7 @@ function renderTable() {
                     <td>${truncateString(item.name || 'N/A', 5)}</td>                       
                     <td>${truncateString(item.capacity || '', 5)}</td>
                     <td>${truncateString(item.address || '',5)}</td>
+                    <td>${(item.latitude && item.longitude) ? 'GPS Available' : 'Not Available'}</td>
                     <td>${truncateString(item.created_at ? formatDate(item.created_at) : '',5)}</td>
                 `;
                 break;
@@ -890,14 +795,14 @@ function renderTable() {
             case 'categories':
                 row += `
                     <td>${truncateString(item.categories || '',5)}</td>                   
+                    <td>${truncateString(item.description || '',5)}</td>                   
                     <td>${truncateString(item.created_at ? formatDate(item.created_at) : '',5)}</td>
                 `;
                 break;
                 
             case 'statuses':
                 row += `
-                    <td>${truncateString(item.name || '',5)}</td>   
-                    <td>${truncateString(item.color || '',5)}</td>                 
+                    <td>${truncateString(item.name || '',5)}</td>                                 
                     <td>${truncateString(item.description || '',5)}</td>                                    
                     <td>${truncateString(item.created_at ? formatDate(item.created_at) : '',5)}</td>
                 `;
@@ -912,51 +817,45 @@ function renderTable() {
                 `;
                 break;
                 
-            case 'events':
-                row += `
-                    <td>${item.name || ''}</td>
-                    <td>${item.date ? formatDateTime(item.date) : ''}</td>
-                    <td>${item.location_name || ''}</td>
-                    <td>${item.speaker_name || ''}</td>
-                    <td>${item.attendee_count || '0'}</td>
-                    <td>${item.created_at ? formatDate(item.created_at) : ''}</td>
-                `;
-                break;
-                
-            case 'members':
-                row += `
-                    <td>${item.name || ''}</td>
-                    <td>${item.email || ''}</td>
-                    <td>${item.phone || ''}</td>
-                    <td>${item.department_name || ''}</td>
-                    <td>${item.join_date ? formatDate(item.join_date) : ''}</td>
-                `;
-                break;
-                
-            case 'attendance':
-                row += `
-                    <td>${item.event_name || ''}</td>
-                    <td>${item.member_name || ''}</td>
-                    <td>${item.check_in_time ? formatDateTime(item.check_in_time) : ''}</td>
-                    <td>${item.status || ''}</td>
-                `;
-                break;
         }
         
         // Add action buttons
-        row += `
-            <td class="action-buttons">
-                <button class="btn-icon" onclick="viewItem('${type}', ${item.id})">
-                   <i class="fas fa-eye"></i>
-                </button>
-                <button class="btn-icon" onclick="editItem('${type}', ${item.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-danger" onclick="deleteItem('${type}', ${item.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        </tr>`;
+        const allowedButtons = config.actionButtons || ['view', 'edit', 'delete'];
+        if (allowedButtons.length > 0) {
+            row += `
+                <td class="action-buttons">
+                    ${allowedButtons.includes('view') ? 
+                        `<button class="btn-icon" onclick="viewItem('${type}', ${item.id})" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>` : ''}
+                    ${allowedButtons.includes('edit') ? 
+                        `<button class="btn-icon" onclick="editItem('${type}', ${item.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>` : ''}
+                    ${allowedButtons.includes('delete') ? 
+                        `<button class="btn-icon btn-danger" onclick="deleteItem('${type}', ${item.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                </td>
+            `;
+        } else {
+            // For statuses and attendance_methods (empty array)
+            row += '<td class="no-actions">-</td>';
+        }
+        // row
+        //  += `
+        //     <td class="action-buttons">
+        //         <button class="btn-icon" onclick="viewItem('${type}', ${item.id})">
+        //            <i class="fas fa-eye"></i>
+        //         </button>
+        //         <button class="btn-icon" onclick="editItem('${type}', ${item.id})">
+        //             <i class="fas fa-edit"></i>
+        //         </button>
+        //         <button class="btn-icon btn-danger" onclick="deleteItem('${type}', ${item.id})">
+        //             <i class="fas fa-trash"></i>
+        //         </button>
+        //     </td>
+        // </tr>`;
         
         return row;
     }).join('');

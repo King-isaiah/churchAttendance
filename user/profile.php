@@ -1,15 +1,6 @@
 <?php
    include_once "include/user_header.php"; 
-    $userProfile = [
-        'first_name' => 'Eshiozemhe',
-        'last_name' => 'Afuwape',
-        'email' => 'eshiozemhe.afuwape@example.com',
-        'phone' => '+1 (555) 123-4567',
-        'department' => 'Youth Ministry',
-        'join_date' => '2023-01-15',
-        'membership_id' => 'MEM-001234'
-    ];
-
+    
     $departments = ['Worship Team', 'Youth Ministry', 'Children Ministry', 'Outreach', 'Administration'];
 ?>
 
@@ -43,9 +34,9 @@
                                 <i class="fas fa-user-circle"></i>
                             </div>
                             <div class="profile-info">
-                                <h3>Afuwape Eshiozemhe</h3>
-                                <p><?php echo $userProfile['department']; ?></p>
-                                <span class="member-id">ID: <?php echo $userProfile['membership_id']; ?></span>
+                                <h3></h3>
+                                <p></p>
+                                <span class="member-id"></span>
                             </div>
                             <button class="btn-outline edit-profile-btn" onclick="toggleEditMode()">
                                 <i class="fas fa-edit"></i> Edit Profile
@@ -61,39 +52,35 @@
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label>First Name</label>
-                                        <input type="text" name="first_name" value="Eshiozemhe" readonly>
+                                        <input type="text" name="first_name" value="" readonly>
                                     </div>
                                     <div class="form-group">
                                         <label>Last Name</label>
-                                        <input type="text" name="last_name" value="Afuwape" readonly>
+                                        <input type="text" name="last_name" value="" readonly>
                                     </div>
                                 </div>
                                 
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label>Email Address</label>
-                                        <input type="email" name="email" value="<?php echo $userProfile['email']; ?>" readonly>
+                                        <input type="email" name="email" value="" readonly>
                                     </div>
                                     <div class="form-group">
                                         <label>Phone Number</label>
-                                        <input type="tel" name="phone" value="<?php echo $userProfile['phone']; ?>" readonly>
+                                        <input type="tel" name="phone" value="" readonly>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label>Department</label>
-                                    <select name="department" disabled>
-                                        <?php foreach($departments as $dept): ?>
-                                            <option value="<?php echo $dept; ?>" <?php echo $dept == $userProfile['department'] ? 'selected' : ''; ?>>
-                                                <?php echo $dept; ?>
-                                            </option>
-                                        <?php endforeach; ?>
+                                    <select name="department_id" disabled>
+                                        
                                     </select>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label>Join Date</label>
-                                    <input type="text" value="<?php echo date('F j, Y', strtotime($userProfile['join_date'])); ?>" readonly>
+                                    <input type="text"  name="join_date" value=""readonly>
                                 </div>
                                 
                                 <div class="form-actions" id="profileActions" style="display: none;">
@@ -159,7 +146,7 @@
                     </div>
                     <div class="form-group">
                         <label>New Password</label>
-                        <input type="password" name="new_password" required>
+                        <input type="password" name="new_password" id="password" required>
                     </div>
                     <div class="form-group">
                         <label>Confirm New Password</label>

@@ -21,11 +21,7 @@
         
         public function getMember($id) {
             try {
-                $sql = "
-                    SELECT m.*, d.name as department_name
-                    FROM members m
-                    LEFT JOIN departments d ON m.department_id = d.id
-                    WHERE m.id = ?
+                $sql = "SELECT m.*, d.name AS department FROM members m LEFT JOIN departments AS d ON m.department_id = d.id WHERE m.unique_id = ?
                 ";
                 $result = $this->fetchOne($sql, [$id]);
                 
@@ -44,90 +40,41 @@
         }
         
 
-
-        // public function loginUsers($data) {
-        //     try {
-        //         // Validate required fields
-        //         if (empty($data['email']) || empty($data['password'])) {
-        //             throw new Exception("Email and password are required");
-        //         }
-
-        //         // Sanitize email
-        //         $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
-        //         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        //             throw new Exception("Invalid email format");
-        //         }
-
-        //         $password = $data['password'];
-
-        //         // Find member by email and password
-        //         $sql = "SELECT m.*, d.name as department_name FROM members m
-        //             LEFT JOIN departments d ON m.department_id = d.id
-        //             WHERE m.email = ? AND m.password = ?
-        //         ";
-        //         $member = $this->fetchOne($sql, [$email, $password]);
-                
-        //         if (!$member) {
-        //             error_log("Individual does not exist for this: " . $email);
-        //             return false;
-        //         }
-                
-        //         $_SESSION['unique_id'] = 788415558;
-        //         $_SESSION['first'] = 'first_name';
-        //         $_SESSION['full_name'] = 'first_name' . ' ' . 'last_name';
-        //         $_SESSION['user_email'] = 'email';
-        //         $_SESSION['user_department'] = 'department_name';
-        //         // $_SESSION['unique_id'] = $member['unique_id'];
-        //         // $_SESSION['first'] = $member['first_name'];
-        //         // $_SESSION['full_name'] = $member['first_name'] . ' ' . $member['last_name'];
-        //         // $_SESSION['user_email'] = $member['email'];
-        //         // $_SESSION['user_department'] = $member['department_name'];
-        //         // $_SESSION['user_role'] = 'user';
-
-        //         return $member;
-
-        //     } catch (Exception $e) {
-        //         error_log("Authentication error: " . $e->getMessage() . " | Email: " . ($data['email'] ?? ''));
-        //         throw $e;
-        //     }
-        // }
-
-
         public function loginUsers($data) {
-    try {
-        // Validate required fields
-        if (empty($data['email']) || empty($data['password'])) {
-            throw new Exception("Email and password are required");
+            try {
+                // Validate required fields
+                if (empty($data['email']) || empty($data['password'])) {
+                    throw new Exception("Email and password are required");
+                }
+
+                // Sanitize email
+                $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    throw new Exception("Invalid email format");
+                }
+
+                $password = $data['password'];
+
+                // Find member by email and password
+                $sql = "SELECT m.*, d.name as department_name FROM members m
+                    LEFT JOIN departments d ON m.department_id = d.id
+                    WHERE m.email = ? AND m.password = ?
+                ";
+                $member = $this->fetchOne($sql, [$email, $password]);
+                
+                if (!$member) {
+                    error_log("Individual does not exist for this: " . $email);
+                    return false;
+                }
+
+                // Return user data without creating sessions
+                return $member;
+
+            } catch (Exception $e) {
+                error_log("Authentication error: " . $e->getMessage() . " | Email: " . ($data['email'] ?? ''));
+                throw $e;
+            }
         }
-
-        // Sanitize email
-        $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Invalid email format");
-        }
-
-        $password = $data['password'];
-
-        // Find member by email and password
-        $sql = "SELECT m.*, d.name as department_name FROM members m
-            LEFT JOIN departments d ON m.department_id = d.id
-            WHERE m.email = ? AND m.password = ?
-        ";
-        $member = $this->fetchOne($sql, [$email, $password]);
-        
-        if (!$member) {
-            error_log("Individual does not exist for this: " . $email);
-            return false;
-        }
-
-        // Return user data without creating sessions
-        return $member;
-
-    } catch (Exception $e) {
-        error_log("Authentication error: " . $e->getMessage() . " | Email: " . ($data['email'] ?? ''));
-        throw $e;
-    }
-}
 
         public function getMembersSession() {
             // Start session if not already started
@@ -208,9 +155,24 @@
                 }
                 
                 // Validate data
-                $this->validateMemberData($data, true);
+                // $this->validateMemberData($data, true);
                 
-                return $this->update('members', $data, 'id = ?', [$id]);
+                return $this->update('members', $data, 'unique_id = ?', [$id]);
+                
+            } catch (Exception $e) {
+                error_log("Member update error [ID: $id]: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        public function updatePassword($id, $data) {
+            try {
+                // Check if member exists first
+                $existing = $this->getMember($id);
+                if (!$existing) {
+                    throw new Exception("Member not found", 404);
+                }
+                
+                return $this->update('members', $data, 'unique_id = ?', [$id]);
                 
             } catch (Exception $e) {
                 error_log("Member update error [ID: $id]: " . $e->getMessage());
@@ -344,10 +306,8 @@
                 }
 
                 // Find member by email and password
-                $sql = "
-                    SELECT m.*, d.name as department_name
-                    FROM members m
-                    LEFT JOIN departments d ON m.department_id = d.id
+                $sql = "SELECT m.*, d.name as department_name,m.department_id AS department_id
+                    FROM members m LEFT JOIN departments d ON m.department_id = d.id
                     WHERE m.email = ? AND m.password = ?
                 ";
                 $member = $this->fetchOne($sql, [$email, $password]);

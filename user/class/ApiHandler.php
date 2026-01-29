@@ -16,6 +16,9 @@
     require_once 'Status.php';
     require_once 'LocationValidator.php';
     require_once 'QRGenerator.php';
+    require_once 'RSVP.php';
+    require_once 'Report.php';
+    require_once 'Notification.php';
 
     class ApiHandler {
         private $entity;
@@ -81,6 +84,9 @@
                 case 'get':
                     $this->get();
                     break;
+                case 'getOthers':
+                    $this->getOthers();
+                    break;
                 case 'getCurrentUser':
                     $this->getCurrentUser();
                     break;
@@ -104,7 +110,10 @@
                 case 'login':
                     $this->login();
                     break;
-                case 'generateQR': // Add this case
+                case 'special':
+                    $this->special();
+                    break;
+                case 'generateQR': 
                     $this->generateQR();
                     break;
                 default:
@@ -143,7 +152,7 @@
                     ], 400);
             }
         }
-         private function get() {
+        private function get() {
             if (!$this->id) {
                 $this->sendResponse([
                     'success' => false, 
@@ -177,12 +186,8 @@
                 'activities' => 'getActivity',
                 'attendance_methods'=>'getAttendanceMethod',
                 'statuses'=>'getStatus',
-                'attendance'=>'getAttendanceReports',
-                'attendance'=>'getWeeklyAttendanceTrend',
-                // 'attendance'=>'getStatus',
-                // 'attendance'=>'getStatus',
-                // 'attendance'=>'getStatus',
-                // 'attendance'=>'getStatus'
+                'notifications' => 'getNotificationsForUser',
+               
             ];
             
             $method = $methodMap[$this->entity] ?? 'get';
@@ -207,6 +212,45 @@
                     'success' => false, 
                     'message' => "Method $method not found",
                     'errorType' => 'serverget'
+                ], 500);
+            }
+        }
+        
+        
+
+        private function getOthers() {
+            $entityClass = $this->getEntityClass();
+            if (!$entityClass) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid entity',
+                    'errorType' => 'clientgetOthers'
+                ], 400);
+                return;
+            }
+            
+            $entity = new $entityClass();
+            
+            // Map entity to method name
+            $methodMap = [            
+                'activities' => 'getLocationActivitiesWithLocationCoordinate',
+                'attendance' => 'getLocationActivitiesWithLocationCoordinate',
+                'categories' => 'getCategoriesInEvents',
+            ];
+            
+            $method = $methodMap[$this->entity] ?? 'getOthers';
+            
+            if (method_exists($entity, $method)) {
+                $data = $entity->$method();
+                $this->sendResponse([
+                    'success' => true, 
+                    'data' => $data
+                ]);
+            } else {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => "Method $method not found for {$this->entity}",
+                    'errorType' => 'servergetOthers'
                 ], 500);
             }
         }
@@ -236,7 +280,7 @@
                 'attendance_methods' => 'getAllAttendanceMethods',
                 'statuses' => 'getAllStatuses',
                 'attendance' => 'getAllAttendanceReports',
-
+                'notifications' => 'getAllNotifications',
             ];
             
             $method = $methodMap[$this->entity] ?? 'getAll';
@@ -425,6 +469,8 @@
                 'attendance_methods'=>'createAttendanceMethod',
                 'statuses'=>'createStatus',
                 'activity_qr_codes'=>'generateQRCode',
+                'rsvp'=>'saveRSVP',
+                'notifications' => 'createNotification',
             ];
             
             $method = $methodMap[$this->entity] ?? 'create';
@@ -442,15 +488,78 @@
                         'success' => false, 
                         'message' => 'Create failed',
                         'errorType' => 'servercreate'
-                    ], 500);
+                    ], 500 + 'create error');
                 }
             } else {
                 $this->sendResponse([
                     'success' => false, 
                     'message' => "Method $method not found",
-                    'errorType' => 'servercreate'
+                    'errorType' => 'servercreated'
+                ], 500 + 'created error');
+            }
+        }
+
+        private function special() {
+            if (empty($this->input)) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid data',
+                    'errorType' => 'client'
+                ], 400);
+                return;
+            }
+            
+            $entityClass = $this->getEntityClass();
+            if (!$entityClass) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid entity',
+                    'errorType' => 'client'
+                ], 400);
+                return;
+            }
+            
+            $entity = new $entityClass();
+            
+            // Map entity to method name
+            $methodMap = [
+                'locations' => 'createLocation',
+                'departments' => 'createDepartment',
+                'categories' => 'createCategory',
+                'speakers' => 'createSpeaker',
+                'events' => 'createEvent',
+                'members' => 'createMember',
+                'attendance' => 'createAttendance',
+                'activities' => 'createActivity',
+                'attendance_methods'=>'createAttendanceMethod',
+                'statuses'=>'createStatus',
+                'activity_qr_codes'=>'generateQRCode',
+                'reports' => 'creatAReport',
+            ];
+            
+            $method = $methodMap[$this->entity] ?? 'special';
+            
+            if (method_exists($entity, $method)) {
+                $result = $entity->$method($this->input);
+               
+                if ($result !== false) {
+                    $this->sendResponse([
+                        'success' => true, 
+                        'data' => $result
+                    ], 200);  
+                } else {
+                    $this->sendResponse([
+                        'success' => false, 
+                        'message' => 'Query failed'
+                    ], 500);
+                }
+            } else {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Query failed'
                 ], 500);
             }
+            
         }
         
         private function update() {
@@ -482,12 +591,13 @@
                 'categories' => 'updateCategory',
                 'speakers' => 'updateSpeaker',
                 'events' => 'updateEvent',
-                'members' => 'updateMember',
+                'members' => 'updatePassword',
                 'attendance' => 'updateAttendance',
                 'activities' => 'updateActivity',
                 'attendance_methods' => 'updateAttendanceMethod',
                 'statuses' => 'updateStatus',
-                'activity_qr_codes' => 'updateStatus'
+                'activity_qr_codes' => 'updateStatus',
+                'rsvp'=>'saveRSVP'
             ];
             
             $method = $methodMap[$this->entity] ?? 'update';
@@ -551,6 +661,7 @@
                 'statuses' => 'deleteStatus',
                 'attendance_methods' => 'deleteAttendanceMethod',
                 'activity_qr_codes' => 'deleteAttendanceMethod',
+                'notifications' => 'deleteNotification',
             ];
             
             $method = $methodMap[$this->entity] ?? 'delete';
@@ -692,6 +803,8 @@
                 'statuses'=>'Status',
                 'reports' => 'Report',
                 'activity_qr_codes' => 'QRGenerator',
+                'rsvp' => 'RSVP',
+                'notifications'=>'Notification'
             ];
             
             return $entityMap[$this->entity] ?? null;

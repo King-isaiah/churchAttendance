@@ -1,27 +1,190 @@
-// User Attendance History functionality
 class UserAttendanceHistory {
     constructor() {
         this.attendanceRecords = [];
         this.filteredRecords = [];
         this.currentPage = 1;
-        this.recordsPerPage = 10;
-        this.init();
+        this.recordsPerPage = 5;
+        this.userId = this.getCurrentUserId();
+        
+        this.months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+        this.years = [2026, 2025];
     }
 
     init() {
+        this.centerDiv(); 
         this.setupEventListeners();
         this.loadAttendanceHistory();
-        this.initializeSummary();
+        this.updateSummary();
+    }
+
+    centerDiv() {
+        const centerDiv = document.getElementById('center-div');
+        if (!centerDiv) {
+            console.error('center-div element not found!');
+            return;
+        }
+        
+        let monthOptions = '';
+        if (this.months && Array.isArray(this.months)) {
+            for (let i = 0; i < this.months.length; i++) {
+                monthOptions += `<option value="${this.months[i]}">${this.months[i]}</option>`;
+            }
+        }
+
+        let yearOptions = '';
+        if (this.years && Array.isArray(this.years)) {
+            for (let i = 0; i < this.years.length; i++) {
+                yearOptions += `<option value="${this.years[i]}">${this.years[i]}</option>`;
+            }
+        }
+        
+        const content = `<div class="attendance-history-page">
+                        <div class="page-header">
+                            <h2>My Attendance History</h2>
+                            <p>Track your participation in church activities</p>
+                        </div>
+
+                        <!-- Summary Cards -->
+                        <div class="summary-cards">
+                            <div class="summary-card total">
+                                <div class="summary-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="summary-info">
+                                    <h3 id="totalActivities">0</h3>
+                                    <p>Total Activities Attended</p>
+                                </div>
+                            </div>
+        
+                            <div class="summary-card present">
+                                <div class="summary-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="summary-info">
+                                    <h3 id="presentCount">0</h3>
+                                    <p>Present</p>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-card absent">
+                                <div class="summary-icon">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="summary-info">
+                                    <h3 id="absentCount">0</h3>
+                                    <p>Late</p>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-card rate">
+                                <div class="summary-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="summary-info">
+                                    <h3 id="attendanceRate">0%</h3>
+                                    <p>Attendance Rate</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="filters-section">
+                            <div class="filter-group">
+                                <label>Month:</label>
+                                <select id="monthFilter">
+                                    <option value="all">All Months</option>
+                                    ${monthOptions}
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label>Year:</label>
+                                <select id="yearFilter">
+                                    <option value="all">All Years</option>
+                                    ${yearOptions}
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label>Status:</label>
+                                <select id="statusFilter">
+                                    <option value="all">All Status</option>
+                                    <option value="present">Present</option>
+                                    <option value="late">Late</option>
+                                </select>
+                            </div>
+                         
+                        </div>
+
+                        <!-- Results Count -->
+                        <div class="results-count" id="resultsCountContainer" style="margin: 1rem 0; display: none;">
+                            <p>Showing <span id="resultsRange">0-0</span> of <span id="totalResults">0</span> records</p>
+                        </div>
+
+                        <!-- Attendance Table -->
+                        <div class="table-container">
+                            <table class="attendance-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Activity/Event</th>
+                                        <th>Location</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Clocked IN</th>                                    
+                                        <th>Attendance Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                    <tr>
+                                        <td colspan="8" class="no-data">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            <p>Loading attendance records...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        
+                        <div class="pagination" id="pagination" style="margin: 1rem 0; display: none;"></div>
+
+                        <!-- <div class="export-section">
+                            <button class="btn-secondary" id="exportBtn">
+                                <i class="fas fa-download"></i> Export to CSV
+                            </button>
+                        </div> -->
+                    </div>`;
+        
+        centerDiv.innerHTML = content;
     }
 
     setupEventListeners() {
-        // Filter event listeners
-        document.getElementById('monthFilter').addEventListener('change', () => this.applyFilters());
-        document.getElementById('yearFilter').addEventListener('change', () => this.applyFilters());
-        document.getElementById('statusFilter').addEventListener('change', () => this.applyFilters());
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'applyFiltersBtn' || e.target.closest('#applyFiltersBtn')) {
+                this.applyFilters();
+            }
+            if (e.target.id === 'exportBtn' || e.target.closest('#exportBtn')) {
+                this.exportToCSV();
+            }
+            if (e.target.classList.contains('pagination-btn') && !e.target.classList.contains('disabled')) {
+                const page = parseInt(e.target.dataset.page);
+                if (page && !isNaN(page)) {
+                    this.goToPage(page);
+                }
+            }
+        });
 
-        // Export functionality
-        document.querySelector('.export-section button').addEventListener('click', () => this.exportToCSV());
+        setTimeout(() => {
+            const monthFilter = document.getElementById('monthFilter');
+            const yearFilter = document.getElementById('yearFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            
+            if (monthFilter) monthFilter.addEventListener('change', () => this.loadAttendanceHistory());
+            if (yearFilter) yearFilter.addEventListener('change', () => this.loadAttendanceHistory());
+            if (statusFilter) statusFilter.addEventListener('change', () => this.loadAttendanceHistory());
+        }, 100);
     }
 
     async loadAttendanceHistory() {
@@ -30,88 +193,107 @@ class UserAttendanceHistory {
             
             const records = await this.fetchAttendanceHistory();
             this.attendanceRecords = records;
-            this.filteredRecords = records;
+            this.filteredRecords = [...records];
             
             this.renderAttendanceTable();
             this.updatePagination();
+            this.updateSummary();
             this.showLoading(false);
+            this.showResultsCount(true);
         } catch (error) {
             console.error('Error loading attendance history:', error);
-            this.showError('Failed to load attendance history');
+            this.showError('Failed to load attendance history. Please try again.');
             this.showLoading(false);
         }
     }
 
     async fetchAttendanceHistory() {
-        // Simulate API call - replace with actual API endpoint
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    {
-                        id: 1,
-                        date: '2024-01-21',
-                        activity_name: 'Sunday Service',
-                        time: '10:00 AM',
-                        location: 'Main Sanctuary',
-                        status: 'present',
-                        checked_in: '2024-01-21 10:05 AM'
-                    },
-                    {
-                        id: 2,
-                        date: '2024-01-20',
-                        activity_name: 'Youth Night',
-                        time: '6:00 PM',
-                        location: 'Youth Hall',
-                        status: 'absent',
-                        checked_in: null
-                    },
-                    {
-                        id: 3,
-                        date: '2024-01-14',
-                        activity_name: 'Sunday Service',
-                        time: '10:00 AM',
-                        location: 'Main Sanctuary',
-                        status: 'present',
-                        checked_in: '2024-01-14 10:02 AM'
-                    },
-                    {
-                        id: 4,
-                        date: '2024-01-13',
-                        activity_name: 'Bible Study',
-                        time: '7:00 PM',
-                        location: 'Room 101',
-                        status: 'present',
-                        checked_in: '2024-01-13 19:05 PM'
-                    },
-                    {
-                        id: 5,
-                        date: '2024-01-07',
-                        activity_name: 'Sunday Service',
-                        time: '10:00 AM',
-                        location: 'Main Sanctuary',
-                        status: 'absent',
-                        checked_in: null
-                    }
-                ]);
-            }, 1000);
-        });
+        try {   
+            const year = document.getElementById('yearFilter')?.value || 'all';
+            const month = document.getElementById('monthFilter')?.value || 'all';    
+            const status = document.getElementById('statusFilter')?.value || 'all';
+            const unique_id = this.getCurrentUserId();
 
-        // Actual implementation would be:
-        /*
-        try {
-            const response = await fetch('class/ApiHandler.php?entity=attendance&action=getUserHistory');
-            const data = await response.json();
-            return data.success ? data.data : [];
-        } catch (error) {
-            throw new Error('Network error');
+            const jsonData = {
+                year: year,
+                month: month,
+                status: status,               
+                unique_id: unique_id,               
+            };
+            
+            console.log('Fetching attendance data:', jsonData);
+    
+            const url = 'class/ApiHandler.php?action=special&entity=reports';
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && Array.isArray(result.data)) {
+                return this.transformApiData(result.data);
+            } else {
+                console.error('API returned error:', result.message);
+                
+            }
+        } 
+        catch (error) {
+            console.error('Error loading attendance data:', error);
+           
         }
-        */
     }
 
+    transformApiData(apiData) {
+        const individualRecords = [];
+        
+        apiData.forEach(group => {           
+            for (let i = 0; i < (group.present_count || 0); i++) {
+                individualRecords.push({
+                    id: `${group.date}_${group.activity_or_event_name}_present_${i}`,
+                    date: group.date || group.created_at,
+                    activity_name: group.activity_or_event_name || 'Unknown',
+                    location: group.location_name || 'Unknown',
+                    category: group.attendance_category || 'activity',
+                    status: group.status,
+                    present_count: group.check_in_time,                
+                    attendance_rate: group.attendance_rate || 0,                    
+                });
+            }
+            
+            
+        });
+        
+        return individualRecords;
+    }
+
+    getCurrentUserId() {
+        // Try different methods to get the user's unique_id
+        const uniqueIdElement = document.getElementById('unique_id');
+        if (uniqueIdElement && uniqueIdElement.value) {
+            return uniqueIdElement.value;
+        }
+        
+        const storedId = localStorage.getItem('user_unique_id') || 
+                         sessionStorage.getItem('user_unique_id');
+        
+        if (storedId) {
+            return storedId;
+        }
+        
+        // If no ID found, return a default for testing
+        console.warn('No unique_id found, using default');
+        return 1; // You should replace this with actual user ID logic
+    }
+
+
     applyFilters() {
-        const monthFilter = document.getElementById('monthFilter').value;
-        const yearFilter = document.getElementById('yearFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
+        const monthFilter = document.getElementById('monthFilter')?.value || 'all';
+        const yearFilter = document.getElementById('yearFilter')?.value || 'all';
+        const statusFilter = document.getElementById('statusFilter')?.value || 'all';
 
         this.filteredRecords = this.attendanceRecords.filter(record => {
             const recordDate = new Date(record.date);
@@ -129,10 +311,13 @@ class UserAttendanceHistory {
         this.renderAttendanceTable();
         this.updatePagination();
         this.updateSummary();
+        this.updateResultsCount();
     }
 
     renderAttendanceTable() {
-        const tbody = document.querySelector('.attendance-table tbody');
+        const tbody = document.getElementById('attendanceTableBody');
+        if (!tbody) return;
+
         const startIndex = (this.currentPage - 1) * this.recordsPerPage;
         const endIndex = startIndex + this.recordsPerPage;
         const pageRecords = this.filteredRecords.slice(startIndex, endIndex);
@@ -140,7 +325,7 @@ class UserAttendanceHistory {
         if (pageRecords.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="no-data">
+                    <td colspan="8" class="no-data">
                         <i class="fas fa-clipboard-list"></i>
                         <p>No attendance records found for the selected filters</p>
                     </td>
@@ -158,70 +343,80 @@ class UserAttendanceHistory {
                     </div>
                 </td>
                 <td>${this.escapeHtml(record.activity_name)}</td>
-                <td>${record.time}</td>
                 <td>${this.escapeHtml(record.location)}</td>
+                <td>
+                    <span class="category-badge">${record.category === 'activity' ? 'Activity' : 'Event'}</span>
+                </td>
                 <td>
                     <span class="status-badge status-${record.status}">
                         ${this.capitalizeFirst(record.status)}
                     </span>
                 </td>
+                <td>${record.present_count}</td>               
                 <td>
-                    ${record.checked_in ? 
-                        this.formatDateTime(record.checked_in) : 
-                        '<span class="no-checkin">-</span>'
-                    }
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${record.attendance_rate}%">
+                            ${record.attendance_rate}%
+                        </div>
+                    </div>
                 </td>
             </tr>
         `).join('');
 
-        // Update results count
         this.updateResultsCount();
     }
 
     updatePagination() {
         const pagination = document.getElementById('pagination');
+        if (!pagination) return;
+
         const totalPages = Math.ceil(this.filteredRecords.length / this.recordsPerPage);
 
         if (totalPages <= 1) {
             pagination.innerHTML = '';
+            pagination.style.display = 'none';
             return;
         }
 
         let paginationHTML = '';
 
         // Previous button
-        paginationHTML += `
-            <button class="pagination-btn ${this.currentPage === 1 ? 'disabled' : ''}" 
-                    onclick="userAttendanceHistory.previousPage()" 
-                    ${this.currentPage === 1 ? 'disabled' : ''}>
-                <i class="fas fa-chevron-left"></i> Previous
-            </button>
-        `;
+        if (this.currentPage > 1) {
+            paginationHTML += `
+                <button class="pagination-btn" data-page="${this.currentPage - 1}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+            `;
+        }
 
         // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
-                paginationHTML += `
-                    <button class="pagination-btn ${i === this.currentPage ? 'active' : ''}" 
-                            onclick="userAttendanceHistory.goToPage(${i})">
-                        ${i}
-                    </button>
-                `;
-            } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
-                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === this.currentPage) {
+                paginationHTML += `<button class="pagination-btn active">${i}</button>`;
+            } else {
+                paginationHTML += `<button class="pagination-btn" data-page="${i}">${i}</button>`;
             }
         }
 
         // Next button
-        paginationHTML += `
-            <button class="pagination-btn ${this.currentPage === totalPages ? 'disabled' : ''}" 
-                    onclick="userAttendanceHistory.nextPage()" 
-                    ${this.currentPage === totalPages ? 'disabled' : ''}>
-                Next <i class="fas fa-chevron-right"></i>
-            </button>
-        `;
+        if (this.currentPage < totalPages) {
+            paginationHTML += `
+                <button class="pagination-btn" data-page="${this.currentPage + 1}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+        }
 
         pagination.innerHTML = paginationHTML;
+        pagination.style.display = 'flex';
     }
 
     updateResultsCount() {
@@ -229,56 +424,49 @@ class UserAttendanceHistory {
         const endIndex = Math.min(this.currentPage * this.recordsPerPage, this.filteredRecords.length);
         const totalCount = this.filteredRecords.length;
 
-        const resultsCount = document.getElementById('results-count');
-        const totalCountElement = document.getElementById('total-count');
+        const resultsRange = document.getElementById('resultsRange');
+        const totalResults = document.getElementById('totalResults');
+        const resultsContainer = document.getElementById('resultsCountContainer');
 
-        if (resultsCount && totalCountElement) {
-            resultsCount.textContent = `${startIndex}-${endIndex}`;
-            totalCountElement.textContent = totalCount;
+        if (resultsRange && totalResults && resultsContainer) {
+            resultsRange.textContent = totalCount > 0 ? `${startIndex}-${endIndex}` : '0-0';
+            totalResults.textContent = totalCount;
+            resultsContainer.style.display = totalCount > 0 ? 'block' : 'none';
+        }
+    }
+
+    showResultsCount(show) {
+        const container = document.getElementById('resultsCountContainer');
+        if (container) {
+            container.style.display = show ? 'block' : 'none';
         }
     }
 
     updateSummary() {
+        const totalCount = this.filteredRecords.length;
         const presentCount = this.filteredRecords.filter(record => record.status === 'present').length;
         const absentCount = this.filteredRecords.filter(record => record.status === 'absent').length;
-        const totalCount = this.filteredRecords.length;
         const attendanceRate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
         // Update summary cards
-        document.querySelector('.summary-card.total h3').textContent = totalCount;
-        document.querySelector('.summary-card.present h3').textContent = presentCount;
-        document.querySelector('.summary-card.absent h3').textContent = absentCount;
-        document.querySelector('.summary-card.rate h3').textContent = attendanceRate + '%';
-    }
+        const totalEl = document.getElementById('totalActivities');
+        const presentEl = document.getElementById('presentCount');
+        const absentEl = document.getElementById('absentCount');
+        const rateEl = document.getElementById('attendanceRate');
 
-    initializeSummary() {
-        // Initial summary will be updated after data loads
-        setTimeout(() => {
-            this.updateSummary();
-        }, 1500);
-    }
-
-    previousPage() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.renderAttendanceTable();
-            this.updatePagination();
-        }
-    }
-
-    nextPage() {
-        const totalPages = Math.ceil(this.filteredRecords.length / this.recordsPerPage);
-        if (this.currentPage < totalPages) {
-            this.currentPage++;
-            this.renderAttendanceTable();
-            this.updatePagination();
-        }
+        if (totalEl) totalEl.textContent = totalCount;
+        if (presentEl) presentEl.textContent = presentCount;
+        if (absentEl) absentEl.textContent = absentCount;
+        if (rateEl) rateEl.textContent = attendanceRate + '%';
     }
 
     goToPage(page) {
-        this.currentPage = page;
-        this.renderAttendanceTable();
-        this.updatePagination();
+        if (page >= 1 && page <= Math.ceil(this.filteredRecords.length / this.recordsPerPage)) {
+            this.currentPage = page;
+            this.renderAttendanceTable();
+            this.updatePagination();
+            this.updateResultsCount();
+        }
     }
 
     exportToCSV() {
@@ -289,7 +477,7 @@ class UserAttendanceHistory {
 
         try {
             const csvContent = this.generateCSV();
-            this.downloadCSV(csvContent, 'attendance_history.csv');
+            this.downloadCSV(csvContent, `attendance_history_${new Date().toISOString().split('T')[0]}.csv`);
             this.showMessage('Attendance data exported successfully', 'success');
         } catch (error) {
             console.error('Error exporting CSV:', error);
@@ -298,17 +486,19 @@ class UserAttendanceHistory {
     }
 
     generateCSV() {
-        const headers = ['Date', 'Activity', 'Time', 'Location', 'Status', 'Checked In'];
+        const headers = ['Date', 'Activity/Event', 'Location', 'Category', 'Status', 'Present', 'Absent', 'Attendance Rate'];
         const csvRows = [headers.join(',')];
 
         this.filteredRecords.forEach(record => {
             const row = [
                 this.formatDate(record.date, 'Y-m-d'),
-                `"${record.activity_name}"`,
-                record.time,
-                `"${record.location}"`,
+                `"${record.activity_name.replace(/"/g, '""')}"`,
+                `"${record.location.replace(/"/g, '""')}"`,
+                record.category,
                 record.status,
-                record.checked_in ? this.formatDateTime(record.checked_in, 'Y-m-d H:i') : 'N/A'
+                record.present_count,
+                record.absent_count,
+                record.attendance_rate
             ];
             csvRows.push(row.join(','));
         });
@@ -328,14 +518,17 @@ class UserAttendanceHistory {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 
     showLoading(show) {
-        const tbody = document.querySelector('.attendance-table tbody');
+        const tbody = document.getElementById('attendanceTableBody');
+        if (!tbody) return;
+
         if (show) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="no-data">
+                    <td colspan="8" class="no-data">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>Loading attendance records...</p>
                     </td>
@@ -345,10 +538,12 @@ class UserAttendanceHistory {
     }
 
     showError(message) {
-        const tbody = document.querySelector('.attendance-table tbody');
+        const tbody = document.getElementById('attendanceTableBody');
+        if (!tbody) return;
+
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="no-data">
+                <td colspan="8" class="no-data">
                     <i class="fas fa-exclamation-triangle"></i>
                     <p>${message}</p>
                     <button class="btn-primary" onclick="userAttendanceHistory.loadAttendanceHistory()" style="margin-top: 1rem;">
@@ -362,30 +557,39 @@ class UserAttendanceHistory {
     showMessage(message, type = 'info') {
         if (typeof showToast === 'function') {
             showToast(message, type);
+        } else if (typeof showError === 'function' && type === 'error') {
+            showError(message);
+        } else if (typeof showSuccess === 'function' && type === 'success') {
+            showSuccess(message);
         } else {
             alert(message);
         }
     }
 
-    // Utility functions
     formatDate(dateString, format) {
-        const date = new Date(dateString);
-        const options = {
-            'M j, Y': { month: 'short', day: 'numeric', year: 'numeric' },
-            'D': { weekday: 'short' },
-            'Y-m-d': { year: 'numeric', month: '2-digit', day: '2-digit' }
-        };
+        if (!dateString) return '';
         
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+
         if (format === 'Y-m-d') {
             return date.toISOString().split('T')[0];
         }
         
-        return date.toLocaleDateString('en-US', options[format]);
+        const options = {
+            'M j, Y': { month: 'short', day: 'numeric', year: 'numeric' },
+            'D': { weekday: 'short' }
+        };
+        
+        return date.toLocaleDateString('en-US', options[format] || {});
     }
 
     formatDateTime(dateTimeString, format = 'M j, Y g:i A') {
-        const date = new Date(dateTimeString);
+        if (!dateTimeString) return '';
         
+        const date = new Date(dateTimeString);
+        if (isNaN(date.getTime())) return dateTimeString;
+
         if (format === 'Y-m-d H:i') {
             return date.toISOString().replace('T', ' ').substring(0, 16);
         }
@@ -412,25 +616,15 @@ class UserAttendanceHistory {
     }
 
     capitalizeFirst(string) {
+        if (!string) return '';
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 }
 
 // Initialize attendance history when page loads
 let userAttendanceHistory;
+
 document.addEventListener('DOMContentLoaded', () => {
     userAttendanceHistory = new UserAttendanceHistory();
+    userAttendanceHistory.init();
 });
-
-// Global functions for HTML onclick handlers
-function applyFilters() {
-    if (userAttendanceHistory) {
-        userAttendanceHistory.applyFilters();
-    }
-}
-
-function exportAttendance() {
-    if (userAttendanceHistory) {
-        userAttendanceHistory.exportToCSV();
-    }
-}

@@ -3,10 +3,12 @@ include "include/header.php";
 require_once 'class/Event.php';
 require_once 'class/Department.php';
 require_once 'class/Location.php';
+require_once 'class/Category.php';
 
 $event = new Event();
 $department = new Department();
 $location = new Location();
+$category = new Category();
 
 // Get current month and year for calendar
 $currentMonth = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('m');
@@ -26,6 +28,7 @@ try {
     $allEvents = $event->getAllEvents();
     $departments = $department->getAllDepartments();
     $locations = $location->getAllLocations();
+    $categories = $category->getAllCategory();
 } catch (Exception $e) {
     $monthEvents = [];
     $allEvents = [];
@@ -213,20 +216,52 @@ foreach ($monthEvents as $eventItem) {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="eventDepartment">Department</label>
-                    <select id="eventDepartment" name="department_id">
-                        <option value="">All Departments</option>
-                        <?php foreach ($departments as $dept): ?>
-                            <option value="<?php echo $dept['id']; ?>"><?php echo htmlspecialchars($dept['name']); ?></option>
+                    <label for="eventCategory">Categories</label>
+                    <select id="eventCategory" name="category_id">
+                        <option value="">Select Category</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['categories']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
+                
             </div>
             
+<div class="form-group">
+    
+    <label for="expectedAttendance">Expected Attendance</label>
+    <input type="number" id="expectedAttendance" name="expected_attendance" min="1">
+    <div class="form-group">
+               
+    </div>
+
+    <div class="department-selection">    
+        <div class="form-group department-field" id="departmentField1">
             <div class="form-group">
-                <label for="expectedAttendance">Expected Attendance</label>
-                <input type="number" id="expectedAttendance" name="expected_attendance" min="1">
+                <label for="eventDepartment1">Department</label>
+                <select id="eventDepartment1" name="department_id" class="department-select">
+                    <option value="0">All Departments</option>
+                    <?php foreach ($departments as $dept): ?>
+                        <option value="<?php echo $dept['id']; ?>">
+                            <?php echo htmlspecialchars($dept['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
+            <button type="button" class="remove-department" onclick="removeDepartmentField(this)" style="display: none;">−</button>
+        </div>
+        
+        
+        <div id="additionalDepartments"></div>
+            <button type="button" id="addDepartmentBtn" onclick="addDepartmentField()" class="add-department-btn">
+                + Add Another Department
+            </button>
+            <small class="hint">Maximum 7 departments total</small>
+
+    </div>
+
+
+</div>
             
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="closeEventModal()">Cancel</button>
@@ -285,7 +320,6 @@ foreach ($monthEvents as $eventItem) {
         });
     }
 
-    // Apply department colors to calendar indicators
     function applyDepartmentColors() {
         document.querySelectorAll('.event-indicator').forEach(indicator => {
             const department = indicator.getAttribute('data-department');
@@ -294,7 +328,7 @@ foreach ($monthEvents as $eventItem) {
         });
     }
 
-    // Get color for a department
+   
     function getDepartmentColor(departmentName) {
         if (!departmentName || departmentName === 'No Department') {
             return '#C9CBCF';
@@ -307,7 +341,6 @@ foreach ($monthEvents as $eventItem) {
         window.location.href = `events.php?month=${month}&year=${year}`;
     }
 
-    // Initialize search and pagination using the universal pagination system
     function initializeSearchAndPagination() {
         const allEvents = <?php echo json_encode($allEvents); ?>;
         
@@ -339,7 +372,7 @@ foreach ($monthEvents as $eventItem) {
         }
     }
 
-    // Render events table with truncation (5 characters max)
+  
     function renderEventsTable(events, startIndex) {
         const tbody = document.getElementById('eventTableBody');
         
@@ -381,6 +414,9 @@ foreach ($monthEvents as $eventItem) {
                     </td>
                     <td>${event.expected_attendance || 'N/A'}</td>
                     <td class="action-buttons">
+                        <button class="btn-icon btn-rsvp" onclick="viewEventRSVP(${event.id})" title="View RSVP Responses">
+                            <i class="fas fa-users"></i>
+                        </button>
                         <button class="btn-icon btn-info" onclick="viewEvent(${event.id})" title="View Event Details">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -395,7 +431,9 @@ foreach ($monthEvents as $eventItem) {
             `;
         }).join('');
     }
-
+    function viewEventRSVP(eventId) {
+        window.location.href = `rsvp.php?event_id=${eventId}`;
+    }
     // View event details
     async function viewEvent(id) {
         try {
@@ -445,6 +483,10 @@ foreach ($monthEvents as $eventItem) {
                 <div class="detail-row">
                     <label>Location:</label>
                     <span>${escapeHtml(event.location_name || 'N/A')}</span>
+                </div>
+                <div class="detail-row">
+                    <label>Category:</label>
+                    <span>${escapeHtml(event.categories || 'N/A')}</span>
                 </div>
                 <div class="detail-row">
                     <label>Department:</label>
@@ -513,74 +555,147 @@ foreach ($monthEvents as $eventItem) {
         document.body.style.overflow = 'auto';
     }
 
-    // Load event data for editing
-    async function loadEventData(id) {
-        try {
-            const response = await fetch(`class/ApiHandler.php?action=get&entity=events&id=${id}`);
-            const data = await response.json();
+async function loadEventData(id) {
+    try {
+        const response = await fetch(`class/ApiHandler.php?action=get&entity=events&id=${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const event = data.data;
             
-            if (data.success) {
-                const event = data.data;
-                document.getElementById('eventId').value = event.id;
-                document.getElementById('eventTitle').value = event.title || '';
-                document.getElementById('eventDescription').value = event.description || '';
-                document.getElementById('eventDate').value = event.event_date || '';
-                document.getElementById('eventTime').value = event.event_time || '';
-                document.getElementById('eventLocation').value = event.location_id || '';
-                document.getElementById('eventDepartment').value = event.department_id || '';
-                document.getElementById('expectedAttendance').value = event.expected_attendance || '';
-            } else {
-                handleApiError(data, 'load event data');
+            // Set basic fields
+            document.getElementById('eventId').value = event.id;
+            document.getElementById('eventTitle').value = event.title || '';
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventDate').value = event.event_date || '';
+            document.getElementById('eventTime').value = event.event_time || '';
+            document.getElementById('eventLocation').value = event.location_id || '';
+            document.getElementById('eventCategory').value = event.category_id || '';
+            document.getElementById('expectedAttendance').value = event.expected_attendance || '';
+            
+            // ========== IMPORTANT: Handle department IDs as array ==========
+            // Clear all existing department fields except the first one
+            const additionalDepartments = document.getElementById('additionalDepartments');
+            additionalDepartments.innerHTML = '';
+            departmentCounter = 1;
+            
+            // Get department_id from event data
+            let departmentIds = [];
+            
+            if (event.department_id) {
+                try {
+                    // Try to parse as JSON array first
+                    if (typeof event.department_id === 'string' && 
+                        (event.department_id.startsWith('[') || event.department_id.startsWith('"'))) {
+                        departmentIds = JSON.parse(event.department_id);
+                    } else {
+                        // If it's a single number, convert to array
+                        departmentIds = [parseInt(event.department_id)];
+                    }
+                } catch (e) {
+                    // If parsing fails, use as single value
+                    departmentIds = [parseInt(event.department_id)];
+                }
             }
-        } catch (error) {
-            showError('Error loading event: ' + error.message);
+            
+            // Set the first department field
+            if (departmentIds.length > 0) {
+                document.getElementById('eventDepartment1').value = departmentIds[0];
+                
+                // Show remove button on first field if there are multiple departments
+                if (departmentIds.length > 1) {
+                    document.querySelector('#departmentField1 .remove-department').style.display = 'block';
+                }
+                
+                // Add additional department fields for remaining IDs
+                for (let i = 1; i < departmentIds.length; i++) {
+                    addDepartmentField(); // Use existing function to add field
+                    const newSelect = document.getElementById('eventDepartment' + (i + 1));
+                    if (newSelect) {
+                        newSelect.value = departmentIds[i];
+                    }
+                }
+            } else {
+                // No departments selected
+                document.getElementById('eventDepartment1').value = '';
+                document.querySelector('#departmentField1 .remove-department').style.display = 'none';
+            }
+            // ========== END department handling ==========
+           
+        } else {
+            handleApiError(data, 'load event data');
+        }
+    } catch (error) {
+        showError('Error loading event: ' + error.message);
+    }
+}
+
+async function handleEventSubmit(event) {
+    event.preventDefault();    
+    const formData = new FormData(event.target);
+    const eventId = formData.get('id');
+    const action = eventId ? 'update' : 'create';    
+    const jsonData = {};
+    
+    const departmentValues = formData.getAll('department_id');
+    // showSuccess('All department values:', departmentValues);     
+
+    if (departmentValues.includes('0')) {
+        // If ANY select has "All Departments" (0), set to null
+        jsonData.department_id = null;
+    } else {
+        // Filter out empty values and keep only valid numbers
+        const validDepartments = departmentValues
+            .filter(val => val !== '' && val !== '0')
+            .map(val => parseInt(val));
+        
+        console.log('Valid departments:', validDepartments);
+        
+        if (validDepartments.length === 0) {
+            jsonData.department_id = null;
+        } else if (validDepartments.length === 1) {
+            jsonData.department_id = validDepartments[0];
+        } else {
+            jsonData.department_id = validDepartments; // This will be an array [3,4,5]
         }
     }
-
-    // Handle form submission
-    async function handleEventSubmit(event) {
-        event.preventDefault();
+    
+    // Add all other form fields (excluding department_id[] and id)
+    formData.forEach((value, key) => {
+        if (key !== 'id' && key !== 'department_id' && value !== '') {
+            jsonData[key] = value;
+        }
+    });
+    
+    console.log('Final JSON to send:', jsonData);
+    
+    try {
+        const method = eventId ? 'PUT' : 'POST';
+        const url = `class/ApiHandler.php?action=${action}&entity=events${eventId ? '&id=' + eventId : ''}`;
         
-        const formData = new FormData(event.target);
-        const eventId = formData.get('id');
-        const action = eventId ? 'update' : 'create';
-        
-        // Convert FormData to JSON
-        const jsonData = {};
-        formData.forEach((value, key) => {
-            if (key !== 'id' && value !== '') {
-                jsonData[key] = value;
-            }
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonData)
         });
         
-        try {
-            const method = eventId ? 'PUT' : 'POST';
-            const url = `class/ApiHandler.php?action=${action}&entity=events${eventId ? '&id=' + eventId : ''}`;
-            
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonData)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                toastSuccess(eventId ? 'Event updated successfully!' : 'Event created successfully!');
-                closeEventModal();
-                // Reload the page to refresh calendar and events
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                handleApiError(result, action);
-            }
-        } catch (error) {
-            showError('Network error: ' + error.message);
+        const result = await response.json();
+        
+        if (result.success) {
+            toastSuccess(eventId ? 'Event updated successfully!' : 'Event created successfully!');
+            closeEventModal();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            handleApiError(result, action);
         }
+    } catch (error) {
+        showError('Network error: ' + error.message);
     }
+}
 
     // Delete event
     async function deleteEvent(id) {
@@ -612,64 +727,11 @@ foreach ($monthEvents as $eventItem) {
         openEventModal(id);
     }
 
-    // Utility functions
-    function escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return unsafe
-            .toString()
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
+  
 
-    function formatDate(dateString) {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    }
+   
 
-    function formatTime(timeString) {
-        if (!timeString) return 'N/A';
-        return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-    }
-
-    function formatDateTime(dateTimeString) {
-        if (!dateTimeString) return 'N/A';
-        return new Date(dateTimeString).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-    }
-
-    function handleApiError(response, context = 'operation') {
-        console.error(`API Error in ${context}:`, response);
-        
-        switch (response.errorType) {
-            case 'validation':
-                showError(response.message);
-                break;
-            case 'not_found':
-                showError('The requested event was not found.');
-                break;
-            case 'server':
-            default:
-                showError('A server error occurred. Please try again.');
-                break;
-        }
-    }
+   
 
     // Close modals when clicking outside
     window.onclick = function(event) {
@@ -686,6 +748,162 @@ foreach ($monthEvents as $eventItem) {
 
     // Attach form submit handler
     document.getElementById('eventForm').addEventListener('submit', handleEventSubmit);
+
+
+
+let departmentCounter = 1;
+const maxDepartments = 7;
+
+function addDepartmentField() {
+    if (departmentCounter >= maxDepartments) {
+        document.getElementById('addDepartmentBtn').disabled = true;
+        alert('Maximum of 7 departments reached');
+        return;
+    }
+    
+    departmentCounter++;
+    const container = document.getElementById('additionalDepartments');
+    
+    // Get all currently selected department IDs (except empty/0 values)
+    const selectedDepartments = [];
+    document.querySelectorAll('.department-select').forEach(select => {
+        const value = parseInt(select.value);
+        if (value && value > 0) { // Only include valid department IDs (1-6)
+            selectedDepartments.push(value);
+        }
+    });
+    
+    // Get all department options from PHP
+    const allDepartments = <?php echo json_encode($departments); ?>;
+    
+    // Create new department field
+    const newField = document.createElement('div');
+    newField.className = 'form-group department-field';
+    newField.id = 'departmentField' + departmentCounter;
+    
+    // Build the select options HTML
+    let optionsHTML = '<option value=""></option>'; // Empty option
+    
+    // Add only departments that haven't been selected yet
+    allDepartments.forEach(dept => {
+        if (!selectedDepartments.includes(dept.id)) {
+            optionsHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
+        }
+    });
+    
+    newField.innerHTML = `
+        <div class="form-group">
+            <label for="eventDepartment${departmentCounter}"></label>
+            <select id="eventDepartment${departmentCounter}" name="department_id" class="department-select">
+                ${optionsHTML}
+            </select>
+        </div>
+        <button type="button" class="remove-department" onclick="removeDepartmentField(this)">−</button>
+    `;
+    
+    container.appendChild(newField);
+    
+    // Show remove button on first field
+    if (departmentCounter === 2) {
+        document.querySelector('#departmentField1 .remove-department').style.display = 'block';
+    }
+    
+    // Disable button if max reached
+    if (departmentCounter >= maxDepartments) {
+        document.getElementById('addDepartmentBtn').disabled = true;
+    }
+}
+
+function removeDepartmentField(button) {
+    const field = button.closest('.department-field');
+    
+    // Don't remove the first one
+    if (field.id === 'departmentField1') {
+        // Clear selection but don't remove the field
+        field.querySelector('select').value = '';
+        return;
+    }
+    
+    field.remove();
+    departmentCounter--;
+    
+    // Hide remove button on first field if only one left
+    if (departmentCounter === 1) {
+        document.querySelector('#departmentField1 .remove-department').style.display = 'none';
+    }
+    
+    // Re-enable add button if not at max
+    document.getElementById('addDepartmentBtn').disabled = false;
+    
+    // Update all department selects to show newly available options
+    refreshDepartmentSelects();
+    
+    // Renumber remaining fields (optional, for clean IDs)
+    renumberDepartmentFields();
+}
+
+function refreshDepartmentSelects() {
+    // Get all currently selected department IDs
+    const selectedDepartments = [];
+    document.querySelectorAll('.department-select').forEach(select => {
+        const value = parseInt(select.value);
+        if (value && value > 0) {
+            selectedDepartments.push(value);
+        }
+    });
+    
+    // Get all department options from PHP
+    const allDepartments = <?php echo json_encode($departments); ?>;
+    
+    // Update each select dropdown
+    document.querySelectorAll('.department-select').forEach(select => {
+        const currentValue = select.value;
+        
+        // Clear all options except the first empty one
+        select.innerHTML = '<option value=""></option>';
+        
+        // Add available options (not selected in other fields)
+        allDepartments.forEach(dept => {
+            // Show option if: 
+            // 1. It's the currently selected value for this field, OR
+            // 2. It's not selected in any other field
+            if (parseInt(currentValue) === dept.id || !selectedDepartments.includes(dept.id)) {
+                select.innerHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
+            }
+        });
+        
+        // Restore the current value
+        select.value = currentValue;
+    });
+}
+
+function renumberDepartmentFields() {
+    const fields = document.querySelectorAll('.department-field');
+    let newCounter = 1;
+    
+    fields.forEach((field, index) => {
+        if (index === 0) return; // Skip first field
+        
+        const select = field.querySelector('select');
+        const label = field.querySelector('label');
+        const removeBtn = field.querySelector('.remove-department');
+        
+        // Update IDs
+        field.id = 'departmentField' + newCounter;
+        select.id = 'eventDepartment' + newCounter;
+        label.setAttribute('for', 'eventDepartment' + newCounter);
+        
+        // Update remove button onclick
+        removeBtn.setAttribute('onclick', 'removeDepartmentField(this)');
+        
+        newCounter++;
+    });
+}
+
+// Initialize - hide remove button on first field
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('#departmentField1 .remove-department').style.display = 'none';
+});
 </script>
 
 <?php include "include/footer.php"; ?>
