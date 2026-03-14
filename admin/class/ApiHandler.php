@@ -6,6 +6,7 @@
     require_once 'Database.php';
     require_once 'Location.php';
     require_once 'Department.php';
+    require_once 'Dashboard.php';
     require_once 'Category.php';
     require_once 'Speaker.php';
     require_once 'Event.php';
@@ -156,9 +157,9 @@
             }
             
             $entity = new $entityClass();
-            
-            // Map entity to method name
+           
             $methodMap = [
+                'dashboard' => 'getDashboardStats',
                 'locations' => 'getAllLocations',
                 'departments' => 'getAllDepartments',
                 'categories' => 'getAllCategory',
@@ -318,7 +319,7 @@
             $entity = new $entityClass();
             
             // Map entity to method name
-            $methodMap = [
+            $methodMap = [                
                 'locations' => 'createLocation',
                 'departments' => 'createDepartment',
                 'categories' => 'createCategory',
@@ -648,8 +649,9 @@
             return $safeTrace;
         }
         
-        private function getEntityClass() {
+        private function getEntityClass () {
             $entityMap = [
+                'dashboard' => 'Dashboard',
                 'locations' => 'Location',
                 'departments' => 'Department',
                 'categories' => 'Category',

@@ -245,7 +245,7 @@ function openMemberModal(memberId = null) {
     }
     
     modal.style.display = 'block';
-    document.body.style.overflow = 'hidden'; // Prevent body scrolling
+    document.body.style.overflow = 'hidden'; 
 }
 
 function closeMemberModal() {
@@ -271,8 +271,51 @@ async function loadMemberData(id) {
             document.getElementById('email').value = member.email || '';
             document.getElementById('phone').value = member.phone || '';
             document.getElementById('password').value = member.password || '';
-            document.getElementById('department').value = member.department_id || '';
+            // document.getElementById('department').value = member.department_id || '';
             document.getElementById('joinDate').value = member.join_date || '';
+
+            // Error: Error loading member: t is not defined
+
+            const additionalDepartments = document.getElementById('additionalDepartments');
+            additionalDepartments.innerHTML = '';
+            departmentCounter = 1;
+            
+            let departmentIds = [];
+            
+            if (member.department_id) {
+                try {               
+                    if (typeof member.department_id === 'string' && 
+                        (member.department_id.startsWith('[') || member.department_id.startsWith('"'))) {
+                        departmentIds = JSON.parse(member.department_id);
+                    } else {                       
+                        departmentIds = [parseInt(member.department_id)];
+                    }
+                } catch (e) {                 
+                    departmentIds = [parseInt(member.department_id)];
+                }
+            }
+            
+            // Set the first department field
+            if (departmentIds.length > 0) {
+                document.getElementById('memberDepartment1').value = departmentIds[0];
+                
+                // Show remove button on first field if there are multiple departments
+                if (departmentIds.length > 1) {
+                    document.querySelector('#departmentField1 .remove-department').style.display = 'block';
+                }
+                
+                for (let i = 1; i < departmentIds.length; i++) {
+                    addDepartmentField(); 
+                    const newSelect = document.getElementById('memberDepartment' + (i + 1));
+                    if (newSelect) {
+                        newSelect.value = departmentIds[i];
+                    }
+                }
+            } else {
+                // No departments selected
+                document.getElementById('memberDepartment1').value = '';
+                document.querySelector('#departmentField1 .remove-department').style.display = 'none';
+            }
         } else {
             handleApiError(data, 'load member data');
         }
@@ -290,10 +333,9 @@ async function handleMemberSubmit(event) {
     const action = memberId ? 'update' : 'create';    
     const jsonData = {};
     const departmentValues = formData.getAll('department_id');
-    if (departmentValues.includes('0')) {
-        jsonData.department_id = null;
-    }else {
-        // Filter out empty values and keep only valid numbers
+    if (departmentValues.includes('')) {
+        showWarning('pls pick a department')
+    }else {       
         const validDepartments = departmentValues
             .filter(val => val !== '' && val !== '0')
             .map(val => parseInt(val));
@@ -305,15 +347,16 @@ async function handleMemberSubmit(event) {
         } else if (validDepartments.length === 1) {
             jsonData.department_id = validDepartments[0];
         } else {
-            jsonData.department_id = validDepartments; // This will be an array [3,4,5]
+            jsonData.department_id = validDepartments;
         }
     }
+
     formData.forEach((value, key) => {
-        if (key !== 'id' && value !== '') {
+        if (key !== 'id' && key !== 'department_id' && value !== '') {
             jsonData[key] = value;
         }
     });
-    
+      
     try {
         const method = memberId ? 'PUT' : 'POST';
         const url = `class/ApiHandler.php?action=${action}&entity=members${memberId ? '&id=' + memberId : ''}`;
@@ -331,7 +374,7 @@ async function handleMemberSubmit(event) {
         if (result.success) {
             showSuccess(memberId ? 'Member updated successfully!' : 'Member created successfully!');
             closeMemberModal();
-            loadMembers(); // Reload the data
+            loadMembers(); 
         } else {
             handleApiError(result, action);
         }

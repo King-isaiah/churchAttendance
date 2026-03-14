@@ -5,7 +5,6 @@ class Event extends Database {
     
    public function getAllEvents() {
     try {
-        // ========== FIX: Handle JSON array in department_id ==========
         $sql = "SELECT e.*, 
                 CASE 
                     WHEN e.department_id LIKE '[%' THEN 'Multiple Departments'
@@ -184,73 +183,7 @@ public function createEvent($data) {
         throw $e;
     }
 }
-// public function createEvent($data) {
-//     try {
-//         // Handle department_id - convert array to JSON string
-//         if (isset($data['department_id'])) {
-//             if (is_array($data['department_id'])) {
-//                 // Filter out empty values and 0
-//                 $deptIds = array_filter($data['department_id'], function($val) {
-//                     return $val !== '' && $val !== '0' && $val !== 0;
-//                 });
-                
-//                 if (empty($deptIds)) {
-//                     $data['department_id'] = null;
-//                 } else {
-//                     // Store as JSON array string
-//                     $data['department_id'] = json_encode(array_values($deptIds));
-//                 }
-//             } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
-//                 $data['department_id'] = null;
-//             }
-//         } else {
-//             $data['department_id'] = null;
-//         }
-        
-       
-//         // $this->validateEventData($data);
-        
-        
-//         $eventId = $this->insert('events', $data);
-        
-//         try {
-//             require_once 'Notification.php';
-            
-//             $notification = new Notification();
-            
-//             // Prepare event data for notification
-//             $notificationData = $data;
-//             $notificationData['id'] = $eventId; // Add the event ID
-            
-//             // Get department IDs for notification (could be single ID or JSON array)
-//             $deptIdsForNotification = [];
-//             if (isset($data['department_id'])) {
-//                 if (strpos($data['department_id'], '[') === 0) {
-//                     // It's a JSON array
-//                     $deptIdsForNotification = json_decode($data['department_id'], true);
-//                 } elseif ($data['department_id']) {
-//                     // Single ID
-//                     $deptIdsForNotification = [$data['department_id']];
-//                 }
-//             }
-            
-//             // Send notification with 10-day expiry
-//             $notification->addEventNotification($notificationData, $deptIdsForNotification);
-            
-//         } catch (Exception $e) {
-//             error_log("Failed to create notification for event: " . $e->getMessage());
-//             // Don't fail the event creation if notification fails
-//         }
-//         // ===== END NOTIFICATION CODE =====
-        
-//         return $eventId;
-        
-//     } catch (Exception $e) {
-//         error_log("Event create error: " . $e->getMessage());
-//         throw $e;
-//     }
-// }
-    
+   
 public function updateEvent($id, $data) {
     try {
         // Check if event exists first

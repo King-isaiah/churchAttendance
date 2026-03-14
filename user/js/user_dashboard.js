@@ -1,4 +1,3 @@
-// User Dashboard functionality with API integration
 class UserDashboard {
     constructor() {
         this.currentActivityId = null;
@@ -121,6 +120,7 @@ class UserDashboard {
     }
 
     setupEventListeners() {
+       
         // Close modal when clicking outside
         document.addEventListener('click', (e) => {
             const modal = document.getElementById('qrScannerModal');
@@ -157,24 +157,19 @@ class UserDashboard {
           
             if (memberResult.success && memberResult.data) {
                 const userData = memberResult.data;
-                console.log(userData)
-                this.updateDashboardStats(userData);
+                // showSuccess('tracking it in')
+                // console.log(userData)
+                const memberAttendanceRecord = await fetch(`class/ApiHandler.php?action=get&entity=reports&id=${this.userId}`);
+                const memberReport = await memberAttendanceRecord.json();
+                console.log(memberReport)
+                this.updateDashboardStats(memberReport);
                 const welcomeMessage = document.getElementById('welcomeMessage');
                 if (welcomeMessage) {
                     welcomeMessage.innerHTML = `Welcome, ${userData.first_name} ${userData.last_name } 👋`;
                 }
             }
 
-            // Get attendance data for stats
-            // const attendanceResponse = await fetch(`class/ApiHandler.php?action=get&entity=attendance&id=${this.userId}`);
-            // const attendanceResult = await attendanceResponse.json();
-            
-            // if (attendanceResult.success && attendanceResult.data) {
-              
-            // } else {
-            //     // Use defaults if no data
-            //     this.updateDashboardStats([]);
-            // }
+          
         } catch (error) {
             console.error('Error loading dashboard stats:', error);
             showError('Error loading dashboard data. Please try again.');
@@ -183,21 +178,20 @@ class UserDashboard {
         }
     }
 
-updateDashboardStats(attendanceData) {
-    if (!Array.isArray(attendanceData)) {
-        attendanceData = [];
-    }
+updateDashboardStats(memberReport) {
     
-    // Calculate stats from attendance data
+    console.log(memberReport)
+   
+    const attendanceRecords = memberReport.data || [];
+   
+    const presentCount = attendanceRecords.filter(record => 
+        record.status && record.status.toLowerCase() === 'present'
+    ).length;
     
-    const presentCount = attendanceData.reduce((sum, record) => {
-        // Add present_count for each group (each group represents multiple present records)
-        return sum + (parseInt(record.present_count) || 0);
-    }, 0);
-    
-    const absentCount = attendanceData.reduce((sum, record) => {
-        return sum + (parseInt(record.absent_count) || 0);
-    }, 0);
+    // Calculate absent count (count of records with status 'absent')
+    const absentCount = attendanceRecords.filter(record => 
+        record.status && record.status.toLowerCase() === 'absent'
+    ).length;
     
     // Total activities attended (present + absent)
     const totalActivities = presentCount + absentCount;
@@ -205,195 +199,202 @@ updateDashboardStats(attendanceData) {
     // Calculate attendance rate - percentage of present out of total activities
     const attendanceRate = totalActivities > 0 ? Math.round((presentCount / totalActivities) * 100) : 0;
     
-    // Calculate current streak (consecutive present days)
-    const currentStreak = this.calculateCurrentStreak(attendanceData);
+    // Calculate current streak - you'll need to implement this based on dates
+    const currentStreak = this.calculateCurrentStreak(attendanceRecords);
     
     // For upcoming activities, you'll need to fetch this separately
-    const upcomingCount = 0; // This should come from a different API call
+    const upcomingCount = 0;
 
     // Update stats cards
     document.getElementById('presentCount').textContent = presentCount;
-    document.getElementById('upcomingCount').textContent = upcomingCount;
+  
     document.getElementById('attendanceRate').textContent = `${attendanceRate}%`;
     document.getElementById('currentStreak').textContent = currentStreak;
 }
-
-// Helper method to calculate current streak
-calculateCurrentStreak(attendanceData) {
-    if (!Array.isArray(attendanceData) || attendanceData.length === 0) {
-        return 0;
-    }
-    
-    // Sort by date descending (most recent first)
-    const sortedData = [...attendanceData].sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    let streak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Check consecutive days where present_count > 0
-    for (let i = 0; i < sortedData.length; i++) {
-        const record = sortedData[i];
-        const recordDate = new Date(record.date);
-        recordDate.setHours(0, 0, 0, 0);
-        
-        // Check if this record has any present attendance
-        if ((parseInt(record.present_count) || 0) > 0) {
-            // If it's today or yesterday (for consecutive streak)
-            const dayDiff = Math.floor((today - recordDate) / (1000 * 60 * 60 * 24));
-            
-            if (i === 0) {
-                // First record - start streak
-                streak = 1;
-            } else {
-                // Check if consecutive day
-                const prevRecord = sortedData[i - 1];
-                const prevDate = new Date(prevRecord.date);
-                prevDate.setHours(0, 0, 0, 0);
-                
-                const diffDays = Math.floor((recordDate - prevDate) / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 1) {
-                    streak++;
-                } else {
-                    break; // Streak broken
-                }
-            }
-        } else {
-            break; // No present attendance on this day, streak broken
+    calculateCurrentStreak(attendanceData) {
+        if (!Array.isArray(attendanceData) || attendanceData.length === 0) {
+            return 0;
         }
+        
+        // Sort by date descending (most recent first)
+        const sortedData = [...attendanceData].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        let streak = 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Check consecutive days where present_count > 0
+        for (let i = 0; i < sortedData.length; i++) {
+            const record = sortedData[i];
+            const recordDate = new Date(record.date);
+            recordDate.setHours(0, 0, 0, 0);
+            
+            // Check if this record has any present attendance
+            if ((parseInt(record.present_count) || 0) > 0) {
+                // If it's today or yesterday (for consecutive streak)
+                const dayDiff = Math.floor((today - recordDate) / (1000 * 60 * 60 * 24));
+                
+                if (i === 0) {
+                    // First record - start streak
+                    streak = 1;
+                } else {
+                    // Check if consecutive day
+                    const prevRecord = sortedData[i - 1];
+                    const prevDate = new Date(prevRecord.date);
+                    prevDate.setHours(0, 0, 0, 0);
+                    
+                    const diffDays = Math.floor((recordDate - prevDate) / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 1) {
+                        streak++;
+                    } else {
+                        break; // Streak broken
+                    }
+                }
+            } else {
+                break; // No present attendance on this day, streak broken
+            }
+        }
+        
+        return streak;
     }
-    
-    return streak;
-}
 
     async loadUpcomingActivities() {
-    try {
-        const response = await fetch(`class/ApiHandler.php?action=getAll&entity=activities`);
-        const result = await response.json();
+        try {
+            const response = await fetch(`class/ApiHandler.php?action=getAll&entity=activities`);
+            const result = await response.json();
+            console.log(result)
 
-        const container = document.getElementById('upcomingActivities');
-        if (!container) return;
+            const container = document.getElementById('upcomingActivities');
+            if (!container) return;
 
-        if (result.success && Array.isArray(result.data)) {
-            const now = new Date();
-            const currentDayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-            const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
-            
-            // Map day names to numbers for comparison
-            const dayMap = {
-                'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
-                'thursday': 4, 'friday': 5, 'saturday': 6
-            };
-
-            // Filter upcoming activities
-            const upcoming = result.data.filter(activity => {
-                if (!activity.dayofactivity || !activity.time) return false;
+            if (result.success && Array.isArray(result.data)) {
                 
-                const activityDay = dayMap[activity.dayofactivity.toLowerCase()];
-                if (activityDay === undefined) return false;
-                
-                // Parse activity time (format: "04:14:00")
-                const [hours, minutes] = activity.time.split(':').map(Number);
-                const activityTime = hours * 60 + minutes;
-                
-                // Check if activity is today or in the future
-                if (activityDay > currentDayOfWeek) {
-                    return true; // Activity is on a future day this week
-                } else if (activityDay === currentDayOfWeek) {
-                    // Activity is today, check if time is in the future
-                    return activityTime > currentTime;
-                }
-                // If activityDay < currentDayOfWeek, it's already passed this week
-                return false;
-            }).slice(0, 5); // Limit to 5
+                const now = new Date();
+                let currentDayOfWeek = now.getDay(); // JavaScript: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
 
-            this.renderUpcomingActivities(upcoming, container);
-        } else {
+                // Re-map: Saturday (6) becomes 0, Sunday (0) becomes 1, Monday (1) becomes 2, etc.
+                const customDayMap = [1, 2, 3, 4, 5, 6, 0]; 
+                currentDayOfWeek = customDayMap[currentDayOfWeek];
+                const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+                
+                // Map day names to numbers for comparison
+                const dayMap = {
+                    'saturday': 0, 'sunday': 1, 'monday': 2, 'tuesday': 3, 'wednesday': 4,
+                    'thursday': 5, 'friday': 6 
+                };
+              
+                // Filter upcoming activities
+                const upcoming = result.data.filter(activity => {
+                    if (!activity.dayofactivity || !activity.time) return false;
+                    
+                    const activityDay = dayMap[activity.dayofactivity.toLowerCase()];
+                    if (activityDay === undefined) return false;
+                    
+                    // Parse activity time (format: "04:14:00")
+                    const [hours, minutes] = activity.time.split(':').map(Number);
+                    const activityTime = hours * 60 + minutes;
+                    
+                    // Check if activity is today or in the future
+                    if (activityDay > currentDayOfWeek) {
+                        return true; // Activity is on a future day this week
+                    } else if (activityDay === currentDayOfWeek) {
+                        // Activity is today, check if time is in the future
+                        return activityTime > currentTime;
+                    }
+                    // If activityDay < currentDayOfWeek, it's already passed this week
+                    return false;
+                });
+                
+                this.renderUpcomingActivities(upcoming, container);
+                // console.log(upcoming, container)
+                // console.log(upcoming.length)
+                document.getElementById('upcomingCount').textContent = upcoming.length;
+            } else {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>No upcoming activities</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading upcoming activities:', error);
+            const container = document.getElementById('upcomingActivities');
+            if (container) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load activities</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    renderUpcomingActivities(activities, container) {
+        if (!activities || activities.length === 0) {
             container.innerHTML = `
                 <div class="no-data">
                     <i class="fas fa-calendar-times"></i>
                     <p>No upcoming activities</p>
                 </div>
             `;
+            return;
         }
-    } catch (error) {
-        console.error('Error loading upcoming activities:', error);
-        const container = document.getElementById('upcomingActivities');
-        if (container) {
-            container.innerHTML = `
-                <div class="no-data">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Failed to load activities</p>
+        
+
+        const activitiesHTML = activities.slice(0, 3) .map(activity => {
+            // Format the time (convert "04:14:00" to "4:14 AM")
+            const formattedTime = this.formatTimeFromDB(activity.time);
+            
+            return `
+                <div class="activity-item">
+                    <div class="activity-info">
+                        <h4>${activity.name}</h4>
+                        <p>
+                            <i class="fas fa-calendar"></i>
+                            Every ${activity.dayofactivity} at ${formattedTime}
+                        </p>
+                        <p class="activity-description">
+                            ${activity.description || 'No description'}
+                        </p>
+                    </div>
+                    <div class="activity-actions">
+                        <a href="activities.php?id=${activity.id}" class="btn-sm btn-primary scan-btn">
+                            <i class="fas fa-qrcode"></i> Mark Attendance
+                        </a>                     
+                    </div>
                 </div>
             `;
+        }).join('');
+
+        container.innerHTML = activitiesHTML;
+        
+
+    }
+
+    // Helper function to format time from database
+    formatTimeFromDB(timeString) {
+        if (!timeString) return 'TBA';
+        
+        try {
+            const [hours, minutes] = timeString.split(':').map(Number);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 || 12;
+            const formattedMinutes = minutes.toString().padStart(2, '0');
+            return `${formattedHours}:${formattedMinutes} ${ampm}`;
+        } catch (error) {
+            console.error('Error formatting time:', error);
+            return timeString;
         }
     }
-}
 
-renderUpcomingActivities(activities, container) {
-    if (!activities || activities.length === 0) {
-        container.innerHTML = `
-            <div class="no-data">
-                <i class="fas fa-calendar-times"></i>
-                <p>No upcoming activities</p>
-            </div>
-        `;
-        return;
+    // You also need to add this to your UserDashboard class
+    getDayName(dayNumber) {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return days[dayNumber];
     }
-
-    const activitiesHTML = activities.map(activity => {
-        // Format the time (convert "04:14:00" to "4:14 AM")
-        const formattedTime = this.formatTimeFromDB(activity.time);
-        
-        return `
-            <div class="activity-item">
-                <div class="activity-info">
-                    <h4>${activity.name}</h4>
-                    <p>
-                        <i class="fas fa-calendar"></i>
-                        Every ${activity.dayofactivity} at ${formattedTime}
-                    </p>
-                    <p class="activity-description">
-                        ${activity.description || 'No description'}
-                    </p>
-                </div>
-                <div class="activity-actions">
-                    <button class="btn-sm btn-primary scan-btn" onclick="userDashboard.openQRScanner(${activity.id})">
-                        <i class="fas fa-qrcode"></i> Mark Attendance
-                    </button>
-                    <button class="btn-sm btn-secondary" onclick="userDashboard.viewActivityDetails(${activity.id})">
-                        <i class="fas fa-info-circle"></i> Details
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    container.innerHTML = activitiesHTML;
-}
-
-// Helper function to format time from database
-formatTimeFromDB(timeString) {
-    if (!timeString) return 'TBA';
-    
-    try {
-        const [hours, minutes] = timeString.split(':').map(Number);
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const formattedHours = hours % 12 || 12;
-        const formattedMinutes = minutes.toString().padStart(2, '0');
-        return `${formattedHours}:${formattedMinutes} ${ampm}`;
-    } catch (error) {
-        console.error('Error formatting time:', error);
-        return timeString;
-    }
-}
-
-// You also need to add this to your UserDashboard class
-getDayName(dayNumber) {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[dayNumber];
-}
 
     async loadRecentAttendance() {
         try {
@@ -404,8 +405,8 @@ getDayName(dayNumber) {
             if (!container) return;
 
             if (result.success && Array.isArray(result.data)) {
-                // Take only the most recent 5 records
-                const recent = result.data.slice(0, 5);
+                
+                const recent = result.data.slice(0, 3);
                 this.renderRecentAttendance(recent, container);
             } else {
                 container.innerHTML = `
@@ -480,6 +481,7 @@ getDayName(dayNumber) {
         }
     }
 
+    // Not necesarilry needed at least for now
     openQRScanner(activityId = null) {
         this.currentActivityId = activityId;
         const modal = document.getElementById('qrScannerModal');
@@ -588,12 +590,85 @@ getDayName(dayNumber) {
         `;
     }
 
-    viewActivityDetails(activityId) {
+    async viewActivityDetails(activityId) {
         console.log('Viewing activity details:', activityId);
-        showInfo(`Opening details for activity #${activityId}`);
-        // You can implement navigation to activity details page here
-        // window.location.href = `activity_details.php?id=${activityId}`;
+        // showInfo(`Opening details for activity #${activityId}`);
+         showSuccess('whast going on')
+        // window.location.href = `activities.php?id=${activityId}`;
+        try {
+            showSuccess('we in')
+            const activity = await this.fetchActivityDetails(activityId);
+            showSuccess('after the activity')
+            this.showActivityDetails(activity);
+            showSuccess('should be working right')
+        } catch (error) {
+            console.error('Error loading activity details:', error);
+            this.showMessage('Failed to load activity details', 'error');
+        }
     }
+    async fetchActivityDetails(activityId) {
+        try {
+         
+            const response = await fetch(`class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
+            const data = await response.json();
+          
+            if (data.success) {
+                return data.data;
+            } else {
+                return []; 
+            }
+            
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            throw new Error('Failed to fetch activities: ' + error.message);
+        }
+        
+    }
+    showActivityDetails(activity) {
+        const modal = document.getElementById('activityDetailsModal');
+        const content = document.getElementById('activityDetailsContent');
+        
+        content.innerHTML = `
+            <div class="activity-details-content">
+                <h4>${this.escapeHtml(activity.name)}</h4>
+                <p class="activity-description">${this.escapeHtml(activity.description)}</p>
+                
+                <div class="details-grid">
+                    <div class="detail-row">
+                        <strong>Category:</strong>
+                        <span>${this.escapeHtml(activity.category)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Date:</strong>
+                        <span>${this.formatDate(activity.date, 'D, M j, Y')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Time:</strong>
+                        <span>${activity.time}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Location:</strong>
+                        <span>${this.escapeHtml(activity.location)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Expected Attendance:</strong>
+                        <span>${activity.expected_count} people</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Target Audience:</strong>
+                        <span>${this.escapeHtml(activity.target_audience)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Attendance Method:</strong>
+                        <span>${this.escapeHtml(activity.attendance_method)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modal.style.display = 'block';
+    }
+    
 }
 
 // Initialize dashboard when page loads

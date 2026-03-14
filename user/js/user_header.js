@@ -61,8 +61,8 @@ class UserHeader {
                     showError('it is not more than one')
                     return false;
                 }else{
-                    showSuccess('it is more than 1');
-                    showSuccess(data.data.length );
+                    // showSuccess('it is more than 1');
+                    // showSuccess(data.data.length );
                     const userInfo = await this.trackUserInfo();
                     data.data.forEach(activity => {
                         let activityId = activity.id; 

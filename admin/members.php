@@ -125,8 +125,8 @@ $departments = $department->getAllDepartments();
                 <div class="department-selection">    
                     <div class="form-group department-field" id="departmentField1">
                         <div class="form-group">
-                            <label for="eventDepartment1">Department</label>
-                            <select id="eventDepartment1" name="department_id" class="department-select">
+                            <label for="memberDepartment1">Department</label>
+                            <select id="memberDepartment1" name="department_id" class="department-select">
                                 <option value="">Select Departments</option>
                                 <?php foreach ($departments as $dept): ?>
                                     <option value="<?php echo $dept['id']; ?>">
@@ -172,8 +172,7 @@ function addDepartmentField() {
     
     departmentCounter++;
     const container = document.getElementById('additionalDepartments');
-    
-    // Get all currently selected department IDs (except empty/0 values)
+  
     const selectedDepartments = [];
     document.querySelectorAll('.department-select').forEach(select => {
         const value = parseInt(select.value);
@@ -188,11 +187,8 @@ function addDepartmentField() {
     const newField = document.createElement('div');
     newField.className = 'form-group department-field';
     newField.id = 'departmentField' + departmentCounter;
-    
-    // Build the select options HTML
-    let optionsHTML = '<option value=""></option>'; // Empty option
-    
-    // Add only departments that haven't been selected yet
+   
+    let optionsHTML = '<option value=""></option>'; 
     allDepartments.forEach(dept => {
         if (!selectedDepartments.includes(dept.id)) {
             optionsHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
@@ -201,8 +197,8 @@ function addDepartmentField() {
     
     newField.innerHTML = `
         <div class="form-group">
-            <label for="eventDepartment${departmentCounter}"></label>
-            <select id="eventDepartment${departmentCounter}" name="department_id" class="department-select">
+            <label for="memberDepartment${departmentCounter}">Select A Department</label>
+            <select id="memberDepartment${departmentCounter}" name="department_id" class="department-select">
                 ${optionsHTML}
             </select>
         </div>
@@ -222,31 +218,58 @@ function addDepartmentField() {
     }
 }
 
+// function removeDepartmentField(button) {
+//     const field = button.closest('.department-field');
+//     const fieldToNotDelete = document.querySelector('#departmentField1');
+    
+//     // Don't remove the first one
+//     if (field.id === 'departmentField1') {      
+//         field.querySelector('select').value = '';
+//         return;
+//     }
+    
+//     field.remove();
+//     departmentCounter--;
+    
+//     if (departmentCounter === 1) {
+//         document.querySelector('#departmentField1 .remove-department').style.display = 'none';
+//     }
+    
+//     document.getElementById('addDepartmentBtn').disabled = false;
+    
+//     // Update all department selects to show newly available options
+//     refreshDepartmentSelects();
+ 
+//     renumberDepartmentFields();
+// }
 function removeDepartmentField(button) {
-    const field = button.closest('.department-field');
+    const field = button.closest('.department-field');     
+    const firstField = document.querySelector('#departmentField1');
+    const fieldToDelete = document.querySelector('#additionalDepartments');
     
     // Don't remove the first one
-    if (field.id === 'departmentField1') {
-        // Clear selection but don't remove the field
-        field.querySelector('select').value = '';
+    if (field.id === 'departmentField1') {      
+        field.querySelector('select').textContent = 'select department';
         return;
     }
     
+    //  if (fieldToDelete) {           
+    //     field.remove(); 
+    //     return; 
+    // }
+  
     field.remove();
     departmentCounter--;
     
-    // Hide remove button on first field if only one left
     if (departmentCounter === 1) {
         document.querySelector('#departmentField1 .remove-department').style.display = 'none';
     }
     
-    // Re-enable add button if not at max
     document.getElementById('addDepartmentBtn').disabled = false;
     
     // Update all department selects to show newly available options
     refreshDepartmentSelects();
-    
-    // Renumber remaining fields (optional, for clean IDs)
+ 
     renumberDepartmentFields();
 }
 
@@ -260,21 +283,15 @@ function refreshDepartmentSelects() {
         }
     });
     
-    // Get all department options from PHP
     const allDepartments = <?php echo json_encode($departments); ?>;
     
     // Update each select dropdown
     document.querySelectorAll('.department-select').forEach(select => {
         const currentValue = select.value;
         
-        // Clear all options except the first empty one
         select.innerHTML = '<option value=""></option>';
-        
-        // Add available options (not selected in other fields)
-        allDepartments.forEach(dept => {
-            // Show option if: 
-            // 1. It's the currently selected value for this field, OR
-            // 2. It's not selected in any other field
+     
+        allDepartments.forEach(dept => {         
             if (parseInt(currentValue) === dept.id || !selectedDepartments.includes(dept.id)) {
                 select.innerHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
             }
@@ -298,8 +315,8 @@ function renumberDepartmentFields() {
         
         // Update IDs
         field.id = 'departmentField' + newCounter;
-        select.id = 'eventDepartment' + newCounter;
-        label.setAttribute('for', 'eventDepartment' + newCounter);
+        select.id = 'memberDepartment' + newCounter;
+        label.setAttribute('for', 'memberDepartment' + newCounter);
         
         // Update remove button onclick
         removeBtn.setAttribute('onclick', 'removeDepartmentField(this)');

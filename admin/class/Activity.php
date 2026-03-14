@@ -31,38 +31,152 @@ class Activity extends Database {
         }
     }
     
-    public function getActivity($id) {
-        try {
-            $sql = "SELECT activities.*, locations.name AS location, 
-                attendance_methods.code AS attendance_method,statuses.name AS status,
-                 categories.categories AS category 
-                FROM activities LEFT JOIN statuses ON  activities.status_id = statuses.id 
+  public function getActivity($id) {
+    try {
+        // Get activity with department names using JSON functions
+        $sql = "SELECT activities.*, 
+                    locations.name AS location, 
+                    attendance_methods.code AS attendance_method, 
+                    statuses.name AS status,
+                    categories.categories AS category,
+                   
+                    (
+                        SELECT GROUP_CONCAT(d.name SEPARATOR ', ')
+                        FROM departments d
+                        WHERE JSON_CONTAINS(
+                            activities.department_id, 
+                            CONCAT('\"', d.id, '\"')
+                        )
+                    ) AS department_names,
+                    -- Get department IDs as array
+                    activities.department_id AS department_ids_json
+                FROM activities 
+                LEFT JOIN statuses ON activities.status_id = statuses.id 
                 LEFT JOIN categories ON activities.category_id = categories.id 
                 LEFT JOIN locations ON activities.location_id = locations.id 
                 LEFT JOIN attendance_methods ON activities.attendance_method_id = attendance_methods.id 
                 WHERE activities.id = ?";
-            $result = $this->fetchOne($sql, [$id]);
-            
-            if (!$result) {
-                throw new Exception("Activity not found", 404);
-            }
-            
-            return $result;
-        } catch (Exception $e) {
-            error_log("Activity get error [ID: $id]: " . $e->getMessage());
-            if ($e->getCode() === 404) {
-                throw $e; 
-            }
-            throw new Exception("Unable to retrieve activity information");
+        
+        $result = $this->fetchOne($sql, [$id]);
+        
+        if (!$result) {
+            throw new Exception("Activity not found", 404);
         }
+        
+        // Handle department_id which is stored as JSON array
+        if (!empty($result['department_ids_json'])) {
+            try {
+                // Decode the JSON array
+                $departmentIds = json_decode($result['department_ids_json'], true);
+                
+                if (json_last_error() === JSON_ERROR_NONE && is_array($departmentIds)) {
+                    // Add department IDs as array
+                    $result['department_id'] = $departmentIds;
+                    
+                    // Get full department details if needed
+                    if (!empty($departmentIds)) {
+                        $placeholders = implode(',', array_fill(0, count($departmentIds), '?'));
+                        
+                        $deptSql = "SELECT id, name FROM departments WHERE id IN ($placeholders)";
+                        $departments = $this->fetchAll($deptSql, $departmentIds);
+                        
+                        $result['departments'] = $departments;
+                    } else {
+                        $result['departments'] = [];
+                    }
+                } else {
+                    // If not valid JSON
+                    $result['department_id'] = [];
+                    $result['departments'] = [];
+                }
+            } catch (Exception $e) {
+                error_log("Error decoding department_id JSON for activity $id: " . $e->getMessage());
+                $result['department_id'] = [];
+                $result['departments'] = [];
+            }
+        } else {
+            $result['department_id'] = [];
+            $result['departments'] = [];
+        }
+        
+        // Remove the raw JSON field
+        unset($result['department_ids_json']);
+        
+        return $result;
+    } catch (Exception $e) {
+        error_log("Activity get error [ID: $id]: " . $e->getMessage());
+        if ($e->getCode() === 404) {
+            throw $e; 
+        }
+        throw new Exception("Unable to retrieve activity information");
     }
+}
     
     public function createActivity($data) {
         try {
-            // Validate required fields
+            $activityTitle = $data['title'] ?? '';
+            $activityDescription = $data['description'] ?? 'New activity has been scheduled.';
+            if (isset($data['department_id'])) {
+                if (is_array($data['department_id'])) {
+                    // Filter out empty values and 0
+                    $deptIds = array_filter($data['department_id'], function($val) {
+                        return $val !== '' && $val !== '0' && $val !== 0;
+                    });
+                    
+                    if (empty($deptIds)) {
+                        $data['department_id'] = null;
+                        $deptIdsForNotification = null;
+                    } else {
+                        // Store as JSON array string
+                        $data['department_id'] = json_encode(array_values($deptIds));
+                        $deptIdsForNotification = $deptIds; // Keep as array
+                    }
+                } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
+                    $data['department_id'] = null;
+                    $deptIdsForNotification = null;
+                } else {
+                    // Single department ID
+                    $deptIdsForNotification = [$data['department_id']];
+                }
+            } else {
+                $data['department_id'] = null;
+                $deptIdsForNotification = null;
+            }
             $this->validateActivityData($data);
+            $activity =$this->insert('activities', $data);
             
-            return $this->insert('activities', $data);
+
+           try {
+                error_log("Department IDs for notification: " . print_r($deptIdsForNotification, true));               
+                $memberTitle = $data['name'] ?? '';
+                $eventDescription = $data['name'] . ' ' . 'A new activity has been scheduled.';                          
+                $notification = new Notification();
+                error_log("Creating notification for activity: " . $memberTitle);
+                $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
+                $defs = [
+                    'title' => 'New Activity',                
+                    'message' => $eventDescription,
+                    'notification_type'=> 'activity',
+                    'department_id'=> $data['department_id'],
+                    'expires_at' =>  $expiresAt  
+                ];
+                $result = $notification->createNotification($defs);
+               
+                error_log("Notification result: " . print_r($result, true));
+                
+            } catch (Exception $e) {
+                error_log("Failed to create notification for event: " . $e->getMessage());
+            }
+            
+            // Set default values
+            $data['created_at'] = date('Y-m-d H:i:s');
+            
+            // $membersP = $this->insert('members', $data);
+            return [
+               'activity_id' => $activity,
+                'notification_result' => $result
+            ];
+           
         } catch (Exception $e) {
             error_log("Activity create error: " . $e->getMessage() . " | Data: " . json_encode($data));
             throw $e; 
@@ -77,7 +191,17 @@ class Activity extends Database {
                 throw new Exception("Activity not found", 404);
             }
             
-            // Validate data
+             if (isset($data['department_id'])) {
+                if (is_array($data['department_id'])) {
+                    $deptIds = array_filter($data['department_id'], function($val) {
+                        return $val !== '' && $val !== '0' && $val !== 0;
+                    });
+                    $data['department_id'] = empty($deptIds) ? null : json_encode(array_values($deptIds));
+                } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
+                    $data['department_id'] = null;
+                }
+            }
+            
             $this->validateActivityData($data, true);
             
             return $this->update('activities', $data, 'id = ?', [$id]);

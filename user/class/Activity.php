@@ -99,17 +99,24 @@ class Activity extends Database {
         }
     }
     
-    public function createActivity($data) {
-        try {
-            // Validate required fields
-            $this->validateActivityData($data);
-            
-            return $this->insert('activities', $data);
-        } catch (Exception $e) {
-            error_log("Activity create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-            throw $e; 
-        }
+public function createActivity($data) {
+    try {
+        // Debug: log what's being received
+        error_log("Department ID received: " . print_r($data['department_id'] ?? 'Not set', true));
+        
+   
+        
+        $this->validateActivityData($data);
+        
+        // Debug the final data before insert
+        error_log("Final data for insert: " . json_encode($data));
+        
+        return $this->insert('activities', $data);
+    } catch (Exception $e) {
+        error_log("Activity create error: " . $e->getMessage() . " | Data: " . json_encode($data));
+        throw $e; 
     }
+}
     
     public function updateActivity($id, $data) {
         try {

@@ -1,7 +1,7 @@
 <?php session_start() ?>
 <?php 
     if (!isset($_SESSION['unique_id'])) {
-    header('Location: user/login.php');
+    header('Location: login.php');
     exit();
 }
 ?>
@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/user_header.css">
     <link rel="stylesheet" href="css/qr_scanner.css">
+    <link rel="stylesheet" href="css/scanner.css">
     
 </head>
 <body>
@@ -117,6 +118,7 @@
                 <div class="nav-right">
                     <!-- Quick Scan Button -->
                     <button class="quick-scan-btn" onclick="openQRScanner()">
+                    <!-- <button class="quick-scan-btn"> -->
                         <div class="scan-pulse"></div>
                         <i class="fas fa-qrcode"></i>
                         <span>Quick Scan</span>

@@ -51,22 +51,28 @@ class QRGenerator extends Database {
         }
     }
 
-    
-    public function getQRCode($activityId) {
+
+    public function getQRCode($qrCodeString) {
         try {
             $this->createQRCodeTableIfNotExists();
-            
-            $sql = "SELECT qr_code, expires_at, uses, max_uses, is_active 
-                    FROM activity_qr_codes 
-                    WHERE activity_id = ? AND is_active = 1 AND expires_at > NOW() AND uses < max_uses 
-                    ORDER BY created_at DESC LIMIT 1";
-            return $this->fetchOne($sql, [$activityId]);
+             
+            $sql = "SELECT aqc.*, aqc.id AS Id, at.* FROM activity_qr_codes aqc
+                LEFT JOIN activities AS at ON aqc.activity_id = at.id     
+                WHERE aqc.qr_code = ?
+                    AND aqc.is_active = 1 
+                    AND aqc.uses < aqc.max_uses 
+                ORDER BY aqc.created_at DESC LIMIT 1";    
+            $result =  $this->fetchOne($sql, [$qrCodeString]);
+            if($result){
+                return $result;
+            }else{
+                return ['checking: for me '];
+            }
         } catch (Exception $e) {
             error_log("Get QR error: " . $e->getMessage());
             return null;
         }
     }
-
     private function createQRCodeTableIfNotExists() {
         try {
             $sql = "CREATE TABLE IF NOT EXISTS activity_qr_codes (
@@ -101,6 +107,36 @@ class QRGenerator extends Database {
         } catch (Exception $e) {
             error_log("Deactivate QR codes error: " . $e->getMessage());
             // Continue anyway - this is not critical
+        }
+    }
+    // public function updateSuccesQRCodes($activityId) {
+    //     try {
+    //         $sql = "UPDATE activity_qr_codes SET is_active = 0 WHERE activity_id = ? AND is_active = 1";
+    //         // Use executeQuery() with parameters for the UPDATE statement
+    //         $this->executeQuery($sql, [$activityId]);
+    //     } catch (Exception $e) {
+    //         error_log("Update QR codes error: " . $e->getMessage());           
+    //     }
+    // }
+    public function updateSuccesQRCodes($id, $data) {
+        try {
+            // Check if QR code exists first
+            $existing = $this->fetchOne(
+                "SELECT * FROM activity_qr_codes WHERE id = ?", 
+                [$id]
+            );
+            
+            if (!$existing) {
+                throw new Exception("QR Code not found", 404);
+            }
+            
+            // Update the QR code
+            return $this->update('activity_qr_codes', $data, 'id = ?', [$id] );
+            
+            
+        } catch (Exception $e) {
+            error_log("QR Code update error [ID: $id]: " . $e->getMessage());
+            throw $e;
         }
     }
     public function generateActivityQR($activityId, $options = []) {

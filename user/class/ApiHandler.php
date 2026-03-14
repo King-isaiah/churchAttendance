@@ -186,8 +186,9 @@
                 'activities' => 'getActivity',
                 'attendance_methods'=>'getAttendanceMethod',
                 'statuses'=>'getStatus',
-                'notifications' => 'getNotificationsForUser',
-               
+                'notifications' => 'getNotificationsForMember',
+                'reports' => 'getAReport',
+                'activity_qr_codes' => 'getQRCode',               
             ];
             
             $method = $methodMap[$this->entity] ?? 'get';
@@ -596,7 +597,7 @@
                 'activities' => 'updateActivity',
                 'attendance_methods' => 'updateAttendanceMethod',
                 'statuses' => 'updateStatus',
-                'activity_qr_codes' => 'updateStatus',
+                'activity_qr_codes' => 'updateSuccesQRCodes',
                 'rsvp'=>'saveRSVP'
             ];
             
@@ -690,9 +691,7 @@
             }
         }
         
-        /**
-         * Enhanced exception handler
-         */
+      
         private function handleException(Exception $e) {
             $errorCode = $e->getCode();
             $errorMessage = $e->getMessage();
@@ -804,7 +803,7 @@
                 'reports' => 'Report',
                 'activity_qr_codes' => 'QRGenerator',
                 'rsvp' => 'RSVP',
-                'notifications'=>'Notification'
+                'notifications'=>'Notification'                
             ];
             
             return $entityMap[$this->entity] ?? null;

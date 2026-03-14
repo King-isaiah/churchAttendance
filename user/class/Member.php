@@ -21,7 +21,8 @@
         
         public function getMember($id) {
             try {
-                $sql = "SELECT m.*, d.name AS department FROM members m LEFT JOIN departments AS d ON m.department_id = d.id WHERE m.unique_id = ?
+                $sql = "SELECT m.*, d.name AS department FROM members m 
+                LEFT JOIN departments AS d ON m.department_id = d.id WHERE m.unique_id = ?
                 ";
                 $result = $this->fetchOne($sql, [$id]);
                 
