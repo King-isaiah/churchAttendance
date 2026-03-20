@@ -1,14 +1,13 @@
 # Use an official PHP runtime with Apache
 FROM php:8.1-apache
 
-# Install system dependencies and PHP extensions (adjust for your DB)
-# For PostgreSQL, install libpq-dev and the pdo_pgsql extension
+# Install system dependencies and PostgreSQL extensions
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     && docker-php-ext-install pdo pdo_pgsql pgsql
 
-# If you are using MySQL, replace the line above with:
-# RUN docker-php-ext-install pdo pdo_mysql
+# Enable PostgreSQL extension
+RUN docker-php-ext-enable pdo_pgsql
 
 # Enable Apache mod_rewrite for clean URLs
 RUN a2enmod rewrite
