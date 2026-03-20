@@ -1,8 +1,4 @@
 <?php
-   
-
-
-
     class Database {
         protected $db;
         
@@ -14,32 +10,75 @@
             $this->db = $this->getConnection();
         }
         
+        // protected function getConnection() {
+        //     $host = 'localhost';
+        //     $dbname = 'church_attendance';
+        //     $user = 'root';
+        //     $pass = '';
+        //     $charset = 'utf8mb4';
+            
+        //     $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+            
+        //     try {
+        //         $pdo = new PDO($dsn, $user, $pass);
+        //         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        //         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        //         $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+        //         return $pdo;
+        //     } catch (PDOException $e) {
+        //         error_log("Database connection failed: " . $e->getMessage());
+        //         throw new Exception("Database connection failed: " . $e->getMessage());
+        //     }
+        // }
+        
         protected function getConnection() {
-            $host = 'localhost';
-            $dbname = 'church_attendance';
-            $user = 'root';
-            $pass = '';
-            $charset = 'utf8mb4';
+            // Check if we're on Render (DATABASE_URL environment variable exists)
+            $databaseUrl = getenv('DATABASE_URL');
             
-            $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
-            
-            try {
-                $pdo = new PDO($dsn, $user, $pass);
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-                return $pdo;
-            } catch (PDOException $e) {
-                error_log("Database connection failed: " . $e->getMessage());
-                throw new Exception("Database connection failed: " . $e->getMessage());
+            if ($databaseUrl) {
+                // We're on Render - use PostgreSQL
+                $db = parse_url($databaseUrl);
+                
+                $host = $db['host'];
+                $port = $db['port'] ?? '5432';
+                $dbname = ltrim($db['path'], '/');
+                $user = $db['user'];
+                $pass = $db['pass'];
+                
+                $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;";
+                
+                try {
+                    $pdo = new PDO($dsn, $user, $pass);
+                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                    // Note: ATTR_EMULATE_PREPARES is not set for PostgreSQL
+                    return $pdo;
+                } catch (PDOException $e) {
+                    error_log("Database connection failed: " . $e->getMessage());
+                    throw new Exception("Database connection failed: " . $e->getMessage());
+                }
+            } else {
+                // We're on localhost - use MySQL (your original code)
+                $host = 'localhost';
+                $dbname = 'church_attendance';
+                $user = 'root';
+                $pass = '';
+                $charset = 'utf8mb4';
+                
+                $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+                
+                try {
+                    $pdo = new PDO($dsn, $user, $pass);
+                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                    $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+                    return $pdo;
+                } catch (PDOException $e) {
+                    error_log("Database connection failed: " . $e->getMessage());
+                    throw new Exception("Database connection failed: " . $e->getMessage());
+                }
             }
         }
-        
-        /**
-         * Enhanced error classification system
-         */
-        
-        
         /**
          * Extract meaningful information from duplicate entry errors
          */
