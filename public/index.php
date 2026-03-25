@@ -1,5 +1,5 @@
 <?php 
-    include "include/header.php" ;
+    include "admin/include/header.php" ;
     $weeklyData = [65, 59, 80, 81, 56, 55, 72]; // Example data for the chart
     $activities = [
         ['name' => 'Sunday Service', 'attendance' => 150, 'date' => '2023-06-18'],
