@@ -35,33 +35,30 @@
             }
         }
         
-        /**
-         * Enhanced error classification system
-         */
-        
+      
         
         /**
          * Extract meaningful information from duplicate entry errors
          */
        
-private function extractDuplicateFieldMessage($errorMessage) {
-    // MySQL pattern: Duplicate entry 'value' for key 'column_name'
-    if (preg_match("/Duplicate entry '([^']*)' for key '([^']*)'/", $errorMessage, $matches)) {
-        $value = $matches[1];
-        $field = $matches[2];
-        
-        // Convert field name to readable format
-        $readableField = $this->getReadableFieldName($field);
-        return "The $readableField '$value' already exists. Please choose a different one.";
-    }
-    
-    // Generic unique constraint message
-    if (stripos($errorMessage, 'unique') !== false || stripos($errorMessage, 'duplicate') !== false) {
-        return "This value already exists. Please choose a different one.";
-    }
-    
-    return null;
-}
+        private function extractDuplicateFieldMessage($errorMessage) {
+            // MySQL pattern: Duplicate entry 'value' for key 'column_name'
+            if (preg_match("/Duplicate entry '([^']*)' for key '([^']*)'/", $errorMessage, $matches)) {
+                $value = $matches[1];
+                $field = $matches[2];
+                
+                // Convert field name to readable format
+                $readableField = $this->getReadableFieldName($field);
+                return "The $readableField '$value' already exists. Please choose a different one.";
+            }
+            
+            // Generic unique constraint message
+            if (stripos($errorMessage, 'unique') !== false || stripos($errorMessage, 'duplicate') !== false) {
+                return "This value already exists. Please choose a different one.";
+            }
+            
+            return null;
+        }
         
         /**
          * Ultra-simple dynamic field name converter
@@ -179,59 +176,59 @@ protected function insert($table, $data) {
             return $result['count'] > 1;
         }
 
-private function classifyError(PDOException $e) {
-    $errorCode = $e->getCode();
-    $errorMessage = $e->getMessage();
-    $sqlState = $e->errorInfo[0] ?? '';
-    
-    error_log("Database Error - Code: $errorCode, SQLState: $sqlState, Message: $errorMessage");
-    
-    // Check for any kind of unique constraint violation
-    $isUniqueViolation = 
-        $errorCode === 1062 ||
-        $sqlState === '23000' ||
-        stripos($errorMessage, 'duplicate') !== false ||
-        stripos($errorMessage, 'unique') !== false;
-    
-    if ($isUniqueViolation) {
-        $userMessage = $this->extractDuplicateFieldMessage($errorMessage);
-        throw new Exception(
-            $userMessage ?: 'This value already exists. Please use a different one.',
-            409 // CONFLICT status code for duplicate entries
-        );
-    }
-    
-    // Foreign key constraint violations
-    $isForeignKeyViolation = 
-        $errorCode === 1451 ||
-        stripos($errorMessage, 'foreign key') !== false ||
-        stripos($errorMessage, 'constraint') !== false;
-    
-    if ($isForeignKeyViolation) {
-        throw new Exception(
-            'This operation cannot be completed because it is linked to other records.',
-            409 // CONFLICT status code
-        );
-    }
-    
-    // Data validation errors
-    if ($errorCode === 1406 || stripos($errorMessage, 'data too long') !== false) {
-        throw new Exception(
-            'The data you entered is too long. Please shorten it.',
-            400 // BAD REQUEST
-        );
-    }
-    
-    if ($errorCode === 1364 || stripos($errorMessage, 'doesn\'t have a default value') !== false) {
-        throw new Exception(
-            'Required fields are missing. Please fill in all required information.',
-            400 // BAD REQUEST
-        );
-    }
-    
-    // All other errors are for developers only
-    throw new Exception("A database error occurred. Please try again.");
-}
+        private function classifyError(PDOException $e) {
+            $errorCode = $e->getCode();
+            $errorMessage = $e->getMessage();
+            $sqlState = $e->errorInfo[0] ?? '';
+            
+            error_log("Database Error - Code: $errorCode, SQLState: $sqlState, Message: $errorMessage");
+            
+            // Check for any kind of unique constraint violation
+            $isUniqueViolation = 
+                $errorCode === 1062 ||
+                $sqlState === '23000' ||
+                stripos($errorMessage, 'duplicate') !== false ||
+                stripos($errorMessage, 'unique') !== false;
+            
+            if ($isUniqueViolation) {
+                $userMessage = $this->extractDuplicateFieldMessage($errorMessage);
+                throw new Exception(
+                    $userMessage ?: 'This value already exists. Please use a different one.',
+                    409 // CONFLICT status code for duplicate entries
+                );
+            }
+            
+            // Foreign key constraint violations
+            $isForeignKeyViolation = 
+                $errorCode === 1451 ||
+                stripos($errorMessage, 'foreign key') !== false ||
+                stripos($errorMessage, 'constraint') !== false;
+            
+            if ($isForeignKeyViolation) {
+                throw new Exception(
+                    'This operation cannot be completed because it is linked to other records.',
+                    409 // CONFLICT status code
+                );
+            }
+            
+            // Data validation errors
+            if ($errorCode === 1406 || stripos($errorMessage, 'data too long') !== false) {
+                throw new Exception(
+                    'The data you entered is too long. Please shorten it.',
+                    400 // BAD REQUEST
+                );
+            }
+            
+            if ($errorCode === 1364 || stripos($errorMessage, 'doesn\'t have a default value') !== false) {
+                throw new Exception(
+                    'Required fields are missing. Please fill in all required information.',
+                    400 // BAD REQUEST
+                );
+            }
+            
+            // All other errors are for developers only
+            throw new Exception("A database error occurred. Please try again.");
+        }
 
         /**
          * Additional helper method for transaction support

@@ -471,10 +471,13 @@ document.getElementById('managementForm').addEventListener('submit', async funct
             closeModal();
             loadData(type);
             showSuccess(id ? 'Updated successfully' : 'Created successfully');
+            showSuccess(result.message);
         } else {
+            showError(result.message);
             handleApiError(result, action);
-        }
+        } 
     } catch (error) {
+        // showError('WHAST POPIN' + result.message)
         showError('Network error: ' + error.message);
     }
 });

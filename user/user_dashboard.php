@@ -16,22 +16,7 @@ include_once "include/user_header.php";
 
 <div class="center-div" id="center-div"></div>
 
-<!-- QR Scanner Modal -->
-<div id="qrScannerModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Scan QR Code</h3>
-            <span class="close-modal">&times;</span>
-        </div>
-        <div class="modal-body">
-            <div id="qrScanner">
-                <div id="reader" style="width: 100%;"></div>
-                <p class="scan-instruction">Point your camera at the QR code to mark attendance</p>
-            </div>
-            <div id="scanResult" style="display: none;"></div>
-        </div>
-    </div>
-</div>
+
 
 
 <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>

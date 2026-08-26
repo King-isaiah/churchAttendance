@@ -5,8 +5,10 @@ class Member extends Database {
     
     public function getAllMembers() {
         try {
-            $sql = "
-                SELECT m.*, d.name as department_name
+            $sql = "SELECT m.*, CASE 
+                    WHEN m.department_id LIKE '[%' THEN 'Multiple Departments'
+                    ELSE d.name 
+                END as department_name
                 FROM members m
                 LEFT JOIN departments d ON m.department_id = d.id
                 ORDER BY m.created_at DESC
@@ -17,12 +19,10 @@ class Member extends Database {
             throw new Exception("Unable to retrieve members list");
         }
     }
-    
+   
     public function getMember($id) {
         try {
-            $sql = "
-                SELECT m.*, d.name as department_name
-                FROM members m
+            $sql = "SELECT m.*, d.name as department_name FROM members m
                 LEFT JOIN departments d ON m.department_id = d.id
                 WHERE m.id = ?
             ";
@@ -32,6 +32,15 @@ class Member extends Database {
                 throw new Exception("Member not found", 404);
             }
             
+            
+            if (!empty($result['department_id'])) {
+                // Check if it's JSON array format
+                if (strpos($result['department_id'], '[') === 0) {                 
+                    $result['department_id'] = $result['department_id'];
+                }               
+            }
+      
+        
             return $result;
         } catch (Exception $e) {
             error_log("Member get error [ID: $id]: " . $e->getMessage());
@@ -53,16 +62,40 @@ class Member extends Database {
             
             // $fullname = $data['first_name'] . $data['last_name'];
             // $randomLetters = substr(str_shuffle($fullname), 0, 2);
-           
+            if (isset($data['department_id'])) {
+                if (is_array($data['department_id'])) {                    
+                    $deptIds = array_filter($data['department_id'], function($val) {
+                        return $val !== ''  && $val !== 0;
+                    });
+                    
+                    if (empty($deptIds)) {
+                        $data['department_id'] = null;
+                        $deptIdsForNotification = null;
+                    } else {
+                        // Store as JSON array string
+                        $data['department_id'] = json_encode(array_values($deptIds));
+                        $deptIdsForNotification = $deptIds; 
+                    }
+                } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
+                    $data['department_id'] = null;
+                    $deptIdsForNotification = null;
+                } else {
+                    // Single department ID
+                    $deptIdsForNotification = [$data['department_id']];
+                }
+            } else {
+                $data['department_id'] = null;
+                $deptIdsForNotification = null;
+            }
             try {
-               
+                error_log("Department IDs for notification: " . print_r($deptIdsForNotification, true));               
                 $memberTitle = $data['first_name'] ?? '';
                 $eventDescription = $data['first_name'] . ' ' . 'has joined your department workforce.';                          
                 $notification = new Notification();
                 error_log("Creating notification for newMember: " . $memberTitle);
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
                 $defs = [
-                    'title' => $memberTitle,                
+                    'title' => 'New Member',                
                     'message' => $eventDescription,
                     'notification_type'=> 'member',
                     'department_id'=> $data['department_id'],
@@ -91,32 +124,25 @@ class Member extends Database {
             throw $e;
         }
     }
-    // public function createMember($data) {
-    //     try {
-    //         // Validate required fields
-    //         $this->validateMemberData($data);
-            
-    //         // Set default values
-    //         $data['created_at'] = date('Y-m-d H:i:s');
-            
-    //         return $this->insert('members', $data);
-    //     } catch (Exception $e) {
-    //         error_log("Member create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-    //         throw $e;
-    //     }
-    // }
-
-   
     
     public function updateMember($id, $data) {
-        try {
-            // Check if member exists first
+        try {     
             $existing = $this->getMember($id);
             if (!$existing) {
                 throw new Exception("Member not found", 404);
             }
+
+            if (isset($data['department_id'])) {
+                if (is_array($data['department_id'])) {
+                    $deptIds = array_filter($data['department_id'], function($val) {
+                        return $val !== '' && $val !== '0' && $val !== 0;
+                    });
+                    $data['department_id'] = empty($deptIds) ? null : json_encode(array_values($deptIds));
+                } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
+                    $data['department_id'] = null;
+                }
+            }
             
-            // Validate data
             $this->validateMemberData($data, true);
             
             return $this->update('members', $data, 'id = ?', [$id]);

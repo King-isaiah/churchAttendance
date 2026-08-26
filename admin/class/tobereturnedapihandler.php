@@ -1,11 +1,12 @@
 <?php
-    session_start();
+
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 
     require_once 'Database.php';
     require_once 'Location.php';
     require_once 'Department.php';
+    require_once 'Dashboard.php';
     require_once 'Category.php';
     require_once 'Speaker.php';
     require_once 'Event.php';
@@ -31,7 +32,7 @@
             $this->action = $_GET['action'] ?? '';
             $this->id = $_GET['id'] ?? 0;
             $this->entity = $_GET['entity'] ?? '';
-            
+                        
             // Get input data
             $input = file_get_contents('php://input');
             $this->input = $input ? json_decode($input, true) : [];
@@ -84,13 +85,7 @@
                 case 'get':
                     $this->get();
                     break;
-                case 'getOthers':
-                    $this->getOthers();
-                    break;
-                case 'getCurrentUser':
-                    $this->getCurrentUser();
-                    break;
-                case 'getQR': 
+                case 'getQR': // Add this case
                     $this->getQR();
                     break;
                 default:
@@ -107,14 +102,11 @@
                 case 'create':
                     $this->create();
                     break;
-                case 'login':
-                    $this->login();
+                case 'generateQR': // Add this case
+                    $this->generateQR();
                     break;
                 case 'special':
                     $this->special();
-                    break;
-                case 'generateQR': 
-                    $this->generateQR();
                     break;
                 default:
                     $this->sendResponse([
@@ -152,12 +144,59 @@
                     ], 400);
             }
         }
+        
+        private function getAll() {
+            $entityClass = $this->getEntityClass();
+            if (!$entityClass) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid entity',
+                    'errorType' => 'client'
+                ], 400);
+                return;
+            }
+            
+            $entity = new $entityClass();
+           
+            $methodMap = [
+                'dashboard' => 'getDashboardStats',
+                'locations' => 'getAllLocations',
+                'departments' => 'getAllDepartments',
+                'categories' => 'getAllCategory',
+                'speakers' => 'getAllSpeakers',
+                'events' => 'getAllEvents',
+                'members' => 'getAllMembers',
+                'attendance' => 'getAllAttendance',
+                'activities' => 'getAllActivities',
+                'attendance_methods' => 'getAllAttendanceMethods',
+                'statuses' => 'getAllStatuses',
+                'reports' => 'getAttendanceReports',
+                'notifications' => 'getAllNotifications',
+            ];
+            
+            $method = $methodMap[$this->entity] ?? 'getAll';
+            
+            if (method_exists($entity, $method)) {
+                $data = $entity->$method();
+                $this->sendResponse([
+                    'success' => true, 
+                    'data' => $data
+                ]);
+            } else {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => "Method $method not found for {$this->entity}",
+                    'errorType' => 'server'
+                ], 500);
+            }
+        }
+        
         private function get() {
             if (!$this->id) {
                 $this->sendResponse([
                     'success' => false, 
                     'message' => 'ID required',
-                    'errorType' => 'clientget'
+                    'errorType' => 'client'
                 ], 400);
                 return;
             }
@@ -166,8 +205,8 @@
             if (!$entityClass) {
                 $this->sendResponse([
                     'success' => false, 
-                    'message' => 'Invalid entity',
-                    'errorType' => 'clientget'
+                    'message' => 'Invalid entity, entity is not part of the getEntityClass',
+                    'errorType' => 'client'
                 ], 400);
                 return;
             }
@@ -186,9 +225,11 @@
                 'activities' => 'getActivity',
                 'attendance_methods'=>'getAttendanceMethod',
                 'statuses'=>'getStatus',
-                'notifications' => 'getNotificationsForMember',
-                'reports' => 'getAReport',
-                'activity_qr_codes' => 'getQRCode',               
+                'attendance'=>'getAttendanceReports',
+                'notifications' => 'getNotificationsForUser',
+                'rsvp'=>'getRSVPDetails',
+                'reports' => 'getWeeklyAttendanceTrend',
+               
             ];
             
             $method = $methodMap[$this->entity] ?? 'get';
@@ -204,152 +245,24 @@
                 } else {
                     $this->sendResponse([
                         'success' => false, 
-                        'message' => 'Not found',
-                        'errorType' => 'clientget'
+                        'message' => 'Method or function came out false',
+                        'errorType' => 'client'
                     ], 404);
                 }
             } else {
                 $this->sendResponse([
                     'success' => false, 
                     'message' => "Method $method not found",
-                    'errorType' => 'serverget'
+                    'errorType' => 'server'
                 ], 500);
             }
         }
-        
-        
-
-        private function getOthers() {
-            $entityClass = $this->getEntityClass();
-            if (!$entityClass) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid entity',
-                    'errorType' => 'clientgetOthers'
-                ], 400);
-                return;
-            }
-            
-            $entity = new $entityClass();
-            
-            // Map entity to method name
-            $methodMap = [            
-                'activities' => 'getLocationActivitiesWithLocationCoordinate',
-                'attendance' => 'getLocationActivitiesWithLocationCoordinate',
-                'categories' => 'getCategoriesInEvents',
-            ];
-            
-            $method = $methodMap[$this->entity] ?? 'getOthers';
-            
-            if (method_exists($entity, $method)) {
-                $data = $entity->$method();
-                $this->sendResponse([
-                    'success' => true, 
-                    'data' => $data
-                ]);
-            } else {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => "Method $method not found for {$this->entity}",
-                    'errorType' => 'servergetOthers'
-                ], 500);
-            }
-        }
-        private function getAll() {
-            $entityClass = $this->getEntityClass();
-            if (!$entityClass) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid entity',
-                    'errorType' => 'clientgetAll'
-                ], 400);
-                return;
-            }
-            
-            $entity = new $entityClass();
-            
-            // Map entity to method name
-            $methodMap = [
-                'locations' => 'getAllLocations',
-                'departments' => 'getAllDepartments',
-                'categories' => 'getAllCategory',
-                'speakers' => 'getAllSpeakers',
-                'events' => 'getAllEvents',
-                'members' => 'getAllMembers',
-                'attendance' => 'getAllAttendance',
-                'activities' => 'getAllActivities',
-                'attendance_methods' => 'getAllAttendanceMethods',
-                'statuses' => 'getAllStatuses',
-                'attendance' => 'getAllAttendanceReports',
-                'notifications' => 'getAllNotifications',
-            ];
-            
-            $method = $methodMap[$this->entity] ?? 'getAll';
-            
-            if (method_exists($entity, $method)) {
-                $data = $entity->$method();
-                $this->sendResponse([
-                    'success' => true, 
-                    'data' => $data
-                ]);
-            } else {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => "Method $method not found for {$this->entity}",
-                    'errorType' => 'servergetAll'
-                ], 500);
-            }
-        }
-        
-        private function getCurrentUser() {
-            $entityClass = $this->getEntityClass();
-            if (!$entityClass) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid entity',
-                    'errorType' => 'clientgetcurrentuser'
-                ], 400);
-                return;
-            }
-            
-            $entity = new $entityClass();
-            
-            // Map entity to method name
-            $methodMap = [
-                'locations' => 'getAllLocations',
-                'departments' => 'getAllDepartments',
-                
-                'members' => 'getMembersSession',
-            ];
-            
-            $method = $methodMap[$this->entity] ?? 'getCurrentUser';
-            
-            if (method_exists($entity, $method)) {
-                $data = $entity->$method();
-                $this->sendResponse([
-                    'success' => true, 
-                    'data' => $data
-                ]);
-            } else {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => "Method $method not found for {$this->entity}",
-                    'errorType' => 'servergetCurrrent'
-                ], 500);
-            }
-        }
-        
-       
-       
-
-
-
         private function generateQR() {
             if (empty($this->input)) {
                 $this->sendResponse([
                     'success' => false, 
                     'message' => 'Invalid data',
-                    'errorType' => 'clientgenereateqr'
+                    'errorType' => 'client'
                 ], 400);
                 return;
             }
@@ -383,123 +296,6 @@
                 $this->handleException($e);
             }
         }
-        private function login() {
-            if (empty($this->input)) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid data',
-                    'errorType' => 'clientlogin'
-                ], 400);
-                return;
-            }
-            
-            $entityClass = $this->getEntityClass();
-            if (!$entityClass) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid entity',
-                    'errorType' => 'clientlogin'
-                ], 400);
-                return;
-            }
-            
-            $entity = new $entityClass();
-
-             $methodMap = [
-                'members' => 'loginUsers',
-                'admin' => 'createAttendance',                
-            ];
-            
-            $method = $methodMap[$this->entity] ?? 'login';
-            
-            if (method_exists($entity, $method)) {
-                $id = $entity->$method($this->input);
-                
-                if ($id) {
-                    $this->sendResponse([
-                        'success' => true, 
-                        'id' => $id
-                    ], 201);
-                } else {
-                    $this->sendResponse([
-                        'success' => false, 
-                        'message' => 'Login failed',
-                        'errorType' => 'serverlogin'
-                    ], 500);
-                }
-            } else {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => "Method $method not found",
-                    'errorType' => 'serverlogin'
-                ], 500);
-            }
-        }
-        private function create() {
-            if (empty($this->input)) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid data',
-                    'errorType' => 'client'
-                ], 400);
-                return;
-            }
-            
-            $entityClass = $this->getEntityClass();
-            if (!$entityClass) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid entity',
-                    'errorType' => 'client'
-                ], 400);
-                return;
-            }
-            
-            $entity = new $entityClass();
-            
-            // Map entity to method name
-            $methodMap = [
-                'locations' => 'createLocation',
-                'departments' => 'createDepartment',
-                'categories' => 'createCategory',
-                'speakers' => 'createSpeaker',
-                'events' => 'createEvent',
-                'members' => 'createMember',
-                'attendance' => 'createAttendance',
-                'activities' => 'createActivity',
-                'attendance_methods'=>'createAttendanceMethod',
-                'statuses'=>'createStatus',
-                'activity_qr_codes'=>'generateQRCode',
-                'rsvp'=>'saveRSVP',
-                'notifications' => 'createNotification',
-            ];
-            
-            $method = $methodMap[$this->entity] ?? 'create';
-            
-            if (method_exists($entity, $method)) {
-                $id = $entity->$method($this->input);
-                
-                if ($id) {
-                    $this->sendResponse([
-                        'success' => true, 
-                        'id' => $id
-                    ], 201);
-                } else {
-                    $this->sendResponse([
-                        'success' => false, 
-                        'message' => 'Create failed',
-                        'errorType' => 'servercreate'
-                    ], 500 + 'create error');
-                }
-            } else {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => "Method $method not found",
-                    'errorType' => 'servercreated'
-                ], 500 + 'created error');
-            }
-        }
-
         private function special() {
             if (empty($this->input)) {
                 $this->sendResponse([
@@ -523,7 +319,7 @@
             $entity = new $entityClass();
             
             // Map entity to method name
-            $methodMap = [
+            $methodMap = [                
                 'locations' => 'createLocation',
                 'departments' => 'createDepartment',
                 'categories' => 'createCategory',
@@ -562,6 +358,70 @@
             }
             
         }
+        private function create() {
+            if (empty($this->input)) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid data',
+                    'errorType' => 'client'
+                ], 400);
+                return;
+            }
+            
+            $entityClass = $this->getEntityClass();
+            if (!$entityClass) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid entity',
+                    'errorType' => 'client'
+                ], 400);
+                return;
+            }
+            
+            $entity = new $entityClass();
+            
+            // Map entity to method name
+            $methodMap = [
+                'locations' => 'createLocation',
+                'departments' => 'createDepartment',
+                'categories' => 'createCategory',
+                'speakers' => 'createSpeaker',
+                'events' => 'createEvent',
+                'members' => 'createMember',
+                'attendance' => 'createAttendance',
+                'activities' => 'createActivity',
+                'attendance_methods'=>'createAttendanceMethod',
+                'statuses'=>'createStatus',
+                'activity_qr_codes'=>'generateQRCode',
+                'reports' => 'exportToCSV',
+                'notifications' => 'createNotification',
+            ];
+            
+            $method = $methodMap[$this->entity] ?? 'create';
+            
+            if (method_exists($entity, $method)) {
+                $id = $entity->$method($this->input);
+                
+                if ($id) {
+                    $this->sendResponse([
+                        'success' => true, 
+                        'id' => $id
+                    ], 201);
+                } else {
+                    $this->sendResponse([
+                        'success' => false, 
+                        'message' => 'Create failed',
+                        'errorType' => 'server'
+                    ], 500);
+                }
+            } else {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => "Method $method not found",
+                    'errorType' => 'server'
+                ], 500);
+            }
+        }
         
         private function update() {
             if (!$this->id || empty($this->input)) {
@@ -592,13 +452,12 @@
                 'categories' => 'updateCategory',
                 'speakers' => 'updateSpeaker',
                 'events' => 'updateEvent',
-                'members' => 'updatePassword',
+                'members' => 'updateMember',
                 'attendance' => 'updateAttendance',
                 'activities' => 'updateActivity',
                 'attendance_methods' => 'updateAttendanceMethod',
                 'statuses' => 'updateStatus',
-                'activity_qr_codes' => 'updateSuccesQRCodes',
-                'rsvp'=>'saveRSVP'
+                'activity_qr_codes' => 'updateStatus'
             ];
             
             $method = $methodMap[$this->entity] ?? 'update';
@@ -615,14 +474,14 @@
                     $this->sendResponse([
                         'success' => false, 
                         'message' => 'Update failed',
-                        'errorType' => 'serverupdate'
+                        'errorType' => 'server'
                     ], 500);
                 }
             } else {
                 $this->sendResponse([
                     'success' => false, 
                     'message' => "Method $method not found",
-                    'errorType' => 'serverupdate'
+                    'errorType' => 'server'
                 ], 500);
             }
         }
@@ -679,19 +538,22 @@
                     $this->sendResponse([
                         'success' => false, 
                         'message' => 'Delete failed',
-                        'errorType' => 'serverdelete'
+                        'errorType' => 'server'
                     ], 500);
                 }
             } else {
                 $this->sendResponse([
                     'success' => false, 
                     'message' => "Method $method not found",
-                    'errorType' => 'serverdelete'
+                    'errorType' => 'server'
                 ], 500);
             }
         }
         
-      
+        
+        /**
+         * Enhanced exception handler
+         */
         private function handleException(Exception $e) {
             $errorCode = $e->getCode();
             $errorMessage = $e->getMessage();
@@ -788,8 +650,9 @@
             return $safeTrace;
         }
         
-        private function getEntityClass() {
+        private function getEntityClass () {
             $entityMap = [
+                'dashboard' => 'Dashboard',
                 'locations' => 'Location',
                 'departments' => 'Department',
                 'categories' => 'Category',
@@ -803,7 +666,8 @@
                 'reports' => 'Report',
                 'activity_qr_codes' => 'QRGenerator',
                 'rsvp' => 'RSVP',
-                'notifications'=>'Notification'                
+                'rsvp' => 'RSVP',
+                'notifications'=>'Notification'
             ];
             
             return $entityMap[$this->entity] ?? null;
@@ -816,6 +680,43 @@
             $data['requestId'] = uniqid();
             
             echo json_encode($data);
+            exit();
+        }
+        private function getDefaultSuccessMessage() {
+            $actionMap = [
+                'create' => 'created',
+                'update' => 'updated',
+                'delete' => 'deleted',
+            ];
+            $actionWord = $actionMap[$this->action] ?? 'processed';
+            $entityName = ucwords(str_replace('_', ' ', $this->entity));
+            return "$entityName $actionWord successfully.";
+        }
+        private function sendSuccessResponse($data, $statusCode = 200, $message = null) {
+            // Determine success flag (default true)
+            $success = true;
+            if (is_array($data) && array_key_exists('success', $data)) {
+                $success = $data['success'];
+                // If the data array contains a 'message', use it unless overridden
+                if ($message === null && isset($data['message'])) {
+                    $message = $data['message'];
+                }
+            }
+
+            // Build response array
+            $response = [
+                'success' => $success,
+                'data'    => $data,
+                'message' => $message ?: $this->getDefaultSuccessMessage(),
+                // 'meta'    => [...],
+                'requestId' => uniqid('req_', true),
+            ];
+
+            // If data is an array with 'id' or other keys, keep it; if it's scalar, wrap it.
+            // (But we already pass $data as is – that's fine because sendResponse encodes it)
+
+            http_response_code($statusCode);
+            echo json_encode($response);
             exit();
         }
         

@@ -93,6 +93,11 @@ class Report extends Database {
         }
     }
 
+    public function getAReport($unique_id){
+        $sql = "SELECT * FROM attendance WHERE unique_id = ? ";
+         return $this->fetchAll($sql, [$unique_id]);
+    }
+
             
 }
 ?>

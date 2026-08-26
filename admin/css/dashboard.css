@@ -19,6 +19,16 @@
     overflow: hidden;
     margin-top: 1em;
 }
+.sliding-go{
+    background-color: var(--transparent-overlay);
+    width: 49%;
+    height: 17vh;
+    color: #fff;
+    border-radius: 12px;
+    /* margin-right: 10px; */
+    overflow: hidden;
+    /* margin-top: 1em; */
+}
 .sunschl{
     width: 100%;
     border-radius: 7%;
@@ -28,7 +38,7 @@
     padding: 1em;
 }
 .slider-chart{
-    width: 30%;
+    width: 50%;
     overflow: hidden;
 }
 .stat-card {
@@ -110,6 +120,7 @@
 .activity-item {    
     align-items: center;
     border-bottom: 1px solid #f7fafc;
+    width: 20em;
 }
 
 .activity-item:last-child {
@@ -199,7 +210,7 @@
 
 .progress-chart{
     width: 65%;
-    background-color: #8786E3;
+    background-color: #8de44e;
     border-radius: 5%;
     margin-right: 1em;
     padding: .5rem;
@@ -207,13 +218,13 @@
 .depting{
     display: flex;
     overflow: hidden;
-    max-width: 100%;
+    /* max-width: 100%; */
     font-size: .2em;
     position: relative;
 }
 canvas {
     border: 1px solid #333;
-    border-radius: 10px;
+    /* border-radius: 5px; */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     max-height: 15em;
     width: 40em;
@@ -259,9 +270,9 @@ canvas {
         padding: 1rem;
     }
     
-    .depting {
+    /* .depting {
         padding: 0.5rem 0;
-    }
+    } */
     
     /* canvas {
         height: 200px !important;
@@ -409,98 +420,4 @@ canvas {
         font-size: 6px;
     }
 }
-/* @media (max-width: 1200px) {
-    .progress-chart {
-        flex: 1 1 100%;
-    }
-    
-    .slider-chart {
-        flex: 1 1 100%;
-        flex-direction: row;
-    }
-    
-    .sunschl {
-        flex: 1;
-        min-height: 140px;
-    }
-} */
 
-/* @media (max-width: 992px) {
-    .stats-cards {
-        flex-direction: column;
-    }
-    
-    .stat-card {
-        width: 100%;
-    }
-    
-    .chart-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    #chart-filter {
-        width: 100%;
-    }
-} */
-
-/* @media (max-width: 768px) {
-    .charts {
-        flex-direction: column;
-    }
-    
-    .progress-chart, .slider-chart {
-        min-width: 100%;
-    }
-    
-    .slider-chart {
-        flex-direction: column;
-    }
-    
-    .text-nav {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .text-nav input {
-        width: 100%;
-    }
-    
-    .chart-text .btn {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .slider__btn {
-        height: 30px;
-        width: 30px;
-        font-size: 0.8rem;
-    }
-} */
-
-
-/* High DPI screens */
-/* @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-    .stat-icon {
-        font-size: 1.3rem;
-    }
-    
-    .activity-link-button {
-        padding: 0.7rem 1.2rem;
-    }
-} */
-
-/* Dark mode support */
-/* @media (prefers-color-scheme: dark) {
-    .stat-card {
-        background: #2d3748;
-    }
-    
-    .stat-info h4 {
-        color: white;
-    }
-    
-    .stat-info p {
-        color: #cbd5e0;
-    }
-} */

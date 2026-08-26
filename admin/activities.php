@@ -4,6 +4,7 @@ include "class/Category.php";
 include "class/Activity.php";
 include "class/Status.php";
 include "class/Location.php";
+include "class/Department.php";
 include "class/AttendanceMethod.php";
 
 
@@ -11,12 +12,14 @@ $activity = new Activity();
 $categorys = new Category();
 $status = new Status();
 $location = new Location();
+$department = new Department();
 $attendanceMethod = new AttendanceMethod();
 
 $activities = $activity->getAllActivities();
 $day = $activity->getDaysOfTheWeek();
 $categories = $categorys->getAllCategory();
 $locations = $location->getAllLocations();
+$departments = $department->getAllDepartments();
 $statuses = $status->getAllStatuses();
 $attendanceMethods = $attendanceMethod->getAllAttendanceMethods();
     
@@ -262,33 +265,7 @@ foreach ($activities as $activityItem) {
                     </div>
                 </div>
 
-               <!-- In your activities.php file, fix the form row section -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="department_id">Department Participating *</label>
-                        <select id="department_id" required>
-                            <option value="">Select Department</option>
-                            <?php if(!empty($locations)): ?>
-                                <?php foreach($locations as $location): ?>
-                                    <?php 
-                                    if (is_array($location)) {
-                                        $locationName = $location['name'] ?? $location;
-                                        $locationId = $location['id'] ?? $location;
-                                    } else {
-                                        $locationName = $location;
-                                        $locationId = $location;
-                                    }
-                                    ?>
-                                    <option value="<?php echo htmlspecialchars($locationId); ?>">
-                                        <?php echo htmlspecialchars($locationName); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <option value="">No departments available</option>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-                </div>
+               
                 <div class="form-row">
                     <div class="form-group">
                         <label for="dayofactivity">Day Of The Week *</label>                        
@@ -361,15 +338,33 @@ foreach ($activities as $activityItem) {
                     </div>
                     
                     
-                    <div class="form-group">
-                        <label for="target_audience">Target Audience *</label>
-                        <select id="target_audience" required>
-                            <option value="all">All Members</option>
-                            <option value="youth">Youth Only</option>
-                            <option value="adults">Adults Only</option>
-                            <option value="children">Children Only</option>
-                        </select>
+
+                   
+                             
+                <div class="department-selection">    
+                    <div class="form-group department-field" id="originalDepartment">
+                        <div class="form-group">
+                            <label for="eventDepartment1">Department</label>
+                            <select id="eventDepartment1" name="department_id[]" class="department-select">
+                                <option value="">Select Department</option> 
+                                <option value="0">All Departments</option>
+                                <?php foreach ($departments as $dept): ?>
+                                    <option value="<?php echo $dept['id']; ?>">
+                                        <?php echo htmlspecialchars($dept['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
                     </div>
+                    
+                    <div id="additionalDepartments"></div>
+                    
+                    <button type="button" id="addDepartmentBtn"  class="add-department-btn">
+                        + Add Another Department
+                    </button>
+                    <small class="hint">Maximum 7 departments total</small>
+                </div>
                 </div>
                 
                 <div class="form-group">
@@ -385,7 +380,18 @@ foreach ($activities as $activityItem) {
         </div>
     </div>
 </div>
+<script>
+    let departmentCounter = 1;
+const maxDepartments = 7;
 
+
+
+
+
+
+
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/activity/activity.js"></script>
 <script src="js/activity/qrcode.js"></script>
