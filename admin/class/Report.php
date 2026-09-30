@@ -2,6 +2,7 @@
 require_once 'Database.php';
 
 class Report extends Database {
+    
     public function creatAReport($data){
         try {         
             $start_date = $data['start_date']; 
@@ -13,13 +14,10 @@ class Report extends Database {
             $conditions = [];
 
             if (!empty($start_date) && !empty($end_date)) {
-                // Assuming created_at is a datetime/timestamp column
                 $conditions[] = "DATE(a.created_at) BETWEEN '$start_date' AND '$end_date'";
             } else if (!empty($start_date)) {
-                // If only start date is provided
                 $conditions[] = "DATE(a.created_at) >= '$start_date'";
             } else if (!empty($end_date)) {
-                // If only end date is provided
                 $conditions[] = "DATE(a.created_at) <= '$end_date'";
             }
 
@@ -36,43 +34,37 @@ class Report extends Database {
             }
 
             $where = empty($conditions) ? '' : ' WHERE ' . implode(' AND ', $conditions);
-            $sql = "SELECT a.dayofactivity as date, a.attendance_category, a.attendance_category_id,a.created_at, 
-                    a.status,m.first_name,m.user_name,m.last_name,a.unique_id,
+
+            $sql = "SELECT a.id, a.dayofactivity as date, a.attendance_category, a.attendance_category_id, a.created_at, 
+                    a.status, m.first_name, m.user_name, m.last_name, a.unique_id,a.check_in_time,
                     CASE 
-                            WHEN a.attendance_category = 'activity' THEN act.name
-                            WHEN a.attendance_category = 'event' THEN ev.title
-                            ELSE 'Unknown'
-                        END as activity_name,
-                        COALESCE(d.name, 'All') as department,
-                        COUNT(DISTINCT a.unique_id) as total_members,
-                        COUNT(CASE WHEN a.status = 'Present' THEN 1 END) as present_count,
-                        COUNT(CASE WHEN a.status = 'Absent' THEN 1 END) as absent_count,
-                        ROUND(
-                            (COUNT(CASE WHEN a.status = 'Present' THEN 1 END) * 100.0 / 
-                            NULLIF(COUNT(CASE WHEN a.status IN ('Present', 'Absent') THEN 1 END), 0)
-                        ), 1) as attendance_rate
+                        WHEN a.attendance_category = 'activity' THEN act.name
+                        WHEN a.attendance_category = 'event' THEN ev.title
+                        ELSE 'Unknown'
+                    END as activity_name,
+                    COALESCE(d.name, 'All') as department
                     FROM attendance a
                     LEFT JOIN departments d ON a.department_id = d.id
                     LEFT JOIN members m ON a.unique_id = m.unique_id
-                    LEFT JOIN activities act ON a.attendance_category = 'activity' 
-                        AND a.attendance_category_id = act.id
-                    LEFT JOIN events ev ON a.attendance_category = 'event' 
-                    AND a.attendance_category_id = ev.id $where";
-            $sql .= "
-                GROUP BY DATE(a.dayofactivity), a.attendance_category, 
-                        a.attendance_category_id, d.name
-                ORDER BY DATE(a.dayofactivity) DESC
-            ";
-            
+                    LEFT JOIN activities act ON a.attendance_category = 'activity' AND a.attendance_category_id = act.id
+                    LEFT JOIN events ev ON a.attendance_category = 'event' AND a.attendance_category_id = ev.id
+                    $where
+                    ORDER BY a.created_at DESC";
+
             return $this->fetchAll($sql);
                         
         } catch (Exception $e) {
-            error_log("Report getAttendanceReports error: " . $e->getMessage());
+            error_log("Report creatAReport error: " . $e->getMessage());
             return [];
         }
     }
-
-   
+    public function getDepartmentMemberCounts() {
+        $sql = "SELECT d.id, d.name, COUNT(m.id) as total_members 
+                FROM departments d 
+                LEFT JOIN members m ON m.department_id = d.id 
+                GROUP BY d.id, d.name";
+        return $this->fetchAll($sql);
+    }
     public function exportToCSV($filters = []) {
         try {
             $data = $this->getAttendanceReports($filters);
@@ -82,11 +74,13 @@ class Report extends Database {
             }
             
             // Generate CSV content
-            $csv = "Date,Activity Category,Activity/Event,Department,Present,Absent,Attendance Rate\n";
+            $csv = "No,Day,Date,Activity Category,Activity/Event,Department,Present,Absent,Attendance Rate\n";
             
             foreach ($data as $row) {
                 $csv .= sprintf(
                     "%s,%s,%s,%s,%d,%d,%.1f%%\n",
+                    $row['no'],
+                    $row['day'],
                     $row['date'],
                     $row['attendance_category'],
                     $row['activity_name'],

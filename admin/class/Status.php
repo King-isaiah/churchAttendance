@@ -1,5 +1,5 @@
 <?php
-require_once 'Database.php';
+require_once '../class/Database.php';
 
 class Status extends Database {
     
@@ -35,7 +35,20 @@ class Status extends Database {
     public function createStatus($data) {
         try {
             $this->validateStatusData($data);
-            return $this->insert('statuses', $data);
+            $id =  $this->insert('statuses', $data);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Create Staus.Please try again or call dev.',
+                    'status' => 400 
+                ];
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Status'{$data['name']}'."
+            ];
         } catch (Exception $e) {
             error_log("Status create error: " . $e->getMessage() . " | Data: " . json_encode($data));
             throw $e; 
@@ -50,7 +63,20 @@ class Status extends Database {
             }
             
             $this->validateStatusData($data, true);
-            return $this->update('statuses', $data, 'id = ?', [$id]);
+            $id = $this->update('statuses', $data, 'id = ?', [$id]);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Update Staus.Please try again or call dev.',
+                    'status' => 400 
+                ];
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Status'{$data['name']}'."
+            ];
             
         } catch (Exception $e) {
             error_log("Status update error [ID: $id]: " . $e->getMessage());

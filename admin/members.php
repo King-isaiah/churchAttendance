@@ -4,11 +4,11 @@ include "class/Member.php";
 include "class/Department.php";
 
 // Create instances
-$member = new Member();
+// $member = new Member();
 $department = new Department();
 
 // Get data from database
-$members = $member->getAllMembers();
+// $members = $member->getAllMembers();
 $departments = $department->getAllDepartments();
 ?>
 
@@ -24,13 +24,12 @@ $departments = $department->getAllDepartments();
 </div>
 
 <!-- REVERTED: Original search bar and dropdown -->
+
 <div class="search-bar">
-    <input type="text" id="memberSearch" placeholder="🔍 Search members..." onkeyup="searchMembers()">
-    <select id="departmentFilter" onchange="filterMembers()">
+    <input type="text" id="memberSearch" placeholder="🔍 Search members...">
+    <select id="departmentFilter">
         <option value="">All Departments</option>
-        <?php foreach($departments as $dept): ?>
-            <option value="<?php echo $dept['id']; ?>"><?php echo htmlspecialchars($dept['name']); ?></option>
-        <?php endforeach; ?>
+        <!-- Options will be populated by JavaScript -->
     </select>
 </div>
 
@@ -43,37 +42,13 @@ $departments = $department->getAllDepartments();
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Department</th>
+                <th>Primary Department</th>                
                 <th>Join Date</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody id="memberTable">
-            <?php if (!empty($members)): ?>
-                <?php foreach ($members as $member): ?>
-                    <tr data-member-id="<?php echo $member['id']; ?>">
-                        <td><?php echo htmlspecialchars($member['user_name']); ?></td>
-                        <td><?php echo htmlspecialchars($member['first_name'] . ' ' . $member['last_name']); ?></td>
-                        <td><?php echo htmlspecialchars($member['email'] ?? 'N/A'); ?></td>
-                        <td><?php echo htmlspecialchars($member['phone'] ?? 'N/A'); ?></td>
-                        <td>
-                            <span class="department-badge"><?php echo htmlspecialchars($member['department_name'] ?? 'No Department'); ?></span>
-                        </td>
-                        <td><?php echo date('M j, Y', strtotime($member['join_date'] ?? $member['created_at'])); ?></td>
-                        <td class="action-buttons">
-                            <button class="btn-icon" onclick="editMember(<?php echo $member['id']; ?>)">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-icon btn-danger" onclick="deleteMember(<?php echo $member['id']; ?>)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="6" class="no-data">No members found</td>
-                </tr>
-            <?php endif; ?>
+            
         </tbody>
     </table>
     
@@ -120,6 +95,22 @@ $departments = $department->getAllDepartments();
                 <div class="form-group">
                     <label>Password</label>
                     <input type="password" id="password" name="password">
+                </div>
+                <div class="primaryDept">
+                    <div class="form-group department-field" id="primaryDeptField">
+                        <div class="form-group">
+                            <label for="memberPrimaryDept">Primary Department</label>
+                            <select id="memberPrimaryDept" name="primary_dept_id" class="department-select">
+                                <option value="">Select Departments</option>
+                                <?php foreach ($departments as $dept): ?>
+                                    <option value="<?php echo $dept['id']; ?>">
+                                        <?php echo htmlspecialchars($dept['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button type="button" class="remove-department" onclick="removeDepartmentField(this)" style="display: none;">−</button>
+                    </div>
                 </div>
               
                 <div class="department-selection">    
@@ -218,30 +209,7 @@ function addDepartmentField() {
     }
 }
 
-// function removeDepartmentField(button) {
-//     const field = button.closest('.department-field');
-//     const fieldToNotDelete = document.querySelector('#departmentField1');
-    
-//     // Don't remove the first one
-//     if (field.id === 'departmentField1') {      
-//         field.querySelector('select').value = '';
-//         return;
-//     }
-    
-//     field.remove();
-//     departmentCounter--;
-    
-//     if (departmentCounter === 1) {
-//         document.querySelector('#departmentField1 .remove-department').style.display = 'none';
-//     }
-    
-//     document.getElementById('addDepartmentBtn').disabled = false;
-    
-//     // Update all department selects to show newly available options
-//     refreshDepartmentSelects();
- 
-//     renumberDepartmentFields();
-// }
+
 function removeDepartmentField(button) {
     const field = button.closest('.department-field');     
     const firstField = document.querySelector('#departmentField1');
@@ -253,10 +221,7 @@ function removeDepartmentField(button) {
         return;
     }
     
-    //  if (fieldToDelete) {           
-    //     field.remove(); 
-    //     return; 
-    // }
+    
   
     field.remove();
     departmentCounter--;
@@ -326,9 +291,9 @@ function renumberDepartmentFields() {
 }
 
 // Initialize - hide remove button on first field
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelector('#departmentField1 .remove-department').style.display = 'none';
-});
+// document.addEventListener('DOMContentLoaded', function() {
+   
+// });
 </script>
 <script src="js/main.js"></script>
 <script src="js/members.js"></script>

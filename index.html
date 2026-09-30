@@ -1,11 +1,646 @@
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-    </head>
-    <body>
-        <h1>welcome</h1>
-    </body>
-    </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub Church — Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --brand: #8786E3;
+        --brand-2: #6c63ff;
+        --brand-glow: #b8b6ff;
+        --bg-1: #0b0b1a;
+        --bg-2: #1a1440;
+        --text: #f5f5ff;
+        --muted: #a4a3c9;
+    }
+
+    html, body {
+        width: 100%;
+        height: 100%;
+        background: #000;
+        color: var(--text);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================================
+       Stage wrapper
+       ============================================================ */
+    .stage {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .7s ease;
+        z-index: 1;
+        background: #000;
+    }
+    .stage.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* ============================================================
+       Video stages — full screen, nothing on top
+       ============================================================ */
+    .video-stage video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+        display: block;
+    }
+
+    /* "Tap to play" fallback if the browser blocks autoplay */
+    .video-tap {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 1rem;
+        background: rgba(0,0,0,.55);
+        cursor: pointer;
+        z-index: 10;
+    }
+    .video-tap.visible { display: flex; }
+
+    .video-tap__icon {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.12);
+        border: 2px solid rgba(255,255,255,.4);
+        display: grid;
+        place-items: center;
+        backdrop-filter: blur(6px);
+        transition: transform .2s;
+    }
+    .video-tap:hover .video-tap__icon { transform: scale(1.08); }
+
+    .video-tap__icon svg {
+        width: 34px;
+        height: 34px;
+        fill: #fff;
+        margin-left: 4px;   /* optical centering for the play triangle */
+    }
+
+    .video-tap__label {
+        font-size: .95rem;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: #fff;
+    }
+
+    /* ============================================================
+       Splash stage
+       ============================================================ */
+    .splash-stage {
+        cursor: pointer;
+        user-select: none;
+        flex-direction: column;
+        background: var(--bg-1);
+        overflow: hidden;
+    }
+
+    .bg-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background:
+            radial-gradient(1200px 700px at 20% 30%, rgba(135,134,227,.35), transparent 60%),
+            radial-gradient(1000px 600px at 80% 70%, rgba(108,99,255,.30), transparent 60%),
+            linear-gradient(135deg, #0b0b1a 0%, #1a1440 60%, #0d0823 100%);
+        background-size: 200% 200%, 200% 200%, 100% 100%;
+        animation: drift 22s ease-in-out infinite;
+    }
+    .bg-overlay::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.6) 100%);
+        backdrop-filter: blur(1px);
+    }
+    @keyframes drift {
+        0%,100% { background-position: 0% 0%, 100% 100%, 0 0; }
+        50%     { background-position: 100% 100%, 0% 0%, 0 0; }
+    }
+
+    .content {
+        position: relative;
+        text-align: center;
+        padding: 2rem;
+        max-width: 900px;
+        z-index: 2;
+    }
+
+    .brand-mark {
+        width: 84px;
+        height: 84px;
+        margin: 0 auto 1.75rem;
+        border-radius: 22px;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 1.7rem;
+        letter-spacing: -.5px;
+        color: #fff;
+        box-shadow: 0 18px 60px rgba(135,134,227,.55),
+                    inset 0 0 0 1px rgba(255,255,255,.18);
+        opacity: 0;
+        transform: translateY(24px) scale(.9);
+        animation: reveal .9s cubic-bezier(.22,1,.36,1) .15s forwards;
+    }
+
+    .brand-name {
+        font-size: clamp(2rem, 6vw, 3.5rem);
+        font-weight: 800;
+        letter-spacing: -.02em;
+        line-height: 1.05;
+        background: linear-gradient(135deg, #ffffff 0%, #c9c6ff 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: reveal .9s cubic-bezier(.22,1,.36,1) .35s forwards;
+    }
+
+    .tagline {
+        margin-top: 1rem;
+        font-size: clamp(.95rem, 2vw, 1.15rem);
+        color: var(--muted);
+        font-weight: 400;
+        letter-spacing: .01em;
+        max-width: 620px;
+        margin-left: auto;
+        margin-right: auto;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: reveal .9s cubic-bezier(.22,1,.36,1) .55s forwards;
+    }
+
+    .divider {
+        width: 48px;
+        height: 2px;
+        margin: 2rem auto 0;
+        background: linear-gradient(90deg, transparent, var(--brand-glow), transparent);
+        border-radius: 2px;
+        opacity: 0;
+        animation: reveal .9s ease .75s forwards;
+    }
+
+    @keyframes reveal {
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .prompt {
+        position: absolute;
+        bottom: 3rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .6rem;
+        font-size: .82rem;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        color: var(--muted);
+        opacity: 0;
+        animation: reveal 1s ease 1.1s forwards;
+        z-index: 3;
+    }
+
+    .prompt__label { font-weight: 500; }
+
+    .prompt__key {
+        display: inline-block;
+        padding: .35rem .8rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,.22);
+        background: rgba(255,255,255,.05);
+        backdrop-filter: blur(8px);
+        font-size: .72rem;
+        color: var(--text);
+        letter-spacing: .12em;
+    }
+
+    .prompt__pulse {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--brand-glow);
+        box-shadow: 0 0 0 0 rgba(184,182,255,.6);
+        animation: pulse 1.8s ease-out infinite;
+    }
+    @keyframes pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(184,182,255,.6); }
+        70%  { box-shadow: 0 0 0 16px rgba(184,182,255,0); }
+        100% { box-shadow: 0 0 0 0 rgba(184,182,255,0); }
+    }
+
+    .splash-stage.leaving .content,
+    .splash-stage.leaving .prompt {
+        transition: opacity .55s ease, transform .55s ease;
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    /* Progress bar during the videos */
+    .stage-progress {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 0%;
+        background: linear-gradient(90deg, var(--brand), var(--brand-glow));
+        box-shadow: 0 0 12px rgba(135,134,227,.7);
+        transition: width .25s linear;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .stage-progress.visible { opacity: 1; }
+
+    /* ============================================================
+       Skip button — visible only while a video is playing
+       ============================================================ */
+    .skip-btn {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 60;
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .55rem 1rem .55rem 1.15rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,.28);
+        background: rgba(255,255,255,.08);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        color: #fff;
+        font-family: inherit;
+        font-size: .82rem;
+        font-weight: 500;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none;
+        transition: opacity .35s ease,
+                    transform .35s ease,
+                    background .2s ease,
+                    border-color .2s ease;
+    }
+
+    .skip-btn.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .skip-btn:hover {
+        background: rgba(255,255,255,.16);
+        border-color: rgba(255,255,255,.45);
+    }
+
+    .skip-btn:active {
+        transform: translateY(0) scale(.97);
+    }
+
+    .skip-btn svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
+        transition: transform .25s ease;
+    }
+
+    .skip-btn:hover svg {
+        transform: translateX(2px);
+    }
+
+    @media (max-width: 480px) {
+        .skip-btn {
+            top: 1rem;
+            right: 1rem;
+            padding: .45rem .85rem .45rem 1rem;
+            font-size: .75rem;
+        }
+    }
+</style>
+</head>
+<body>
+
+<!-- ================== Skip button ================== -->
+<button class="skip-btn" id="skipBtn" type="button" aria-label="Skip intro">
+    <span>Skip</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+    </svg>
+</button>
+
+<!-- ================== Stage 1: long video ================== -->
+<div class="stage video-stage" id="stageLong">
+    <video id="videoLong" muted playsinline preload="auto"></video>
+    <div class="video-tap" id="tapLong">
+        <div class="video-tap__icon">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="video-tap__label">Tap to play</div>
+    </div>
+</div>
+
+<!-- ================== Stage 2: short video ================== -->
+<div class="stage video-stage" id="stageShort">
+    <video id="videoShort" muted playsinline preload="auto"></video>
+    <div class="video-tap" id="tapShort">
+        <div class="video-tap__icon">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="video-tap__label">Tap to play</div>
+    </div>
+</div>
+
+<!-- ================== Stage 3: splash ================== -->
+<div class="stage splash-stage" id="stageSplash">
+    <div class="bg-overlay"></div>
+
+    <div class="content">
+        <div class="brand-mark">HC</div>
+        <h1 class="brand-name">Welcome to Hub Church</h1>
+        <p class="tagline">
+            A place to belong, to grow, and to serve.
+            We're glad you're here — let's get you signed in.
+        </p>
+        <div class="divider"></div>
+    </div>
+
+    <div class="prompt">
+        <span class="prompt__pulse"></span>
+        <span class="prompt__label" id="promptLabel">Tap anywhere to continue</span>
+        <span class="prompt__key" id="promptKey">or press Enter</span>
+    </div>
+</div>
+
+<!-- Progress bar -->
+<div class="stage-progress" id="stageProgress"></div>
+
+<script>
+(() => {
+    'use strict';
+
+    // ============================================================
+    //  CONFIG
+    // ============================================================
+    const LONG_VIDEO      = 'video/intro-long.mp4';    // ~8 s
+    const SHORT_VIDEO     = 'video/intro-short.mp4';   // ~3 s
+    const LOGIN_URL       = 'login.html';
+    const VIDEO_SAFETY_MS = 30000;
+
+    // ============================================================
+    //  Refs
+    // ============================================================
+    const skipBtn = document.getElementById('skipBtn');
+
+    const stageLong   = document.getElementById('stageLong');
+    const stageShort  = document.getElementById('stageShort');
+    const stageSplash = document.getElementById('stageSplash');
+
+    const videoLong  = document.getElementById('videoLong');
+    const videoShort = document.getElementById('videoShort');
+
+    const tapLong  = document.getElementById('tapLong');
+    const tapShort = document.getElementById('tapShort');
+
+    const stageProgress = document.getElementById('stageProgress');
+
+    const promptLabel = document.getElementById('promptLabel');
+    const promptKey   = document.getElementById('promptKey');
+
+    // ============================================================
+    //  State
+    // ============================================================
+    let currentStage = null;
+
+    // The currently active skip handler (only one at a time)
+    let activeSkipHandler = null;
+
+    // ============================================================
+    //  Helpers
+    // ============================================================
+    function activateStage(el) {
+        if (currentStage && currentStage !== el) currentStage.classList.remove('active');
+        el.classList.add('active');
+        currentStage = el;
+    }
+
+    function showProgress() {
+        stageProgress.classList.add('visible');
+        stageProgress.style.width = '0%';
+    }
+    function hideProgress() {
+        stageProgress.classList.remove('visible');
+        stageProgress.style.width = '0%';
+    }
+
+    function showSkip() { skipBtn.classList.add('visible'); }
+    function hideSkip() { skipBtn.classList.remove('visible'); }
+
+    // Attach the current skip handler; remove any previous one first
+    function setSkipHandler(handler) {
+        if (activeSkipHandler) {
+            skipBtn.removeEventListener('click', activeSkipHandler);
+            activeSkipHandler = null;
+        }
+        if (handler) {
+            activeSkipHandler = handler;
+            skipBtn.addEventListener('click', handler);
+        }
+    }
+
+    // ============================================================
+    //  Play one fullscreen video stage
+    // ============================================================
+    function playVideoStage(videoEl, stageEl, tapEl, src) {
+        return new Promise((resolve) => {
+            let settled = false;
+            let autoplayAttempted = false;
+
+            const finish = (reason) => {
+                if (settled) return;
+                settled = true;
+
+                console.log('%c[index] ✓ video stage finished: ' + reason,
+                            'color:#6ee7b7;font-weight:bold');
+
+                try { videoEl.pause(); } catch (e) {}
+
+                // Clean up everything this stage owns
+                hideProgress();
+                hideSkip();
+                setSkipHandler(null);              // ⬅ detach skip cleanly
+                tapEl.classList.remove('visible');
+
+                setTimeout(resolve, 250);
+            };
+
+            // ---------- Reset the video element ----------
+            try { videoEl.pause(); } catch (e) {}
+            videoEl.removeAttribute('src');
+            videoEl.load();
+
+            // ---------- Attach listeners BEFORE src ----------
+            videoEl.addEventListener('ended', () => finish('ended'));
+            videoEl.addEventListener('error', () => {
+                const code = videoEl.error ? videoEl.error.code : '?';
+                const msg  = videoEl.error ? videoEl.error.message : '';
+                console.warn('[index] ✗ video error  code=' + code +
+                             '  msg=' + msg + '  src=' + src);
+                finish('error');
+            });
+            videoEl.addEventListener('timeupdate', () => {
+                if (!videoEl.duration) return;
+                stageProgress.style.width =
+                    ((videoEl.currentTime / videoEl.duration) * 100) + '%';
+            });
+            videoEl.addEventListener('loadedmetadata', () => {
+                console.log('[index] video loaded: ' + src +
+                            '  duration=' + videoEl.duration.toFixed(2) + 's');
+            }, { once: true });
+
+            // ---------- Show the stage ----------
+            activateStage(stageEl);
+            showProgress();
+            showSkip();
+            tapEl.classList.remove('visible');
+
+            // ---------- Set source ----------
+            videoEl.src = src;
+            videoEl.load();
+
+            // ---------- Skip button ----------
+            const onSkip = () => finish('skipped');
+            setSkipHandler(onSkip);
+
+            // ---------- Autoplay ----------
+            const tryPlay = () => {
+                autoplayAttempted = true;
+                const p = videoEl.play();
+                if (p && typeof p.then === 'function') {
+                    p.then(() => {
+                        console.log('[index] autoplay OK: ' + src);
+                    }).catch((err) => {
+                        console.warn('[index] autoplay blocked for ' + src +
+                                     ' — showing tap-to-play. ' + err.message);
+                        tapEl.classList.add('visible');
+                        const tapHandler = () => {
+                            tapEl.removeEventListener('click', tapHandler);
+                            tapEl.classList.remove('visible');
+                            videoEl.play().catch((e2) => finish('play-rejected'));
+                        };
+                        tapEl.addEventListener('click', tapHandler);
+                    });
+                }
+            };
+
+            videoEl.addEventListener('loadedmetadata', tryPlay, { once: true });
+
+            // In case metadata is slow, still attempt after 1.5 s
+            setTimeout(() => {
+                if (!autoplayAttempted && !settled) {
+                    console.warn('[index] metadata timeout for ' + src +
+                                 ' — attempting play anyway');
+                    tryPlay();
+                }
+            }, 1500);
+
+            // ---------- Hard safety net ----------
+            setTimeout(() => finish('timeout'), VIDEO_SAFETY_MS);
+        });
+    }
+
+    // ============================================================
+    //  Splash stage
+    // ============================================================
+    function runSplashStage() {
+        activateStage(stageSplash);
+        hideProgress();
+        hideSkip();                                    // ⬅ no skip on splash
+        setSkipHandler(null);
+
+        const isTouch = window.matchMedia('(pointer: coarse)').matches;
+        if (isTouch) {
+            promptLabel.textContent = 'Tap anywhere to continue';
+            promptKey.textContent   = 'or press Enter';
+        } else {
+            promptLabel.textContent = 'Press Enter to continue';
+            promptKey.textContent   = 'or click anywhere';
+        }
+
+        let splashReady = false;
+        let leftSplash  = false;
+
+        setTimeout(() => { splashReady = true; }, 900);
+
+        const advance = () => {
+            if (!splashReady || leftSplash) return;
+            leftSplash = true;
+            stageSplash.classList.add('leaving');
+            setTimeout(() => { window.location.href = LOGIN_URL; }, 550);
+        };
+
+        stageSplash.addEventListener('click', advance);
+        stageSplash.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            advance();
+        }, { passive: false });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                e.preventDefault();
+                advance();
+            }
+        });
+    }
+
+    // ============================================================
+    //  Main flow
+    // ============================================================
+    async function runIntro() {
+        console.log('%c[index] intro start', 'color:#b8b6ff;font-weight:bold');
+
+        try {
+            await playVideoStage(videoLong,  stageLong,  tapLong,  LONG_VIDEO);
+            console.log('[index] → moving to short video');
+            await playVideoStage(videoShort, stageShort, tapShort, SHORT_VIDEO);
+            console.log('[index] → moving to splash');
+        } catch (err) {
+            console.warn('[index] video intro error:', err);
+        }
+
+        runSplashStage();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runIntro);
+    } else {
+        runIntro();
+    }
+})();
+</script>
+</body>
+</html>

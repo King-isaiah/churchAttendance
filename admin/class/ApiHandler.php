@@ -115,6 +115,7 @@
 
             $entity = new $entityClass();
             $methodMap = [
+                'department_counts' => 'getDepartmentMemberCounts',
                 'dashboard' => 'getDashboardStats',
                 'locations' => 'getAllLocations',
                 'departments' => 'getAllDepartments',
@@ -180,7 +181,7 @@
                 $this->sendResponse(['success' => false, 'message' => "Method $method not found", 'errorType' => 'server'], 500);
             }
         }
-        
+       
         private function create() {
             if (empty($this->input)) {
                 $this->sendResponse(['success' => false, 'message' => 'Invalid data', 'errorType' => 'client'], 400);
@@ -211,13 +212,35 @@
                 'notifications' => 'createNotification',
             ];
             $method = $methodMap[$this->entity] ?? 'create';
-           
+            if (method_exists($entity, $method)) {
+                $result = $entity->$method($this->input);
+
+                // If result is an array, check for 'success' key
+                if (is_array($result)) {
+                    // If success is explicitly false, treat as error
+                    if (isset($result['success']) && $result['success'] === false) {
+                        $statusCode = $result['status'] ?? 400; // allow custom status
+                        $this->sendResponse($result, $statusCode);
+                        return;
+                    }
+                    // Otherwise, treat as success
+                    $this->sendSuccessResponse($result, 201);
+                    return;
+                }   
+
+                // Scalar result (ID) – treat as success
+                if ($result !== false) {
+                    $this->sendSuccessResponse(['id' => $result], 201);
+                } else {
+                    $this->sendResponse(['success' => false, 'message' => 'Create failed', 'errorType' => 'server'], 500);
+                }
+            } 
             if (method_exists($entity, $method)) {
                 $result = $entity->$method($this->input);
 
                 // If result is an array, we can pass it directly.
                 // If it's scalar (ID), wrap it.
-                if (is_array($result)) {
+                   if (is_array($result)) {
                     // If success is explicitly false, treat as error
                     if (isset($result['success']) && $result['success'] === false) {
                         $statusCode = $result['status'] ?? 400; // allow custom status
@@ -237,6 +260,8 @@
                 $this->sendResponse(['success' => false, 'message' => "Method $method not found", 'errorType' => 'server'], 500);
             }
         }
+
+
 
         private function update() {
             if (!$this->id || empty($this->input)) {
@@ -270,9 +295,16 @@
                 $result = $entity->$method($this->id, $this->input);
                 if ($result !== false) {
                     if (is_array($result)) {
-                        // $result already contains keys like 'affected', 'message', etc.
+                        if (isset($result['success']) && $result['success'] === false) {
+                            $statusCode = $result['status'] ?? 400;
+                            $this->sendResponse($result, $statusCode);
+                            return;
+                        }
                         $this->sendSuccessResponse($result, 200);
-                    } else {
+                        return;
+                    }
+                    
+                    else {
                         $this->sendSuccessResponse(['affected' => $result], 200);
                     }
                 } else {
@@ -316,8 +348,15 @@
                 $result = $entity->$method($this->id);
                 if ($result !== false) {
                     if (is_array($result)) {
+                        if (isset($result['success']) && $result['success'] === false) {
+                            $statusCode = $result['status'] ?? 400;
+                            $this->sendResponse($result, $statusCode);
+                            return;
+                        }
                         $this->sendSuccessResponse($result, 200);
-                    } else {
+                        return;
+                    }
+                     else {
                         $this->sendSuccessResponse(['affected' => $result], 200);
                     }
                 } else {
@@ -432,7 +471,6 @@
             $response = ['success' => $success];
 
             if (is_array($data)) {
-                // If array contains 'success', use it
                 if (isset($data['success'])) {
                     $success = (bool)$data['success'];
                     $response['success'] = $success;
@@ -441,12 +479,23 @@
                 if ($message === null && isset($data['message'])) {
                     $message = $data['message'];
                 }
-                // Merge all other keys except 'success' and 'message'
-                foreach ($data as $key => $value) {
-                    if ($key !== 'success' && $key !== 'message') {
-                        $response[$key] = $value;
+
+                // ---- NEW: Detect if this is a plain list (sequential numeric keys) ----
+                $isSequentialList = array_keys($data) === range(0, count($data) - 1);
+
+                if ($isSequentialList) {
+                    // It's a list → put it under 'data' to keep response structure consistent
+                    $response['data'] = $data;
+                } else {
+                    // It's an associative array → merge all key-value pairs (except success/message)
+                    foreach ($data as $key => $value) {
+                        if ($key !== 'success' && $key !== 'message') {
+                            $response[$key] = $value;
+                        }
                     }
                 }
+                // ----------------------------------------------------------------
+
             } else {
                 // Scalar value – put under 'data'
                 $response['data'] = $data;

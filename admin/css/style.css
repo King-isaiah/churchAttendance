@@ -20,20 +20,20 @@
 }
 
 
-.content {
+/* .content {
     display: flex;
     margin: 0; 
     width: 100%;
     background-color: #eef0ea;
     height: calc(100vh ); 
-    /* overflow: auto; */
-}
-/* .navigation{    
-    background-color: #8786E3;
-    width: 4%;
-    border-radius: 1em;
-    padding: 1em;  
 } */
+.content {
+    display: flex;
+    width: 100%;
+    height: 100vh;           /* full viewport height */
+    overflow: hidden;        /* no page scroll – scrolling happens inside children */
+    background-color: #eef0ea;
+}
 
 .icon-square{
     border-radius: 12px;    
@@ -56,9 +56,7 @@
     text-decoration: none;
 }
 
-.top-nav{
-    height: 10vh;
-}
+
 .top-space{
     margin-top: 20em;
     
@@ -79,17 +77,74 @@
     width: 5vh;
     height: 4vh;
 }
-.center-div{
-    width: 80%;
-    height: 100vh;
+
+.center-div {    
+    flex: 1;                 
+    height: 100vh;           /* match the parent height */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;        
+    padding: 0 1rem;         /* optional, adjust as needed */
+}
+
+/* .admin-card { */
+.top-nav {
+    flex: 1; 
+    height: 10vh;                
+    /* display: flex; */
+    flex-direction: column;
+    overflow: hidden;        
+    /* background: rgba(255, 255, 255, 0.96);
+    border-radius: 2rem;
+    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2);
+    padding: 1.8rem;         
+    animation: fadeSlideUp 0.4s ease;  */
+}
+.admin-header,
+.admin-tabs-carousel {
+    flex-shrink: 0;          /* don't shrink */
+    /* keep your existing styles */
 }
 
 
+.tab-panel {
+    flex: 1;                 /* take all remaining space */
+    overflow-y: auto;        /* scroll vertically if needed */
+    display: none;           /* hidden by default */
+}
 
+.tab-panel.active {
+    display: block;          /* show when active */
+}
+#content-display {
+    flex: 1;
+    overflow-y: auto;
+}
 
+/* Ensure flex children can shrink below content height */
+.admin-card,
+.tab-panel,
+.tab-pane,
+.panel-content,
+#content-display,
+.management-content {
+    min-height: 0;
+}
 
+/* Make active panels scrollable */
+.tab-panel.active,
+.tab-pane.active,
+.panel-content.active,
+#content-display {
+    flex: 1;
+    overflow-y: auto;
+}
 
-
+/* If you use .management-content directly (like in management.php) */
+.management-content {
+    flex: 1;
+    overflow-y: auto;
+}
 
 /* .dept-attendance{
     height: 30vh;
@@ -132,11 +187,14 @@
 
 
 /*? sidebar */
+
 .sidebar{
     position: sticky;
     top: 0;
     left: 0;   
     height: 95vh;
+    /* height: 100vh;  */
+    flex-shrink: 0;  
     padding: 1rem;
     margin: 1em;
     border-radius: 0.75rem;

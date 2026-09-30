@@ -1,3 +1,83 @@
+/* Table Container - Vertical Scroll */
+.table-container {
+    max-height: 300px;           /* Adjust this value as needed */
+    overflow-y: auto;            /* Enables vertical scrolling */
+    overflow-x: auto;            /* Enables horizontal scrolling if table is too wide */
+    position: relative;
+    border: 1px solid #e2e8f0;   /* Optional: subtle border */
+    border-radius: 8px;          /* Optional: rounded corners */
+    background: #ffffff;
+}
+
+/* Make the table header sticky so it stays visible while scrolling */
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.table-container thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-container thead th {
+    background-color: #f7fafc;   
+    color: #2d3748;
+    font-weight: 600;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;          
+}
+
+.table-container tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+}
+
+/* Zebra striping for better readability */
+.table-container tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.table-container tbody tr:hover {
+    background-color: #f0f4ff;
+}
+
+/* Style the progress bar inside the table */
+.table-container .progress-bar {
+    background-color: #edf2f7;
+    border-radius: 20px;
+    height: 20px;
+    width: 100%;
+    max-width: 120px;
+    overflow: hidden;
+    position: relative;
+}
+
+.table-container .progress-fill {
+    background: linear-gradient(90deg, #6b46c1, #9f7aea);
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 20px;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* No data message styling */
+.table-container .no-data {
+    text-align: center;
+    padding: 30px 0;
+    color: #718096;
+    font-style: italic;
+}
+
 /* Reports Page Styles - Enhanced for Mobile */
 .page-header {
     display: flex;

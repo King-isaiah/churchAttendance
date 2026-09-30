@@ -203,7 +203,7 @@ function closeViewEventModal() {
 // View event details
 async function viewMore(eventId) {
     try {
-        const response = await fetch(`class/ApiHandler.php?action=get&entity=rsvp&id=${eventId}`);
+        const response = await fetch(`../class/ApiHandler.php?action=get&entity=rsvp&id=${eventId}`);
         const data = await response.json();
         
         if (data.success) {

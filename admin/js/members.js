@@ -17,11 +17,12 @@ const departmentColors = [
 let departmentColorMap = {};
 
 // Initialize the page
+
 document.addEventListener('DOMContentLoaded', function() {
     loadMembers();
+    populateDepartmentFilter();   
     initializeSearchAndPagination();
-    
-    // Add event listener for Add Member button
+    document.querySelector('#departmentField1 .remove-department').style.display = 'none';
     document.querySelector('.btn-primary').addEventListener('click', function() {
         openMemberModal();
     });
@@ -31,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadMembers() {
     try {
         showLoading();
-        const response = await fetch('class/ApiHandler.php?action=getAll&entity=members');
+        const response = await fetch('../class/ApiHandler.php?action=getAll&entity=members');
         const data = await response.json();
         
         if (data.success) {
@@ -44,9 +45,7 @@ async function loadMembers() {
         }
     } catch (error) {
         showError('Network error: ' + error.message);
-    } finally {
-        hideLoading();
-    }
+    } 
 }
 
 // Initialize department colors
@@ -68,7 +67,62 @@ function getDepartmentColor(departmentName) {
     }
     return departmentColorMap[departmentName] || '#C9CBCF';
 }
+// Populate department filter dropdown from API
+async function populateDepartmentFilter() {
+    try {
+        const response = await fetch('../class/ApiHandler.php?action=getAll&entity=departments');
+        const data = await response.json();
+        const select = document.getElementById('departmentFilter');
+        if (!select) return;
+        // Keep the default "All Departments" option
+        select.innerHTML = '<option value="">All Departments</option>';
+        if (data.success) {
+            data.data.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.id;
+                option.textContent = dept.name;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Failed to populate department filter:', error);
+    }
+}
 
+function memberHasDepartment(member, deptId) {
+    if (!member.department_id) return false;
+    let deptArray = [];
+    try {
+        // If it's a string starting with '[' or '{', parse as JSON
+        if (typeof member.department_id === 'string' && 
+            (member.department_id.startsWith('[') || member.department_id.startsWith('{'))) {
+            deptArray = JSON.parse(member.department_id);
+            if (!Array.isArray(deptArray)) {
+                // If it's a single value wrapped in JSON, convert to array
+                deptArray = [deptArray];
+            }
+        } else {
+            // Single ID, convert to number
+            const id = parseInt(member.department_id);
+            if (!isNaN(id)) {
+                deptArray = [id];
+            } else {
+                return false;
+            }
+        }
+    } catch (e) {
+        // Fallback: treat as single ID
+        const id = parseInt(member.department_id);
+        if (!isNaN(id)) {
+            deptArray = [id];
+        } else {
+            return false;
+        }
+    }
+    // Check if deptId is in the array
+    const searchId = parseInt(deptId);
+    return deptArray.some(id => id === searchId);
+}
 // Initialize search and pagination
 function initializeSearchAndPagination() {
     const searchInput = document.getElementById('memberSearch');
@@ -92,6 +146,7 @@ function initializeSearchAndPagination() {
 }
 
 // Filter members based on search and department
+
 function filterMembers() {
     if (currentSearchTerm === '' && currentDepartmentFilter === '') {
         filteredMembers = [...allMembers];
@@ -103,7 +158,7 @@ function filterMembers() {
                 );
             
             const matchesDepartment = currentDepartmentFilter === '' || 
-                String(member.department_id) === currentDepartmentFilter;
+                memberHasDepartment(member, currentDepartmentFilter);
             
             return matchesSearch && matchesDepartment;
         });
@@ -111,7 +166,6 @@ function filterMembers() {
     renderTable();
     renderPagination();
 }
-
 // Render the table with paginated data
 function renderTable() {
     const tbody = document.getElementById('memberTable');
@@ -137,12 +191,13 @@ function renderTable() {
                 <td>${escapeHtml(member.user_name)}</td>
                 <td>${escapeHtml(member.first_name + ' ' + member.last_name)}</td>
                 <td>${escapeHtml(member.email || 'N/A')}</td>
-                <td>${escapeHtml(member.phone || 'N/A')}</td>
+                <td>${escapeHtml(member.phone || 'N/A')}</td>                
                 <td>
                     <span class="department-badge" style="background-color: ${departmentColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 500;">
                         ${escapeHtml(departmentName)}
                     </span>
                 </td>
+                <td>${escapeHtml(member.primary_dept_name || 'N/A')}</td>
                 <td>${formatDate(member.join_date || member.created_at)}</td>
                 <td class="action-buttons">
                     <button class="btn-icon" onclick="editMember(${member.id})">
@@ -259,7 +314,7 @@ function closeMemberModal() {
 // Load member data for editing
 async function loadMemberData(id) {
     try {
-        const response = await fetch(`class/ApiHandler.php?action=get&entity=members&id=${id}`);
+        const response = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${id}`);
         const data = await response.json();
         
         if (data.success) {
@@ -271,6 +326,7 @@ async function loadMemberData(id) {
             document.getElementById('email').value = member.email || '';
             document.getElementById('phone').value = member.phone || '';
             document.getElementById('password').value = member.password || '';
+            document.getElementById('memberPrimaryDept').value = member.primary_dept_id || '';
             // document.getElementById('department').value = member.department_id || '';
             document.getElementById('joinDate').value = member.join_date || '';
 
@@ -325,6 +381,7 @@ async function loadMemberData(id) {
 }
 
 // Handle form submission
+
 async function handleMemberSubmit(event) {
     event.preventDefault();
     
@@ -332,34 +389,62 @@ async function handleMemberSubmit(event) {
     const memberId = formData.get('id');
     const action = memberId ? 'update' : 'create';    
     const jsonData = {};
+    
+    // --- Get all department selections (multiple) ---
     const departmentValues = formData.getAll('department_id');
+    let validDepartments = [];
+    
+    // Validate that at least one department is selected
     if (departmentValues.includes('')) {
-        showWarning('pls pick a department')
-    }else {       
-        const validDepartments = departmentValues
+        showWarning('Please select at least one department');
+        return;
+    } else {
+        validDepartments = departmentValues
             .filter(val => val !== '' && val !== '0')
             .map(val => parseInt(val));
         
         console.log('Valid departments:', validDepartments);
-        
-        if (validDepartments.length === 0) {
-            jsonData.department_id = null;
-        } else if (validDepartments.length === 1) {
-            jsonData.department_id = validDepartments[0];
-        } else {
-            jsonData.department_id = validDepartments;
-        }
     }
-
+    
+    // --- NEW: Get the primary department ID and validate it ---
+    const primaryDeptValue = formData.get('primary_dept_id');
+    let primaryDeptId = primaryDeptValue ? parseInt(primaryDeptValue) : null;
+    
+    // If validDepartments is not empty, check that primaryDeptId exists in it
+    if (validDepartments.length > 0 && primaryDeptId !== null) {
+        if (!validDepartments.includes(primaryDeptId)) {
+            showWarning('The primary department must be one of the selected departments');
+            return;
+        }
+    } else if (validDepartments.length > 0 && primaryDeptId === null) {
+        // If we want to allow no primary (optional), we can skip; otherwise:
+        showWarning('Please select a primary department');
+        return;
+    }
+    
+    // --- Build the department_id field for the API ---
+    if (validDepartments.length === 0) {
+        jsonData.department_id = null;
+    } else if (validDepartments.length === 1) {
+        jsonData.department_id = validDepartments[0];
+    } else {
+        jsonData.department_id = validDepartments;
+    }
+    
+    // --- Add primary_dept_id to jsonData ---
+    jsonData.primary_dept_id = primaryDeptId;
+    
+    // --- Add all other form fields (except id, department_id, primary_dept_id) ---
     formData.forEach((value, key) => {
-        if (key !== 'id' && key !== 'department_id' && value !== '') {
+        if (key !== 'id' && key !== 'department_id' && key !== 'primary_dept_id' && value !== '') {
             jsonData[key] = value;
         }
     });
-      
+    
+    // --- Submit ---
     try {
         const method = memberId ? 'PUT' : 'POST';
-        const url = `class/ApiHandler.php?action=${action}&entity=members${memberId ? '&id=' + memberId : ''}`;
+        const url = `../class/ApiHandler.php?action=${action}&entity=members${memberId ? '&id=' + memberId : ''}`;
         
         const response = await fetch(url, {
             method: method,
@@ -373,22 +458,23 @@ async function handleMemberSubmit(event) {
         
         if (result.success) {
             showSuccess(memberId ? 'Member updated successfully!' : 'Member created successfully!');
+            showSuccess(result.message);
             closeMemberModal();
             loadMembers(); 
         } else {
+            showError(result.message);
             handleApiError(result, action);
         }
     } catch (error) {
         showError('Network error: ' + error.message);
     }
 }
-
 // Delete member
 async function deleteMember(id) {
     if (!confirm('Are you sure you want to delete this member?')) return;
     
     try {
-        const response = await fetch(`class/ApiHandler.php?action=delete&entity=members&id=${id}`, {
+        const response = await fetch(`../class/ApiHandler.php?action=delete&entity=members&id=${id}`, {
             method: 'DELETE'
         });
         
@@ -434,9 +520,7 @@ function showLoading() {
     }
 }
 
-function hideLoading() {
-    // Hide loading spinner if implemented
-}
+
 
 
 
@@ -447,3 +531,4 @@ window.onclick = function(event) {
         closeMemberModal();
     }
 };
+

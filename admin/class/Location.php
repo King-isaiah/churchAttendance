@@ -1,6 +1,6 @@
 
 <?php
-require_once 'Database.php';
+require_once '../class/Database.php';
 
 class Location extends Database {
     
@@ -110,48 +110,48 @@ class Location extends Database {
         }
     }
     
-    
-public function createLocation($data) {
-    try {
-        $this->validateLocationData($data);
         
-        // Auto-geocode if address is provided
-        if (!empty($data['address'])) {
-            $coordinates = $this->geocodeAddress($data['address']);
-            if ($coordinates) {
-                $data['latitude'] = $coordinates['latitude'];
-                $data['longitude'] = $coordinates['longitude'];
-            }else{
+    public function createLocation($data) {
+        try {
+            $this->validateLocationData($data);
+            
+            // Auto-geocode if address is provided
+            if (!empty($data['address'])) {
+                $coordinates = $this->geocodeAddress($data['address']);
+                if ($coordinates) {
+                    $data['latitude'] = $coordinates['latitude'];
+                    $data['longitude'] = $coordinates['longitude'];
+                }else{
+                    return [
+                        'success' => false,
+                        'message' => 'Address not found. Please enter a valid address.',
+                        'status' => 400 // optional, will be used as HTTP status
+                    ];
+                    // throw new Exception("Address not found. Please enter a valid address.", 400);
+                }
+                // If geocoding fails, we still proceed (location created without coordinates)
+            }
+            
+            $id = $this->insert('locations', $data);
+            if ($id === false) {
                 return [
                     'success' => false,
-                    'message' => 'Address not found. Please enter a valid address.',
+                    'message' => 'Failed to Create Location.Please try again or call dev.',
                     'status' => 400 // optional, will be used as HTTP status
                 ];
-                // throw new Exception("Address not found. Please enter a valid address.", 400);
+                // throw new Exception("Failed to insert location", 500);
             }
-            // If geocoding fails, we still proceed (location created without coordinates)
-        }
-        
-        $id = $this->insert('locations', $data);
-        if ($id === false) {
+            
             return [
-                'success' => false,
-                'message' => 'Failed to Create Location.Please try again or call dev.',
-                'status' => 400 // optional, will be used as HTTP status
+                'success' => true,
+                'id' => $id,
+                'message' => "Location '{$data['name']}' created with capacity {$data['capacity']}."
             ];
-            // throw new Exception("Failed to insert location", 500);
+        } catch (Exception $e) {
+            error_log("Location create error: " . $e->getMessage() . " | Data: " . json_encode($data));
+            throw $e; // ApiHandler catches and sends error response
         }
-        
-        return [
-            'success' => true,
-            'id' => $id,
-            'message' => "Location '{$data['name']}' created with capacity {$data['capacity']}."
-        ];
-    } catch (Exception $e) {
-        error_log("Location create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-        throw $e; // ApiHandler catches and sends error response
     }
-}
     
    
     public function updateLocation($id, $data) {
@@ -166,18 +166,40 @@ public function createLocation($data) {
             $this->validateLocationData($data, true);
             
             // Auto-geocode if address is provided and changed
-            if (!empty($data['address']) && $data['address'] !== $existing['address']) {
+            // if (!empty($data['address']) && $data['address'] !== $existing['address']) {
+            if (!empty($data['address'])) {
                 $coordinates = $this->geocodeAddress($data['address']);
                 if ($coordinates) {
                     $data['latitude'] = $coordinates['latitude'];
                     $data['longitude'] = $coordinates['longitude'];
                     //  throw new Exception("Location was found", 200);
                 }
+               else{
+                    return [
+                        'success' => false,
+                        'message' => 'Address not found. Please enter a valid address.',
+                        'status' => 400 // optional, will be used as HTTP status
+                    ];
+                    // throw new Exception("Address not found. Please enter a valid address.", 400);
+                }
             }
             
             
             // Let the database handle duplicates
-            return $this->update('locations', $data, 'id = ?', [$id]);
+            $id = $this->update('locations', $data, 'id = ?', [$id]);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Update Location.Please try again or call dev.',
+                    'status' => 400 // optional, will be used as HTTP status
+                ];                
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Location '{$data['name']}' updated with capacity {$data['capacity']}."
+            ];
             
         } catch (Exception $e) {
             error_log("Location update error [ID: $id]: " . $e->getMessage());
@@ -195,16 +217,42 @@ public function createLocation($data) {
             // Check if location exists first
             $existing = $this->getLocation($id);            
             if (!$existing) {
-                throw new Exception("Location not found", 404);
+                return [
+                    'success' => false,
+                    'message' => 'Location not found.',
+                    'status' => 404
+                ];                 
             }
             if ($resultActivity) {
-                throw new Exception("Location already used in activity module", 404);
+                return [
+                    'success' => false,
+                    'message' => 'Location already used in activity module.',
+                    'status' => 404
+                ];                
             }
             if ($resultEvent) {
-                throw new Exception("Location already used in events module", 404);
+                return [
+                    'success' => false,
+                    'message' => 'Location already used in events module.',
+                    'status' => 404
+                ];
             }
             
-            return $this->delete('locations', 'id = ?', [$id]);
+            $id = $this->delete('locations', 'id = ?', [$id]);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Delete Location.Please try again or call dev.',
+                    'status' => 500 
+                ];
+                // throw new Exception("Failed to insert location", 500);
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Location deleted succesfully."
+            ];
         } catch (Exception $e) {
             error_log("Location delete error [ID: $id]: " . $e->getMessage());
             throw $e;

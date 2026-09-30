@@ -35,7 +35,20 @@ class Speaker extends Database {
     
     public function createSpeaker($data) {
         try {
-            return $this->insert('speakers', $data);
+            $id =  $this->insert('speakers', $data);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Create Speaker.Please try again or call dev.',
+                    'status' => 400 // optional, will be used as HTTP status
+                ];               
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Speaker '{$data['speakers_name']}'."
+            ];
         } catch (Exception $e) {
             error_log("Speaker create error: " . $e->getMessage());
             return false;
@@ -44,7 +57,20 @@ class Speaker extends Database {
     
     public function updateSpeaker($id, $data) {
         try {
-            return $this->update('speakers', $data, 'id = ?', [$id]);
+            $id =  $this->update('speakers', $data, 'id = ?', [$id]);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Update Speaker.Please try again or call dev.',
+                    'status' => 400 
+                ];
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Speaker '{$data['speakers_name']}'."
+            ];
         } catch (Exception $e) {
             error_log("Speaker update error: " . $e->getMessage());
             return false;
@@ -69,7 +95,21 @@ class Speaker extends Database {
     public function deleteSpeaker($id) {
         try {
             // Delete the speaker from the speakers table
-            return $this->delete('speakers', 'id = ?', [$id]);
+            $id = $this->delete('speakers', 'id = ?', [$id]);
+
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Delete Speaker.Please try again or call dev.',
+                    'status' => 500 
+                ];
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Speaker deleted succesfully."
+            ];
         } catch (Exception $e) {
             error_log("Speaker delete error: " . $e->getMessage());
             return false;

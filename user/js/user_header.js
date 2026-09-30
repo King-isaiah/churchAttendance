@@ -52,8 +52,7 @@ class UserHeader {
 
             const time = getCurrentTime();
         
-            const response = await fetch(`class/ApiHandler.php?entity=activities&action=getOthers`);
-            // const response = await fetch(`class/ApiHandler.php?entity=activities&action=getOthers&department=${departmentId}`);             
+            const response = await fetch(`class/ApiHandler.php?entity=activities&action=getOthers`);          
             const data = await response.json();
           
             if (data.success) {                  

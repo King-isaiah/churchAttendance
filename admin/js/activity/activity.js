@@ -17,6 +17,9 @@ class ActivitiesCarousel {
         this.filteredCards = this.cards;
         this.departmentCounter = 1;
         this.maxDepartments = 7;
+
+        // ---- FIX: Bind the change handler to this instance ----
+        this.handleDepartmentChange = this.handleDepartmentChange.bind(this);
         
         this.init();
     }
@@ -27,141 +30,194 @@ class ActivitiesCarousel {
         this.attachEventListeners();
         this.updateCarousel();
         this.addDepartmentBtn.addEventListener('click', () => this.addDepartmentField());
+        // Initialise department selects and listeners
+        this.refreshDepartmentSelects();
     }
-async refreshDepartmentSelects() {
-    const department  = await fetch('class/ApiHandler.php?entity=departments&action=getAll');
-    const departmentData = await department.json();
-    // Get all currently selected department IDs
-    const selectedDepartments = [];
-    document.querySelectorAll('.department-select').forEach(select => {
-        const value = parseInt(select.value);
-        if (value && value > 0) {
-            selectedDepartments.push(value);
-        }
-    });
-    
-    const allDepartments = departmentData
-    
-    document.querySelectorAll('.department-select').forEach(select => {
-        const currentValue = select.value;
-    
-        let optionsHTML = '<option value="">Select Department</option>';  
+
+    // Handle change event for department selects (Create modal)
+    handleDepartmentChange() {
+        this.updateDepartmentVisibility();
+        this.updateAddButtonState();
+    }
+
+    // Update visibility for Create modal (no container needed)
+    updateDepartmentVisibility() {
+        // Get all department fields in the Create modal:
+        // - original field: #originalDepartment
+        // - extra fields: .extra-department inside #additionalDepartments
+        const originalField = document.querySelector('#originalDepartment');
+        const extraFields = document.querySelectorAll('#additionalDepartments .extra-department');
+        const allFields = originalField ? [originalField, ...extraFields] : extraFields;
         
-        // Add department options
+        // Check if any select has value "all" or "0"
+        let anyAllSelected = false;
+        allFields.forEach(field => {
+            const select = field.querySelector('.department-select');
+            if (select && (select.value === 'all' || select.value === '0')) {
+                anyAllSelected = true;
+            }
+        });
+
+        // Show/hide fields
+        allFields.forEach(field => {
+            const select = field.querySelector('.department-select');
+            if (anyAllSelected && select && select.value !== 'all' && select.value !== '0') {
+                field.style.display = 'none';
+            } else {
+                field.style.display = ''; // restore default
+            }
+        });
+
+        this.updateAddButtonState();
+    }
+
+    // Disable/enable add button based on "all" selection (Create modal)
+    updateAddButtonState() {
+        const allSelects = document.querySelectorAll('.department-select');
+        let anyAll = false;
+        allSelects.forEach(sel => {
+            if (sel.value === 'all' || sel.value === '0') {
+                anyAll = true;
+            }
+        });
+        const addBtn = this.addDepartmentBtn;
+        if (anyAll) {
+            addBtn.disabled = true;
+            addBtn.textContent = 'All selected – cannot add more';
+        } else {
+            const currentCount = document.querySelectorAll('.department-field').length;
+            if (currentCount >= this.maxDepartments) {
+                addBtn.disabled = true;
+                addBtn.textContent = 'Maximum departments reached';
+            } else {
+                addBtn.disabled = false;
+                addBtn.textContent = '+ Add Another Department';
+            }
+        }
+    }
+
+    async refreshDepartmentSelects() {
+        const department  = await fetch('../class/ApiHandler.php?entity=departments&action=getAll');
+        const departmentData = await department.json();
+        // Get all currently selected department IDs
+        const selectedDepartments = [];
+        document.querySelectorAll('.department-select').forEach(select => {
+            const value = parseInt(select.value);
+            if (value && value > 0) {
+                selectedDepartments.push(value);
+            }
+        });
+        
+        const allDepartments = departmentData
+        
+        document.querySelectorAll('.department-select').forEach(select => {
+            const currentValue = select.value;
+        
+            let optionsHTML = '<option value="">Select Department</option>';  
+            optionsHTML += '<option value="all">All Department</option>';
+            // Add department options
+            allDepartments.data.forEach(dept => {
+                if (!selectedDepartments.includes(dept.id) || parseInt(currentValue) === dept.id) {
+                    optionsHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
+                }
+            });
+            
+            select.innerHTML = optionsHTML;
+            if (currentValue || currentValue === '0') {
+                select.value = currentValue;
+            }
+
+            // Attach change listener – now bound correctly
+            select.removeEventListener('change', this.handleDepartmentChange);
+            select.addEventListener('change', this.handleDepartmentChange);
+        });
+
+        // Update visibility and add button state
+        this.updateDepartmentVisibility();
+        this.updateAddButtonState();
+    }
+
+   
+
+    removeDepartmentField(button) {
+        const field = button.closest('.department-field');
+       
+        if (field.id === 'originalDepartment') {   
+            field.querySelector('select').value = '';
+            return;
+        }
+        
+        // Remove the extra field
+        field.remove();
+        this.departmentCounter--;
+        
+        if (this.departmentCounter === 1) {
+            document.querySelector('#originalDepartment .remove-department').style.display = 'none';
+        }
+        
+        // Enable add button
+        document.getElementById('addDepartmentBtn').disabled = false;
+        
+        // Refresh all selects to restore removed department as an option
+        this.refreshDepartmentSelects();
+    }
+
+    async addDepartmentField() {      
+        const department  = await fetch('../class/ApiHandler.php?entity=departments&action=getAll');
+        const departmentData = await department.json();
+        if (this.departmentCounter >= this.maxDepartments) {
+            document.getElementById('addDepartmentBtn').disabled = true;
+            alert('Maximum of 7 departments reached');
+            return;
+        }
+        
+        this.departmentCounter++;
+        const container = document.getElementById('additionalDepartments');
+        
+        const selectedDepartments = [];
+        document.querySelectorAll('.department-select').forEach(select => {
+            const value = parseInt(select.value);
+            if (value && value > 0) {
+                selectedDepartments.push(value);
+            }
+        });
+        
+        const allDepartments = departmentData;
+        console.log(allDepartments)
+        
+        // Create new department field with class "extra-department"
+        const newField = document.createElement('div');
+        newField.className = 'form-group department-field extra-department';
+        newField.id = 'departmentField' + this.departmentCounter;
+        
+        // Build the select options HTML
+        let optionsHTML = '<option value="">Select Department</option>';
+        optionsHTML += '<option value="all">All Department</option>';
         allDepartments.data.forEach(dept => {
-            if (!selectedDepartments.includes(dept.id) || parseInt(currentValue) === dept.id) {
+            if (!selectedDepartments.includes(dept.id)) {
                 optionsHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
             }
         });
         
-        select.innerHTML = optionsHTML;
-        if (currentValue || currentValue === '0') {
-            select.value = currentValue;
+        newField.innerHTML = `
+            <div class="form-group">
+                <label for="eventDepartment${this.departmentCounter}"></label>
+                <select id="eventDepartment${this.departmentCounter}" name="department_id[]" class="department-select">
+                    ${optionsHTML}
+                </select>
+            </div>
+            <button type="button" class="remove-department" onclick="this.removeDepartmentField(this)">−</button>
+        `;
+        
+        container.appendChild(newField);
+        
+        // Disable button if max reached
+        if (this.departmentCounter >= this.maxDepartments) {
+            document.getElementById('addDepartmentBtn').disabled = true;
         }
-    });
-}
-// Function to remove ALL extra departments
-removeAllExtraDepartments() {
-    const extraFields = document.querySelectorAll('.extra-department');
-    
-    extraFields.forEach(field => {
-        field.remove();
-    });
-    
-    this.departmentCounter = 1;
-    document.querySelector('#originalDepartment .remove-department').style.display = 'none';
-    document.getElementById('addDepartmentBtn').disabled = false;
-    
-    // Reset original field to "Select Department"
-    document.querySelector('#originalDepartment select').value = '';
-    
-    refreshDepartmentSelects();
-}
-
-removeDepartmentField(button) {
-    const field = button.closest('.department-field');
-   
-    if (field.id === 'originalDepartment') {   
-        field.querySelector('select').value = '';
-        return;
-    }
-    
-    // Remove the extra field
-    field.remove();
-    this.departmentCounter--;
-    
-    if (this.departmentCounter === 1) {
-        document.querySelector('#originalDepartment .remove-department').style.display = 'none';
-    }
-    
-    // Enable add button
-    document.getElementById('addDepartmentBtn').disabled = false;
-    
-    // Refresh all selects to restore removed department as an option
-    this.refreshDepartmentSelects();
-}
-
-async addDepartmentField() {      
-    const department  = await fetch('class/ApiHandler.php?entity=departments&action=getAll');
-    const departmentData = await department.json();
-    if (this.departmentCounter >= this.maxDepartments) {
-        document.getElementById('addDepartmentBtn').disabled = true;
-        alert('Maximum of 7 departments reached');
-        return;
-    }
-    
-    this.departmentCounter++;
-    const container = document.getElementById('additionalDepartments');
-    
-    const selectedDepartments = [];
-    document.querySelectorAll('.department-select').forEach(select => {
-        const value = parseInt(select.value);
-        if (value && value > 0) {
-            selectedDepartments.push(value);
-        }
-    });
-    
-    const allDepartments = departmentData;
-    console.log(allDepartments)
-    
-    // Create new department field with class "extra-department"
-    const newField = document.createElement('div');
-    newField.className = 'form-group department-field extra-department';
-    newField.id = 'departmentField' + this.departmentCounter;
-    
-    // Build the select options HTML
-    let optionsHTML = '<option value="">Select Department</option>';
-    
-    allDepartments.data.forEach(dept => {
-        if (!selectedDepartments.includes(dept.id)) {
-            optionsHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
-        }
-    });
-    
-    newField.innerHTML = `
-        <div class="form-group">
-            <label for="eventDepartment${this.departmentCounter}"></label>
-            <select id="eventDepartment${this.departmentCounter}" name="department_id[]" class="department-select">
-                ${optionsHTML}
-            </select>
-        </div>
-        <button type="button" class="remove-department" onclick="this.removeDepartmentField(this)">−</button>
-    `;
-    
-    container.appendChild(newField);
-    
-    // Show remove button on first field if there are extras
-    // if (this.departmentCounter >= 2) {
-    //     document.querySelector('#originalDepartment .remove-department').style.display = 'block';
-    // }
-    
-    // Disable button if max reached
-    if (this.departmentCounter >= maxDepartments) {
-        document.getElementById('addDepartmentBtn').disabled = true;
-    }
-    
-    this.refreshDepartmentSelects();
-} 
+        
+        this.refreshDepartmentSelects();
+    } 
  
     createNavigationDots() {
         this.navDots.innerHTML = '';
@@ -252,6 +308,290 @@ async addDepartmentField() {
     }
 }
 
+// ================================
+// EDIT MODAL – Department Functions
+// ================================
+
+// Edit modal change handler
+function handleEditDepartmentChange() {
+    updateEditDepartmentVisibility();
+    updateEditAddButtonState();
+}
+
+// Edit modal visibility updater (no container needed – uses direct selectors)
+function updateEditDepartmentVisibility() {
+    const fields = document.querySelectorAll('#editDepartmentFields .edit-department-field');
+    if (!fields.length) return;
+
+    // Check if any select in edit modal has "all" or "0"
+    let anyAllSelected = false;
+    fields.forEach(field => {
+        const select = field.querySelector('.edit-department-select');
+        if (select && (select.value === 'all' || select.value === '0')) {
+            anyAllSelected = true;
+        }
+    });
+
+    // Show/hide fields
+    fields.forEach(field => {
+        const select = field.querySelector('.edit-department-select');
+        if (anyAllSelected && select && select.value !== 'all' && select.value !== '0') {
+            field.style.display = 'none';
+        } else {
+            field.style.display = ''; // restore
+        }
+    });
+
+    updateEditAddButtonState();
+}
+
+// Edit modal add button state
+function updateEditAddButtonState() {
+    const selects = document.querySelectorAll('#editDepartmentFields .edit-department-select');
+    let anyAll = false;
+    selects.forEach(sel => {
+        if (sel.value === 'all' || sel.value === '0') {
+            anyAll = true;
+        }
+    });
+    const addBtn = document.getElementById('editAddDepartmentBtn');
+    if (!addBtn) return;
+    if (anyAll) {
+        addBtn.disabled = true;
+        addBtn.textContent = 'All selected – cannot add more';
+    } else {
+        const fieldCount = document.querySelectorAll('#editDepartmentFields .edit-department-field').length;
+        if (fieldCount >= 7) {
+            addBtn.disabled = true;
+            addBtn.textContent = 'Maximum departments reached';
+        } else {
+            addBtn.disabled = false;
+            addBtn.textContent = '+ Add Another Department';
+        }
+    }
+}
+
+// Initialize edit modal with existing departments
+async function initializeEditModalDepartments(activity) {
+    try {
+        let departmentIds = [];
+        let hasAll = false;
+
+        // 1. Try to extract department IDs from various possible sources
+        let rawIds = null;
+
+        // Prefer department_id if it exists
+        if (activity.department_id !== undefined && activity.department_id !== null) {
+            rawIds = activity.department_id;
+        } else if (activity.department_names) {
+            // fallback to department_names
+            rawIds = activity.department_names;
+        } else if (activity.departments) {
+            rawIds = activity.departments;
+        }
+
+        // 2. Convert rawIds to an array of strings (IDs)
+        if (Array.isArray(rawIds)) {
+            departmentIds = rawIds.map(item => {
+                // If item is an object with an id property, extract it
+                if (typeof item === 'object' && item.id !== undefined) {
+                    return String(item.id);
+                }
+                return String(item);
+            });
+        } else if (typeof rawIds === 'string') {
+            // Split comma-separated string
+            departmentIds = rawIds.split(',').map(id => id.trim()).filter(id => id !== '');
+        } else if (typeof rawIds === 'number') {
+            departmentIds = [String(rawIds)];
+        }
+
+        // 3. Check if any ID is "all" or "0" (treat "0" as "all" for backward compatibility)
+        hasAll = departmentIds.some(id => id === 'all' || id === '0');
+
+        // 4. If "all" is present, we only want one field with "all" selected
+        if (hasAll) {
+            // Remove all other IDs and keep only "all"
+            departmentIds = ['all'];
+        }
+
+        // 5. Create fields for each department ID
+        if (departmentIds.length === 0) {
+            // No departments → create one empty field
+            createEditDepartmentField('');
+        } else {
+            // Create a field for each ID – the first one is marked as required
+            departmentIds.forEach((deptId, index) => {
+                createEditDepartmentField(deptId, index === 0);
+            });
+        }
+
+        updateEditAddButtonState();
+        setTimeout(() => updateEditDepartmentVisibility(), 100);
+
+    } catch (error) {
+        console.error('Error initializing departments:', error);
+        // Fallback: create one empty field
+        createEditDepartmentField('');
+    }
+}
+
+// Create a department field for edit modal
+function createEditDepartmentField(deptId = '', isFirst = false) {
+    const container = document.getElementById('editDepartmentFields');
+    const fieldCount = container.querySelectorAll('.edit-department-field').length;
+    const fieldId = `edit_dept_${fieldCount + 1}`;
+    
+    const fieldHTML = `
+        <div class="edit-department-field" id="${fieldId}">
+            <div class="form-group department-field" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <select class="edit-department-select" name="edit_department_id[]" style="flex: 1;" ${isFirst ? 'required' : ''}>
+                    <option value="">Select Department</option>
+                    <option value="all">All Department</option>
+                </select>
+                ${!isFirst ? '<button type="button" class="remove-edit-department" onclick="removeEditDepartmentField(this)" style="background: #ff6b6b; color: white; border: none; border-radius: 4px; width: 30px; height: 30px; cursor: pointer;">−</button>' : ''}
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', fieldHTML);
+    
+    setTimeout(() => {
+        populateEditDepartmentSelect(fieldId, deptId);
+        updateEditDepartmentVisibility();
+    }, 0);
+    
+    updateEditAddButtonState();
+}
+
+// Populate a single department select in edit modal
+async function populateEditDepartmentSelect(fieldId, selectedValue = '') {
+    try {
+        const response = await fetch('../class/ApiHandler.php?entity=departments&action=getAll');
+        const data = await response.json();
+
+        if (data.success) {
+            const field = document.getElementById(fieldId);
+            const select = field.querySelector('.edit-department-select');
+            const currentValue = selectedValue || select.value;
+
+            // Collect departments already selected in other fields (to prevent duplicates)
+            const selectedDepartments = [];
+            document.querySelectorAll('.edit-department-select').forEach(otherSelect => {
+                if (otherSelect !== select && otherSelect.value) {
+                    selectedDepartments.push(otherSelect.value); // Keep as string
+                }
+            });
+
+            // Build options HTML
+            let optionsHTML = '<option value="">Select Department</option>';
+            optionsHTML += '<option value="all">All Department</option>';
+
+            data.data.forEach(dept => {
+                const deptId = String(dept.id);
+                // Show if not selected elsewhere OR if it's the current value for this field
+                if (!selectedDepartments.includes(deptId) || currentValue === deptId) {
+                    const selected = (currentValue === deptId) ? 'selected' : '';
+                    optionsHTML += `<option value="${deptId}" ${selected}>${escapeHtml(dept.name)}</option>`;
+                }
+            });
+
+            // If currentValue is "all", ensure it's selected (it's already in options)
+            // No extra step needed because the option value="all" is there and will be selected if currentValue === "all"
+
+            select.innerHTML = optionsHTML;
+
+            // Re-apply the current value (in case it was overwritten)
+            // For "all" it will work because value="all" exists
+            if (currentValue) {
+                select.value = currentValue;
+            }
+
+            // Attach change listener
+            select.removeEventListener('change', handleEditDepartmentChange);
+            select.addEventListener('change', handleEditDepartmentChange);
+
+            updateEditDepartmentVisibility();
+        }
+    } catch (error) {
+        console.error('Error loading departments:', error);
+    }
+}
+function setupEditDepartmentFunctionality(activity) {
+    // Add department button click handler
+    document.getElementById('editAddDepartmentBtn').addEventListener('click', () => {
+        addEditDepartmentField();
+    });
+    
+    // REMOVED the container change listener – it was causing double refreshes.
+    // The individual select listeners already handle changes correctly.
+}
+
+function addEditDepartmentField() {
+    const fieldCount = document.querySelectorAll('.edit-department-field').length;
+    
+    if (fieldCount >= 7) {
+        document.getElementById('editAddDepartmentBtn').disabled = true;
+        alert('Maximum of 7 departments reached');
+        return;
+    }
+    
+    createEditDepartmentField('');
+    refreshEditDepartmentSelects();
+    updateEditDepartmentVisibility();
+}
+
+function removeEditDepartmentField(button) {
+    const field = button.closest('.edit-department-field');
+    field.remove();
+    
+    refreshEditDepartmentSelects();
+    updateEditAddButtonState();
+    updateEditDepartmentVisibility();
+}
+
+async function refreshEditDepartmentSelects() {
+    try {
+        const response = await fetch('../class/ApiHandler.php?entity=departments&action=getAll');
+        const data = await response.json();
+        
+        if (data.success) {
+            const allDepartments = data.data;
+            const selects = document.querySelectorAll('.edit-department-select');
+            const currentSelections = [];
+            
+            selects.forEach(select => {
+                if (select.value) {
+                    currentSelections.push(parseInt(select.value));
+                }
+            });
+            
+            selects.forEach(select => {
+                const currentValue = select.value;
+                let optionsHTML = '<option value="">Select Department</option>';
+                optionsHTML += '<option value="all">All Department</option>';
+                allDepartments.forEach(dept => {
+                    if (!currentSelections.includes(dept.id) || parseInt(currentValue) === dept.id) {
+                        const selected = (parseInt(currentValue) === dept.id) ? 'selected' : '';
+                        optionsHTML += `<option value="${dept.id}" ${selected}>${escapeHtml(dept.name)}</option>`;
+                    }
+                });
+                
+                select.innerHTML = optionsHTML;
+
+                // Re-attach change listener
+                select.removeEventListener('change', handleEditDepartmentChange);
+                select.addEventListener('change', handleEditDepartmentChange);
+            });
+
+            updateEditDepartmentVisibility();
+        }
+    } catch (error) {
+        console.error('Error refreshing department selects:', error);
+    }
+}
+
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     const carousel = new ActivitiesCarousel();
@@ -284,15 +624,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('activityForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const departmentSelects = document.querySelectorAll('select[name="department_id[]"]');
-        const departmentIds = [];
         
+        const departmentSelects = document.querySelectorAll('select[name="department_id[]"]');
+        let departmentIds = [];
+        let hasAll = false;
+
+        // First pass: check if any select has "all" or "0"
         departmentSelects.forEach(select => {
-            const value = select.value.trim();
-            if (value && value !== "") {
-                departmentIds.push(value);
+            const val = select.value.trim();
+            if (val === 'all' || val === '0') {
+                hasAll = true;
             }
         });
+
+        if (hasAll) {
+            // If "all" is selected anywhere, send only "all"
+            departmentIds = ['all'];
+        } else {
+            // Otherwise collect all non‑empty values
+            departmentSelects.forEach(select => {
+                const val = select.value.trim();
+                if (val && val !== "") {
+                    departmentIds.push(val);
+                }
+            });
+        }
         const formData = {
             name: document.getElementById('name').value,
             description: document.getElementById('description').value,
@@ -315,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
         submitBtn.disabled = true;
         
-        fetch('class/ApiHandler.php?entity=activities&action=create', {
+        fetch('../class/ApiHandler.php?entity=activities&action=create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -415,9 +771,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-   
-   
-    
     // Live session buttons
     document.querySelectorAll('.live-session-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
@@ -426,7 +779,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
 
 // Add chart instance variable at the top
 let categoriesChart = null;
@@ -450,11 +802,11 @@ async function loadChartData() {
         const ctx = categoriesCtx.getContext('2d');
         
         // Fetch categories from API
-        const categoriesResponse = await fetch('class/ApiHandler.php?entity=categories&action=getAll');
+        const categoriesResponse = await fetch('../class/ApiHandler.php?entity=categories&action=getAll');
         const categoriesData = await categoriesResponse.json();
         
         // Fetch activities from API
-        const activitiesResponse = await fetch('class/ApiHandler.php?entity=activities&action=getAll');
+        const activitiesResponse = await fetch('../class/ApiHandler.php?entity=activities&action=getAll');
         const activitiesData = await activitiesResponse.json();
         
         if (categoriesData.success && activitiesData.success) {
@@ -571,8 +923,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // View Activity Details Function
 async function viewActivityDetails(activityId) {
     try {
-        const response = await fetch(`class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
+        const response = await fetch(`../class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
+        
+        
         const result = await response.json();
+        console.log(result)
         
         if (result.success) {
             showActivityDetailsModal(result.data);
@@ -590,7 +945,7 @@ async function deleteActivity(activityId) {
     if (!confirm('Deleting this may delete attendnace records relating to this activity')) return;
     
     try {       
-        const response = await fetch(`class/ApiHandler.php?action=delete&entity=activities&id=${activityId}`, {
+        const response = await fetch(`../class/ApiHandler.php?action=delete&entity=activities&id=${activityId}`, {
             method: 'DELETE'
         });
         
@@ -609,13 +964,10 @@ async function deleteActivity(activityId) {
     }
 }
 
-      
-       
-   
 // Edit Activity Function
 async function editActivity(activityId) {
     try {
-        const response = await fetch(`class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
+        const response = await fetch(`../class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
         const result = await response.json();
         
         if (result.success) {
@@ -627,7 +979,15 @@ async function editActivity(activityId) {
         showError('Network error: ' + error.message, 'error');
     }
 }
-
+function formatTargetAudience(audience) {
+    const audienceMap = {
+        'all': 'All Members',
+        'youth': 'Youth Only',
+        'adults': 'Adults Only',
+        'children': 'Children Only'
+    };
+    return audienceMap[audience] || audience || 'All Members';
+}
 // Show Activity Details Modal
 function showActivityDetailsModal(activity) {
     const modalHtml = `
@@ -731,162 +1091,6 @@ function showActivityDetailsModal(activity) {
     });
 }
 
-
-
-
-// function showEditActivityModal(activity) {
-//     const modalHtml = `
-//         <div class="modal" id="editActivityModal">
-//             <div class="modal-content" style="max-width: 700px;">
-//                 <div class="modal-header">
-//                     <h3>Edit Activity</h3>
-//                     <span class="close-modal">&times;</span>
-//                 </div>
-//                 <div class="modal-body">
-//                     <form id="editActivityForm">
-//                         <input type="hidden" id="edit_id" value="${activity.id}">
-//                         <div class="form-group">
-//                             <label for="edit_name">Activity Name *</label>
-//                             <input type="text" id="edit_name" value="${escapeHtml(activity.name)}" required>
-//                         </div>
-                        
-//                         <div class="form-group">
-//                             <label for="edit_description">Description</label>
-//                             <textarea id="edit_description" rows="3">${escapeHtml(activity.description || '')}</textarea>
-//                         </div>
-                        
-//                         <div class="form-row">
-//                             <div class="form-group">
-//                                 <label for="edit_category">Category *</label>
-//                                 <select id="edit_category" required>
-//                                     <option value="">Select Category</option>
-//                                 </select>
-//                             </div>
-                            
-//                             <div class="form-group">
-//                                 <label for="edit_status">Status *</label>
-//                                 <select id="edit_status" required>
-//                                     <option value="">Select Status</option>
-//                                 </select>
-//                             </div>
-
-                            
-//                         </div>
-//                         <div class="department-selection">    
-//                             <div class="form-group department-field" id="originalDepartment">
-//                                 <div class="form-group">
-//                                     <label for="edit_department">Department *</label>
-//                                     <select id="edit_department" required>
-//                                         <option value="">Select Department</option>
-//                                     </select>
-//                                 </div>
-//                                 <div id="additionalDepartments"></div>
-                            
-//                                 <button type="button" id="addDepartmentBtn"  class="add-department-btn">
-//                                     + Add Another Department
-//                                 </button>
-//                                 <small class="hint">Maximum 7 departments total</small>
-//                             </div>
-//                         </div>
-//                         <div class="form-row">
-//                             <div class="form-group">
-//                                 <label for="edit_dayofactivity">Day Of The Week *</label>                        
-//                                 <select id="edit_dayofactivity" required>
-//                                     <option value="Sunday">Sundays</option>
-//                                     <option value="Monday">Mondays</option>
-//                                     <option value="Tuesday">Tuesdays</option>
-//                                     <option value="Wednesday">Wednesdays</option>
-//                                     <option value="Thursday">Thursdays</option>
-//                                     <option value="Friday">Fridays</option>
-//                                     <option value="Saturday">Saturdays</option>
-//                                 </select>                        
-//                             </div>
-                            
-                            
-//                             <div class="form-group">
-//                                 <label for="edit_location">Location *</label>
-//                                 <select id="edit_location" required>
-//                                     <option value="">Select Location</option>
-//                                 </select>
-//                             </div>
-//                         </div>
-                        
-//                         <div class="form-row">
-//                             <div class="form-group">
-//                                 <label for="edit_time">Attendance To Start *</label>
-//                                 <input type="time" id="edit_time" value="${activity.time}" required>
-//                             </div>
-
-//                             <div class="form-group">
-//                                 <label for="edit_time">Attendance To Expire *</label>
-//                                 <input type="time" id="edit_time_exp" value="${activity.time_exp}" required>
-//                             </div>
-//                         </div>
-                       
-                        
-//                         <div class="form-row">
-//                             <div class="form-group">
-//                                 <label for="edit_attendance_method">Attendance Method *</label>
-//                                 <select id="edit_attendance_method" required>
-//                                     <option value="">Select Attendance Method</option>
-//                                 </select>
-//                             </div>
-                             
-                            
-//                             <div class="form-group">
-//                                 <label for="edit_target_audience">Target Audience *</label>
-//                                 <select id="edit_target_audience" required>
-//                                     <option value="all">All Members</option>
-//                                     <option value="youth">Youth Only</option>
-//                                     <option value="adults">Adults Only</option>
-//                                     <option value="children">Children Only</option>
-//                                 </select>
-//                             </div>
-//                         </div>
-                        
-//                         <div class="form-group">
-//                             <label for="edit_expected_count">Expected Attendance *</label>
-//                             <input type="number" id="edit_expected_count" value="${activity.expected_count || ''}" min="1" required>
-//                         </div>
-                        
-//                         <div class="form-actions">
-//                             <button type="button" class="btn-secondary close-modal">Cancel</button>
-//                             <button type="submit" class="btn-primary">Update Activity</button>
-//                         </div>
-//                     </form>
-//                 </div>
-//             </div>
-//         </div>
-//     `;
-    
-//     // Add modal to page
-//     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-//     // Populate dynamic dropdowns
-//     populateEditFormDropdowns(activity);
-    
-//     // Show modal
-//     const modal = document.getElementById('editActivityModal');
-//     modal.style.display = 'block';
-    
-//     // Close modal functionality
-//     modal.querySelector('.close-modal').addEventListener('click', () => {
-//         modal.remove();
-//     });
-    
-//     modal.addEventListener('click', (e) => {
-//         if (e.target === modal) {
-//             modal.remove();
-//         }
-//     });
-    
-//     // Form submission
-//     document.getElementById('editActivityForm').addEventListener('submit', handleEditFormSubmit);
-// }
-
-// Utility functions
-
-//Show Edit Activity Modal
 function showEditActivityModal(activity) {
     const modalHtml = `
         <div class="modal" id="editActivityModal">
@@ -1044,227 +1248,50 @@ function showEditActivityModal(activity) {
     document.getElementById('editActivityForm').addEventListener('submit', handleEditFormSubmit);
 }
 
-// Initialize edit modal with existing departments
-async function initializeEditModalDepartments(activity) {
-    try {
-        // Parse department data from the activity
-        // Assuming activity has departments property which could be an array of department objects
-        // or a string of comma-separated department IDs
-        let departmentIds = [];
-        
-        if (activity.department_names) {
-            if (Array.isArray(activity.department_names)) {
-                departmentIds = activity.departments.map(dept => dept.id || dept);
-            } else if (activity.department_id) {
-                // Try to get from department_id if it's a string/array
-                if (Array.isArray(activity.department_id)) {
-                    departmentIds = activity.department_id;
-                } else if (typeof activity.department_id === 'string') {
-                    departmentIds = activity.department_id.split(',').map(id => id.trim());
-                }
-            }
-        }
-        
-        // Remove empty strings and convert to numbers
-        departmentIds = departmentIds.filter(id => id && id !== '').map(id => parseInt(id));
-        
-        // If no departments found, create one empty field
-        if (departmentIds.length === 0) {
-            createEditDepartmentField('');
-        } else {
-            // Create fields for each existing department
-            departmentIds.forEach((deptId, index) => {
-                createEditDepartmentField(deptId, index === 0);
-            });
-        }
-        
-        // Update add button state
-        updateEditAddButtonState();
-        
-    } catch (error) {
-        console.error('Error initializing departments:', error);
-        // Create one empty field as fallback
-        createEditDepartmentField('');
-    }
-}
-
-// Create a department field for edit modal
-function createEditDepartmentField(deptId = '', isFirst = false) {
-    const container = document.getElementById('editDepartmentFields');
-    const fieldCount = container.querySelectorAll('.edit-department-field').length;
-    const fieldId = `edit_dept_${fieldCount + 1}`;
-    
-    const fieldHTML = `
-        <div class="edit-department-field" id="${fieldId}">
-            <div class="form-group department-field" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <select class="edit-department-select" name="edit_department_id[]" style="flex: 1;" ${isFirst ? 'required' : ''}>
-                    <option value="">Select Department</option>
-                </select>
-                ${!isFirst ? '<button type="button" class="remove-edit-department" onclick="removeEditDepartmentField(this)" style="background: #ff6b6b; color: white; border: none; border-radius: 4px; width: 30px; height: 30px; cursor: pointer;">−</button>' : ''}
-            </div>
-        </div>
-    `;
-    
-    container.insertAdjacentHTML('beforeend', fieldHTML);
-    
-    // Populate the select with options
-    setTimeout(() => populateEditDepartmentSelect(fieldId, deptId), 0);
-    
-    // Update add button state
-    updateEditAddButtonState();
-}
-
-// Populate a single department select in edit modal
-async function populateEditDepartmentSelect(fieldId, selectedValue = '') {
-    try {
-        const response = await fetch('class/ApiHandler.php?entity=departments&action=getAll');
-        const data = await response.json();
-        
-        if (data.success) {
-            const field = document.getElementById(fieldId);
-            const select = field.querySelector('.edit-department-select');
-            const currentValue = selectedValue || select.value;
-            
-            // Get all selected departments from other fields
-            const selectedDepartments = [];
-            document.querySelectorAll('.edit-department-select').forEach(otherSelect => {
-                if (otherSelect !== select && otherSelect.value) {
-                    selectedDepartments.push(parseInt(otherSelect.value));
-                }
-            });
-            
-            // Build options
-            let optionsHTML = '<option value="">Select Department</option>';
-            
-            data.data.forEach(dept => {
-                // Include option if it's not selected elsewhere OR if it's the current value for this field
-                if (!selectedDepartments.includes(dept.id) || parseInt(currentValue) === dept.id) {
-                    const selected = (parseInt(currentValue) === dept.id) ? 'selected' : '';
-                    optionsHTML += `<option value="${dept.id}" ${selected}>${escapeHtml(dept.name)}</option>`;
-                }
-            });
-            
-            select.innerHTML = optionsHTML;
-            
-            // Trigger change event to refresh other selects
-            select.dispatchEvent(new Event('change'));
-        }
-    } catch (error) {
-        console.error('Error loading departments:', error);
-    }
-}
-function setupEditDepartmentFunctionality(activity) {
-    // Add department button click handler
-    document.getElementById('editAddDepartmentBtn').addEventListener('click', () => {
-        addEditDepartmentField();
-    });
-    
-    // Department select change handler to refresh other selects
-    document.getElementById('editDepartmentFields').addEventListener('change', (e) => {
-        if (e.target.classList.contains('edit-department-select')) {
-            refreshEditDepartmentSelects();
-        }
-    });
-}
-
-// Add new department field in edit modal
-function addEditDepartmentField() {
-    const fieldCount = document.querySelectorAll('.edit-department-field').length;
-    
-    if (fieldCount >= 7) {
-        document.getElementById('editAddDepartmentBtn').disabled = true;
-        alert('Maximum of 7 departments reached');
-        return;
-    }
-    
-    createEditDepartmentField('');
-    refreshEditDepartmentSelects();
-}
-
-// Remove department field in edit modal
-function removeEditDepartmentField(button) {
-    const field = button.closest('.edit-department-field');
-    field.remove();
-    
-    refreshEditDepartmentSelects();
-    updateEditAddButtonState();
-}
-
-// Refresh all department selects in edit modal
-async function refreshEditDepartmentSelects() {
-    try {
-        const response = await fetch('class/ApiHandler.php?entity=departments&action=getAll');
-        const data = await response.json();
-        
-        if (data.success) {
-            const allDepartments = data.data;
-            
-            // Get all current selections
-            const selects = document.querySelectorAll('.edit-department-select');
-            const currentSelections = [];
-            
-            selects.forEach(select => {
-                if (select.value) {
-                    currentSelections.push(parseInt(select.value));
-                }
-            });
-            
-            // Update each select
-            selects.forEach(select => {
-                const currentValue = select.value;
-                let optionsHTML = '<option value="">Select Department</option>';
-                
-                allDepartments.forEach(dept => {
-                    // Show option if: 
-                    // 1. It's not selected in any other field, OR
-                    // 2. It's the current value for this field
-                    if (!currentSelections.includes(dept.id) || parseInt(currentValue) === dept.id) {
-                        const selected = (parseInt(currentValue) === dept.id) ? 'selected' : '';
-                        optionsHTML += `<option value="${dept.id}" ${selected}>${escapeHtml(dept.name)}</option>`;
-                    }
-                });
-                
-                select.innerHTML = optionsHTML;
-            });
-        }
-    } catch (error) {
-        console.error('Error refreshing department selects:', error);
-    }
-}
-
-// Update add button state based on current field count
-function updateEditAddButtonState() {
-    const fieldCount = document.querySelectorAll('.edit-department-field').length;
-    const addBtn = document.getElementById('editAddDepartmentBtn');
-    
-    if (fieldCount >= 7) {
-        addBtn.disabled = true;
-        addBtn.textContent = 'Maximum departments reached';
-    } else {
-        addBtn.disabled = false;
-        addBtn.textContent = '+ Add Another Department';
-    }
-}
-
 // Update the handleEditFormSubmit function to handle multiple departments
 async function handleEditFormSubmit(e) {
     e.preventDefault();
     
     // Collect department IDs
-    const departmentSelects = document.querySelectorAll('.edit-department-select');
-    const departmentIds = [];
+    // const departmentSelects = document.querySelectorAll('.edit-department-select');
+    // const departmentIds = [];
     
+    // departmentSelects.forEach(select => {
+    //     const value = select.value.trim();
+    //     if (value && value !== "") {
+    //         departmentIds.push(value);
+    //     }
+    // });
+    
+    // // Ensure at least one department is selected
+    // if (departmentIds.length === 0) {
+    //     showError('Please select at least one department', 'error');
+    //     return;
+    // }
+
+    const departmentSelects = document.querySelectorAll('.edit-department-select');
+    let departmentIds = [];
+    let hasAll = false;
+
+    // First pass: check if any select has "all" or "0"
     departmentSelects.forEach(select => {
-        const value = select.value.trim();
-        if (value && value !== "") {
-            departmentIds.push(value);
+        const val = select.value.trim();
+        if (val === 'all' || val === '0') {
+            hasAll = true;
         }
     });
-    
-    // Ensure at least one department is selected
-    if (departmentIds.length === 0) {
-        showError('Please select at least one department', 'error');
-        return;
+
+    if (hasAll) {
+        // If "all" is selected anywhere, send only "all"
+        departmentIds = ['all'];
+    } else {
+        // Otherwise collect all non‑empty values
+        departmentSelects.forEach(select => {
+            const val = select.value.trim();
+            if (val && val !== "" && val !== "0") {
+                departmentIds.push(val);
+            }
+        });
     }
     
     const formData = {
@@ -1291,7 +1318,7 @@ async function handleEditFormSubmit(e) {
     submitBtn.disabled = true;
     
     try {
-        const response = await fetch(`class/ApiHandler.php?entity=activities&action=update&id=${activityId}`, {
+        const response = await fetch(`../class/ApiHandler.php?entity=activities&action=update&id=${activityId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1317,6 +1344,7 @@ async function handleEditFormSubmit(e) {
         submitBtn.disabled = false;
     }
 }
+
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe
@@ -1338,134 +1366,19 @@ function formatAttendanceMethod(method) {
     return methodMap[method] || method;
 }
 
-function formatTargetAudience(audience) {
-    const audienceMap = {
-        'all': 'All Members',
-        'youth': 'Youth Only',
-        'adults': 'Adults Only',
-        'children': 'Children Only'
-    };
-    return audienceMap[audience] || audience;
-}
 
-// Populate edit form dropdowns
-// async function populateEditFormDropdowns(activity) {
-//     try {
-//         // Load categories
-//         const categoriesResponse = await fetch('class/ApiHandler.php?entity=categories&action=getAll');
-//         const categoriesData = await categoriesResponse.json();
-//         showSuccess('sategory set')
-//         const attendance_methodResponse = await fetch('class/ApiHandler.php?entity=attendance_methods&action=getAll');
-//         const attendance_methodData = await attendance_methodResponse.json();
-//         showSuccess('attendance method set')        
-//         const locationsResponse = await fetch('class/ApiHandler.php?entity=locations&action=getAll');
-//         const locationsData = await locationsResponse.json();
-//         showSuccess('location set')
-//         const departmentsResponse = await fetch('class/ApiHandler.php?entity=departments&action=getAll');
-//         const departmentsData = await departmentsResponse.json();
-//         showSuccess('department set')
-//         if (departmentsData.success) {
-//             const departmentSelect = document.getElementById('edit_department');
-//             departmentsData.data.forEach(department => {
-//                 const departmentName = department.name;
-//                 const departmentId = department.id;
-//                 if (departmentName && departmentId && departmentName !== 'All') {
-//                     const option = document.createElement('option');
-//                     option.value = departmentId;
-//                     option.textContent = departmentName;
-//                     if (departmentName === activity.department_names) {
-//                         option.selected = true;
-//                     }
-//                     departmentSelect.appendChild(option);
-//                 }
-//             });
-//         }
-//         if (categoriesData.success) {
-//             const categorySelect = document.getElementById('edit_category');
-//             categoriesData.data.forEach(category => {
-//                 const categoryName = category.categories || category.name || category;
-//                 const categoryId = category.id || category.name || category;
-//                 if (categoryName && categoryId && categoryName !== 'All') {
-//                     const option = document.createElement('option');
-//                     option.value = categoryId;
-//                     option.textContent = categoryName;
-//                     if (categoryName === activity.category) {
-//                         option.selected = true;
-//                     }
-//                     categorySelect.appendChild(option);
-//                 }
-//             });
-//         }
-        
-//         if (attendance_methodData.success) {
-//             const attendance_methodSelect = document.getElementById('edit_attendance_method');
-//             attendance_methodData.data.forEach(attendance_method => {
-//                 const attendance_methodName = attendance_method.code || attendance_method.name || attendance_method;
-//                 const attendance_methodId = attendance_method.id || attendance_method.name || attendance_method;
-//                 if (attendance_methodId && attendance_methodName && attendance_methodName !== 'All') {
-//                     const option = document.createElement('option');
-//                     option.value = attendance_methodId;
-//                     option.textContent = attendance_methodName;
-//                     if (attendance_methodName === activity.attendance_method) {
-//                         option.selected = true;
-//                     }
-//                     attendance_methodSelect.appendChild(option);
-//                 }
-//             });
-//         }
-//         if (locationsData.success) {
-//             const locationSelect = document.getElementById('edit_location');
-//             locationsData.data.forEach(location => {
-//                 const locationName = location.name || location;
-//                 const locationId = location.id || location.name || location;
-//                 if (locationId && locationName && locationName !== 'All') {
-//                     const option = document.createElement('option');
-//                     option.value = locationId;
-//                     option.textContent = locationName;
-//                     if (locationName === activity.location) {
-//                         option.selected = true;
-//                     }
-//                     locationSelect.appendChild(option);
-//                 }
-//             });
-//         }
-        
-//         // Load statuses
-//         const statusesResponse = await fetch('class/ApiHandler.php?entity=statuses&action=getAll');
-//         const statusesData = await statusesResponse.json();
-        
-//         if (statusesData.success) {
-//             const statusSelect = document.getElementById('edit_status');
-//             statusesData.data.forEach(status => {
-//                 const option = document.createElement('option');
-//                 option.value = status.id;
-//                 option.textContent = status.name;
-//                 if (status.name === activity.status) {
-//                     option.selected = true;
-//                 }
-//                 statusSelect.appendChild(option);
-//             });
-//         }
-        
-//         // Set other form values
-//         document.getElementById('edit_dayofactivity').value = activity.dayofactivity;
-//         document.getElementById('edit_target_audience').value = activity.target_audience || 'all';
-        
-//     } catch (error) {
-//         console.error('Error populating form:', error);
-//     }
-// }
+
 // Populate edit form dropdowns (updated)
 async function populateEditFormDropdowns(activity) {
     try {
         // Load categories
-        const categoriesResponse = await fetch('class/ApiHandler.php?entity=categories&action=getAll');
+        const categoriesResponse = await fetch('../class/ApiHandler.php?entity=categories&action=getAll');
         const categoriesData = await categoriesResponse.json();
         
-        const attendance_methodResponse = await fetch('class/ApiHandler.php?entity=attendance_methods&action=getAll');
+        const attendance_methodResponse = await fetch('../class/ApiHandler.php?entity=attendance_methods&action=getAll');
         const attendance_methodData = await attendance_methodResponse.json();        
         
-        const locationsResponse = await fetch('class/ApiHandler.php?entity=locations&action=getAll');
+        const locationsResponse = await fetch('../class/ApiHandler.php?entity=locations&action=getAll');
         const locationsData = await locationsResponse.json();
         
         // Categories dropdown
@@ -1478,7 +1391,6 @@ async function populateEditFormDropdowns(activity) {
                     const option = document.createElement('option');
                     option.value = categoryId;
                     option.textContent = categoryName;
-                    // Assuming activity.category is the category ID
                     if (categoryId == activity.category_id || categoryName === activity.category) {
                         option.selected = true;
                     }
@@ -1524,7 +1436,7 @@ async function populateEditFormDropdowns(activity) {
         }
         
         // Load statuses
-        const statusesResponse = await fetch('class/ApiHandler.php?entity=statuses&action=getAll');
+        const statusesResponse = await fetch('../class/ApiHandler.php?entity=statuses&action=getAll');
         const statusesData = await statusesResponse.json();
         
         if (statusesData.success) {
@@ -1672,7 +1584,7 @@ async function handleEditFormSubmit(e) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
         
-        const response = await fetch(`class/ApiHandler.php?entity=activities&action=update&id=${activityId}`, {
+        const response = await fetch(`../class/ApiHandler.php?entity=activities&action=update&id=${activityId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1762,20 +1674,4 @@ document.addEventListener('DOMContentLoaded', function() {
         return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     };
 });
-
-
-
-async function loadExistingQRCode(activityId) {
-    try {
-        const response = await fetch(`class/ApiHandler.php?entity=activity_qr_codes&action=getQR&id=${activityId}`);
-        const data = await response.json();
-        
-        if (data.success && data.qr_data) {
-            displayQRCode(data.qr_data);
-            document.getElementById('downloadQRBtn').style.display = 'inline-block';
-        }
-    } catch (error) {
-        console.log('No existing QR code found');
-    }
-}
 

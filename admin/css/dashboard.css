@@ -19,15 +19,105 @@
     overflow: hidden;
     margin-top: 1em;
 }
-.sliding-go{
-    background-color: var(--transparent-overlay);
-    width: 49%;
-    height: 17vh;
-    color: #fff;
-    border-radius: 12px;
-    /* margin-right: 10px; */
+/* ---------- Slider wrapper ---------- */
+.depting {
+    position: relative;
     overflow: hidden;
-    /* margin-top: 1em; */
+    margin-top: 1rem;
+    padding-bottom: 2.25rem;      /* room for the dots underneath */
+}
+
+/* ---------- The sliding track ---------- */
+.depting-track {
+    display: flex;
+    gap: 1rem;
+    transition: transform .45s ease;
+    will-change: transform;
+}
+
+/* ---------- Each slide / card ---------- */
+.sliding-go,
+.slide {
+    flex: 0 0 32%;                /* same width as your sample */
+    background-color: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    height: 17vh;
+    min-height: 130px;
+    border-radius: 20px;          /* same radius as your sample */
+    padding: 1rem;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.sliding-go h4 {
+    font-size: 1.05rem;
+    margin: 0 0 .6rem 0;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.sliding-go h6 {
+    font-size: .8rem;
+    margin: .25rem 0;
+    font-weight: 400;
+    opacity: .95;
+}
+
+/* ---------- Left / Right buttons ---------- */
+.slider__btn {
+    position: absolute;
+    top: 45%;
+    transform: translateY(-50%);
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #4a3f8c;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: background .2s, transform .2s;
+}
+
+.slider__btn:hover      { background: #fff; transform: translateY(-50%) scale(1.05); }
+.slider__btn--left      { left: -0.75rem; }
+.slider__btn--right     { right: -0.75rem; }
+
+/* ---------- Dots under the track ---------- */
+.slider-dots {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: .45rem;
+}
+
+.dots__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition: all .3s;
+}
+
+.dots__dot:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.dots__dot--active {
+    background: #fff;
+    width: 24px;
+    border-radius: 4px;
 }
 .sunschl{
     width: 100%;
@@ -37,9 +127,58 @@
     margin-top: 1em;
     padding: 1em;
 }
-.slider-chart{
+/* ---------- Department viewport (clips the scroll) ---------- */
+.slider-chart {
     width: 50%;
+    height: 100%;                /* fill the .charts height (68vh) */
     overflow: hidden;
+    position: relative;
+    padding-right: 4px;          /* tiny gap so cards don't touch the edge */
+    box-sizing: border-box;
+}
+
+/* ---------- The vertical track ---------- */
+.dept-track {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: transform .55s ease;
+    will-change: transform;
+}
+
+/* ---------- Cards (keep your existing look, just tidy spacing) ---------- */
+.sunschl {
+    width: 100%;
+    flex: 0 0 auto;              /* do NOT shrink — stack at natural height */
+    border-radius: 16px;
+    height: 28vh;
+    min-height: 150px;
+    background-color: rgb(244, 102, 126);
+    padding: 1em;
+    margin-top: 0;               /* gap handles spacing now */
+    box-sizing: border-box;
+}
+
+.sunschl h4 {
+    margin: 0 0 .5rem 0;
+    font-size: 1.05rem;
+    line-height: 1.25;
+}
+
+.sunschl h6 {
+    margin: .2rem 0;
+    font-size: .85rem;
+    font-weight: 400;
+}
+
+/* ---------- Soft fade at the bottom so half-cards look intentional ---------- */
+.slider-chart::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.35));
+    pointer-events: none;
 }
 .stat-card {
     display: flex;
@@ -215,13 +354,7 @@
     margin-right: 1em;
     padding: .5rem;
 }
-.depting{
-    display: flex;
-    overflow: hidden;
-    /* max-width: 100%; */
-    font-size: .2em;
-    position: relative;
-}
+
 canvas {
     border: 1px solid #333;
     /* border-radius: 5px; */
@@ -270,9 +403,7 @@ canvas {
         padding: 1rem;
     }
     
-    /* .depting {
-        padding: 0.5rem 0;
-    } */
+  
     
     /* canvas {
         height: 200px !important;
@@ -421,3 +552,96 @@ canvas {
     }
 }
 
+
+
+/* ---------- Online members view ---------- */
+.online-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    color: #94a3b8;
+    font-size: .95rem;
+    text-align: center;
+    gap: .5rem;
+}
+
+.online-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.online-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 .25rem .5rem .25rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.online-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.online-count {
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: .8rem;
+    font-weight: 600;
+    padding: .15rem .55rem;
+    border-radius: 999px;
+}
+
+.online-list {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.online-member-item {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .5rem .65rem;
+    border-radius: 10px;
+    background: #f8fafc;
+    transition: background .15s;
+}
+
+.online-member-item:hover {
+    background: #eef2ff;
+}
+
+.online-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, .2);
+    flex: 0 0 auto;
+}
+
+.online-member-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.online-member-name {
+    margin: 0;
+    font-size: .9rem;
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.online-member-dept {
+    color: #64748b;
+    font-size: .75rem;
+}

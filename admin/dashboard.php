@@ -1,16 +1,6 @@
 <?php 
     include "include/header.php" ;
-    $weeklyData = [65, 59, 80, 81, 56, 55, 72];
-    $activities = [
-        ['name' => 'Sunday Service', 'attendance' => 150, 'date' => '2023-06-18'],
-        ['name' => 'Bible Study', 'attendance' => 45, 'date' => '2023-06-15'],
-        ['name' => 'Youth Group', 'attendance' => 35, 'date' => '2023-06-16']
-    ];
-    $departments = [
-        ['name' => 'Hub Ushering', 'totalNum' => 150, 'date' => '2023-06-18'],
-        ['name' => 'Hub Theaatre', 'totalNum' => 45, 'date' => '2023-06-15'],
-        ['name' => 'Choir', 'totalNum' => 35, 'date' => '2023-06-16']
-    ];
+   
 ?>
 
     <head>
@@ -44,27 +34,21 @@
                         
                     <canvas id="attendanceChart"></canvas>
                         
-                    <div class="depting" id="activitiesSlider">
-                        
-
-                        <button class="slider__btn slider__btn--left">&larr;</button>
-                        <button class="slider__btn slider__btn--right">&rarr;</button>
-                        <div  id ="sliderDots"></div>
-                    </div>
-                        
+                    
+                    <div class="depting">
+                        <div class="depting-track" id="activitiesSlider">
+                            <!-- slides injected by JS -->
+                        </div>
+                        <button class="slider__btn slider__btn--left" aria-label="Previous">&larr;</button>
+                        <button class="slider__btn slider__btn--right" aria-label="Next">&rarr;</button>
+                        <div class="slider-dots" id="sliderDots"></div>
+                    </div>   
                     
                 </div>
-                <div class="slider-chart" id="departmentsContainer">
-                    <?php foreach($departments as $index => $department): ?>
-                        <div class="sunschl" id="section--<?php echo $index + 1; ?>">
-                            <div>
-                                <h4><?php echo htmlspecialchars($department['name']); ?></h4>
-                                <h6><?php echo date('M j, Y', strtotime($department['date'])); ?></p>
-                                <h6><?php echo htmlspecialchars($department['totalNum']); ?> Members</h6>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                    
+                <div class="slider-chart">
+                    <div class="dept-track" id="departmentsContainer">
+                        <!-- department cards injected by JS -->
+                    </div>
                 </div>
             </div>
             
@@ -79,8 +63,8 @@
             <a href="reports.php">View all</a>
         </div>
         <div class="btn-group">
-            <button class="btn-active">Attendance </button>
-            <button>Online</button>
+            <button class="btn-active" id="tabAttendance">Attendance</button>
+            <button id="tabOnline">Online</button>
         </div>
         <div class="rewards-container" id='rewardsContainer'>
             
@@ -90,7 +74,6 @@
     </div>
 
 <script src="js/dashboard.js"></script>
-<!-- <script src="js/chart.js"></script> -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     

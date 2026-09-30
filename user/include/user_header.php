@@ -1,9 +1,9 @@
 <?php session_start() ?>
 <?php 
-    if (!isset($_SESSION['unique_id'])) {
-    header('Location: login.php');
-    exit();
-}
+    // if (!isset($_SESSION['unique_id'])) {
+    // header('Location: login.php');
+    // exit();
+// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,69 +21,7 @@
         <div class="toastify-container" id="toastifyContainer"></div>
         
         
-        <div class="sidebar user-sidebar collapsed">  
-            <!-- <nav class="sidebar-nav">
-                <div class="nav-item active" data-page="dashboard">
-                    <a href="user_dashboard.php" class="nav-link">
-                        <div class="nav-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <span class="nav-text">Dashboard</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-                
-                <div class="nav-item" data-page="activities">
-                    <a href="activities.php" class="nav-link">
-                        <div class="nav-icon">
-                            <i class="fas fa-check-square"></i>
-                        </div>
-                        <span class="nav-text">Activities</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-                
-                <div class="nav-item" data-page="attendance">
-                    <a href="attendance_history.php" class="nav-link">
-                        <div class="nav-icon">
-                            <i class="fas fa-history"></i>
-                        </div>
-                        <span class="nav-text">Attendance</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-                
-                <div class="nav-item" data-page="events">
-                    <a href="events.php" class="nav-link">
-                        <div class="nav-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <span class="nav-text">Events</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-                
-                <div class="nav-item" data-page="profile">
-                    <a href="profile.php" class="nav-link">
-                        <div class="nav-icon">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="nav-text">Profile</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-                
-                <div class="nav-item logout-item" data-page="logout">
-                    <a href="logout.php" class="nav-link">
-                        <div class="nav-icon">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </div>
-                        <span class="nav-text">Logout</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-            </nav> -->
-            
+        <div class="sidebar user-sidebar collapsed">                    
         
         </div>
 
@@ -187,7 +125,7 @@
                                     <span class="user-id">ID: MEM-22<?php echo $_SESSION['unique_id'] ?>3983</span>
                                 
                                     <input id='unique_id' type="hidden" value="<?php echo $_SESSION['unique_id']; ?>">
-                                    <input id='department_id' type="hidden" value="<?php echo $_SESSION['department_id']; ?>">
+                                    <!-- <input id='department_id' type="" value="<?php echo $_SESSION['primary_dept_id'] ; ?>"> -->
                                 </div>
                             </div>
 

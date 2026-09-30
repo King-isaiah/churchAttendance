@@ -1,6 +1,6 @@
 
 <?php
-    require_once 'Database.php';
+    require_once '../class/Database.php';
 
     class Category extends Database {
         
@@ -41,7 +41,20 @@
                 // Validate required fields
                 $this->validateCategoryData($data);
                 
-                return $this->insert('categories', $data);
+                $id = $this->insert('categories', $data);
+                if ($id === false) {
+                    return [
+                        'success' => false,
+                        'message' => 'Failed to Create Category.Please try again or call dev.',
+                        'status' => 400 
+                    ];
+                }
+            
+                return [
+                    'success' => true,
+                    'id' => $id,
+                    'message' => "Category '{$data['categories']}' succesfully created."
+                ];
             } catch (Exception $e) {
                 error_log("Category create error: " . $e->getMessage() . " | Data: " . json_encode($data));
                 throw $e; 
@@ -61,7 +74,20 @@
                 $this->validateCategoryData($data, true);
                 
                 // Let the database handle duplicates
-                return $this->update('categories', $data, 'id = ?', [$id]);
+                $id =  $this->update('categories', $data, 'id = ?', [$id]);
+                if ($id === false) {
+                    return [
+                        'success' => false,
+                        'message' => 'Failed to Update Category.Please try again or call dev.',
+                        'status' => 400 
+                    ];
+                }
+            
+                return [
+                    'success' => true,
+                    'id' => $id,
+                    'message' => "Category'{$data['categories']}' sucessfully updated."
+                ];
                 
             } catch (Exception $e) {
                 error_log("Category update error [ID: $id]: " . $e->getMessage());
@@ -74,14 +100,37 @@
                 $activities = "SELECT * FROM activities WHERE category_id = ?";
                 $resultActivity = $this->fetchOne($activities, [$id]);
                 if ($resultActivity) {
-                    throw new Exception("Location already used in activity module", 404);
+                    return [
+                        'success' => false,
+                        'message' => 'Location already used in activity module.',
+                        'status' => 404 
+                    ];
+                    
                 }
                 $existing = $this->getCategory($id);
                 if (!$existing) {
-                    throw new Exception("Category not found", 404);
+                    return [
+                        'success' => false,
+                        'message' => 'Category not found.',
+                        'status' => 404 
+                    ];
+                    
                 }
                 
-                return $this->delete('categories', 'id = ?', [$id]);
+                $id =  $this->delete('categories', 'id = ?', [$id]);
+                if ($id === false) {
+                    return [
+                        'success' => false,
+                        'message' => 'Failed to Delete Category.Please try again or call dev.',
+                        'status' => 500 
+                    ];
+                }
+                
+                return [
+                    'success' => true,
+                    'id' => $id,
+                    'message' => "Category deleted succesfully."
+                ];
             } catch (Exception $e) {
                 error_log("Category delete error [ID: $id]: " . $e->getMessage());
                 throw $e;

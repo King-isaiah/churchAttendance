@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub Church — Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        /* ---------- Green palette ---------- */
+        --brand:      #10b981;   /* emerald 500 */
+        --brand-2:    #047857;   /* emerald 700 */
+        --brand-glow: #6ee7b7;   /* emerald 300 */
+        --brand-soft: #a7f3d0;   /* emerald 200 */
+        --brand-deep: #022c22;   /* emerald 950 */
+
+        --danger:  #ff5c7c;
+        --success: #4ade80;
+
+        --text:  #f5fff9;
+        --muted: #a4b8ad;
+        --card-border: rgba(167, 243, 208, .18);
+    }
+
+    html, body {
+        width: 100%;
+        min-height: 100%;
+        background: #051612;
+        color: var(--text);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================================
+       Layer 0 — Image slideshow
+       ============================================================ */
+    .bg-slideshow {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        background: #051612;
+    }
+
+    .bg-slide {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0;
+        transition: opacity 1.6s ease;
+        will-change: opacity, transform;
+    }
+
+    /* Two independent pieces of state: opacity (fade) and animation (ken-burns) */
+    .bg-slide.visible { opacity: 1; }
+    .bg-slide.ken     { animation: kenburns 12s ease-in-out forwards; }
+
+    @keyframes kenburns {
+        0%   { transform: scale(1.04) translate(0, 0); }
+        100% { transform: scale(1.16) translate(-1.5%, -1.5%); }
+    }
+
+    /* ============================================================
+       Layer 1 — Particle canvas (interactive, on top of photos)
+       ============================================================ */
+    #bgParticles {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;   /* the window captures pointer, not the canvas */
+    }
+
+    /* ============================================================
+       Layer 2 — Green tint for readability
+       ============================================================ */
+    .bg-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background:
+            radial-gradient(1200px 800px at 15% 20%, rgba(16,185,129,.32), transparent 60%),
+            radial-gradient(1000px 700px at 85% 80%, rgba(4,120,87,.32), transparent 60%),
+            linear-gradient(180deg, rgba(2,20,16,.80) 0%, rgba(2,20,16,.55) 45%, rgba(2,20,16,.88) 100%);
+    }
+
+    /* ============================================================
+       Layer 3 — Content
+       ============================================================ */
+    .page {
+        position: relative;
+        z-index: 3;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 2rem 1.25rem;
+    }
+
+    /* ---------- Glass card ---------- */
+    .card {
+        position: relative;
+        width: 100%;
+        max-width: 440px;
+        padding: 2.75rem 2.25rem 2.25rem;
+        border-radius: 24px;
+        /* Green-tinted glass */
+        background: linear-gradient(180deg, rgba(16,185,129,.14), rgba(16,185,129,.05));
+        border: 1px solid var(--card-border);
+        backdrop-filter: blur(22px) saturate(150%);
+        -webkit-backdrop-filter: blur(22px) saturate(150%);
+        box-shadow:
+            0 30px 80px rgba(0,0,0,.55),
+            inset 0 1px 0 rgba(167,243,208,.18),
+            0 0 0 1px rgba(16,185,129,.06);
+        opacity: 0;
+        transform: translateY(28px) scale(.98);
+        animation: cardIn .9s cubic-bezier(.22,1,.36,1) .1s forwards;
+    }
+    @keyframes cardIn {
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Soft green glow behind the card */
+    .card::before {
+        content: "";
+        position: absolute;
+        inset: -30%;
+        background: radial-gradient(closest-side, rgba(16,185,129,.35), transparent 70%);
+        filter: blur(50px);
+        z-index: -1;
+        opacity: .9;
+        pointer-events: none;
+    }
+
+    /* ---------- Header ---------- */
+    .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: #fff;
+        box-shadow:
+            0 12px 32px rgba(16,185,129,.5),
+            inset 0 0 0 1px rgba(255,255,255,.2);
+        margin-bottom: 1.5rem;
+        animation: itemIn .7s cubic-bezier(.22,1,.36,1) .25s both;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        line-height: 1.15;
+        margin-bottom: .4rem;
+        background: linear-gradient(135deg, #ffffff 0%, #d1fae5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: itemIn .7s cubic-bezier(.22,1,.36,1) .35s both;
+    }
+
+    .subtitle {
+        color: var(--muted);
+        font-size: .92rem;
+        line-height: 1.5;
+        margin-bottom: 2rem;
+        animation: itemIn .7s cubic-bezier(.22,1,.36,1) .45s both;
+    }
+
+    @keyframes itemIn {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- Floating-label fields ---------- */
+    .field {
+        position: relative;
+        margin-bottom: 1.05rem;
+        animation: itemIn .7s cubic-bezier(.22,1,.36,1) .55s both;
+    }
+    .field:nth-of-type(2) { animation-delay: .62s; }
+
+    .field input {
+        width: 100%;
+        height: 56px;
+        padding: 1.35rem 3rem 0 1.05rem;
+        font-family: inherit;
+        font-size: .98rem;
+        color: var(--text);
+        background: rgba(16,185,129,.06);
+        border: 1px solid rgba(167,243,208,.14);
+        border-radius: 14px;
+        outline: none;
+        transition: border-color .25s, background .25s, box-shadow .25s;
+    }
+
+    .field input:hover {
+        background: rgba(16,185,129,.09);
+    }
+
+    .field input:focus {
+        border-color: var(--brand);
+        background: rgba(16,185,129,.12);
+        box-shadow: 0 0 0 4px rgba(16,185,129,.18);
+    }
+
+    .field label {
+        position: absolute;
+        left: 1.05rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: .98rem;
+        pointer-events: none;
+        transition: all .22s cubic-bezier(.22,1,.36,1);
+        background: transparent;
+    }
+
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label {
+        top: 15px;
+        font-size: .72rem;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--brand-glow);
+        font-weight: 600;
+    }
+
+    .field input:not(:placeholder-shown):not(:focus) + label {
+        color: var(--muted);
+    }
+
+    /* Password toggle */
+    .toggle-pass {
+        position: absolute;
+        top: 50%;
+        right: .75rem;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: color .2s, background .2s;
+    }
+    .toggle-pass:hover { color: var(--brand-glow); background: rgba(16,185,129,.12); }
+    .toggle-pass svg { width: 18px; height: 18px; }
+
+    /* ---------- Row ---------- */
+    .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: .4rem 0 1.5rem;
+        font-size: .85rem;
+        animation: itemIn .7s cubic-bezier(.22,1,.36,1) .7s both;
+    }
+
+    .check {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .check input { display: none; }
+
+    .check .box {
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        border: 1px solid rgba(167,243,208,.25);
+        display: grid;
+        place-items: center;
+        transition: all .2s;
+        background: rgba(16,185,129,.06);
+    }
+
+    .check input:checked + .box {
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(16,185,129,.5);
+    }
+
+    .check .box svg {
+        width: 12px;
+        height: 12px;
+        opacity: 0;
+        transform: scale(.6);
+        transition: all .2s;
+        color: #fff;
+    }
+    .check input:checked + .box svg {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .forgot {
+        color: var(--brand-glow);
+        text-decoration: none;
+        transition: color .2s;
+    }
+    .forgot:hover { color: #fff; text-decoration: underline; }
+
+    /* ---------- Submit ---------- */
+    .submit {
+        position: relative;
+        width: 100%;
+        height: 54px;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+        color: #fff;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: .01em;
+        cursor: pointer;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(16,185,129,.45);
+        transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .25s;
+        animation: itemIn .7s cubic-bezier(.22,1,.36,1) .78s both;
+    }
+
+    .submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgba(16,185,129,.65);
+    }
+    .submit:active:not(:disabled) { transform: translateY(0); }
+    .submit:disabled { opacity: .7; cursor: not-allowed; }
+
+    /* Shimmer sweep */
+    .submit::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(115deg, transparent, rgba(255,255,255,.45), transparent);
+        transform: skewX(-18deg);
+        transition: left .7s cubic-bezier(.22,1,.36,1);
+    }
+    .submit:hover::after { left: 130%; }
+
+    /* Loading state */
+    .submit.loading { color: transparent; }
+    .submit.loading::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2.5px solid rgba(255,255,255,.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Foot ---------- */
+    .foot {
+        margin-top: 1.75rem;
+        text-align: center;
+        font-size: .85rem;
+        color: var(--muted);
+        animation: itemIn .7s cubic-bezier(.22,1,.36,1) .88s both;
+    }
+    .foot a {
+        color: var(--brand-glow);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .foot a:hover { color: #fff; text-decoration: underline; }
+
+    /* ---------- Toast ---------- */
+    .toast {
+        position: fixed;
+        top: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(-140%);
+        padding: .85rem 1.25rem;
+        border-radius: 12px;
+        background: rgba(2,20,16,.9);
+        border: 1px solid rgba(167,243,208,.22);
+        backdrop-filter: blur(16px);
+        font-size: .9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .6rem;
+        box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        transition: transform .5s cubic-bezier(.22,1,.36,1), opacity .3s;
+        opacity: 0;
+        z-index: 100;
+        max-width: 90vw;
+    }
+    .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    .toast.error   { border-color: rgba(255,92,124,.5); }
+    .toast.success { border-color: rgba(74,222,128,.5); }
+    .toast__dot {
+        width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto;
+    }
+    .toast.error   .toast__dot { background: var(--danger); }
+    .toast.success .toast__dot { background: var(--success); }
+
+    @media (max-width: 480px) {
+        .card { padding: 2.1rem 1.6rem 1.75rem; border-radius: 20px; }
+        h1    { font-size: 1.5rem; }
+    }
+</style>
+</head>
+<body>
+
+<!-- Layer 0 — photos -->
+<div class="bg-slideshow" id="bgSlideshow"></div>
+
+<!-- Layer 1 — interactive particles -->
+<canvas id="bgParticles"></canvas>
+
+<!-- Layer 2 — readability overlay -->
+<div class="bg-overlay"></div>
+
+<!-- Layer 3 — content -->
+<div class="page">
+    <div class="card">
+        <div class="logo">HC</div>
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in to continue to your Hub Church workspace.</p>
+
+        <form id="loginForm" novalidate>
+            <div class="field">
+                <input type="text" id="username" name="user_name" placeholder=" " autocomplete="username" required>
+                <label for="username">Username</label>
+            </div>
+            <div class="field">
+                <input type="text" id="email" name="email" placeholder=" " autocomplete="email" required>
+                <label for="email">Email</label>
+            </div>
+
+            <div class="field">
+                <input type="password" id="password" name="password" placeholder=" " autocomplete="current-password" required>
+                <label for="password">Password</label>
+                <button type="button" class="toggle-pass" id="togglePass" aria-label="Show password">
+                    <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="row">
+                <label class="check">
+                    <input type="checkbox" id="remember" name="remember">
+                    <span class="box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </span>
+                    Remember me
+                </label>
+                <a href="forgot.php" class="forgot">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="submit" id="submitBtn">Sign In</button>
+        </form>
+
+        <p class="foot">
+            Don't have an account? <a href="register.php">Request access</a>
+        </p>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <span class="toast__dot"></span>
+    <span class="toast__msg" id="toastMsg"></span>
+</div>
+
+<script>
+(() => {
+    'use strict';
+
+    // ============================================================
+    //  1. BACKGROUND SLIDESHOW
+    //     • Each image stays visible for SLIDE_DURATION_MS
+    //     • Then fades over SLIDE_FADE_MS while the next one fades in
+    //     • Loops back to the first image after the last one
+    // ============================================================
+    const BACKGROUND_IMAGES = [
+        'images/login-bg-1.jpg',
+        'images/9se.jpg',
+        'images/download.jpg',
+        'images/test.jpg',
+    ];
+
+    const SLIDE_DURATION_MS = 5000;  // 5 s visible
+    const SLIDE_FADE_MS     = 1600;  // 1.6 s crossfade (must match the CSS transition)
+
+    const slideshowEl = document.getElementById('bgSlideshow');
+
+    // Preload all images, then start the loop once the first is ready
+    let slides  = [];
+    let pending = BACKGROUND_IMAGES.length;
+
+    BACKGROUND_IMAGES.forEach((src, i) => {
+        const img = new Image();
+        img.onload = () => {
+            const div = document.createElement('div');
+            div.className = 'bg-slide';
+            div.style.backgroundImage = `url("${src}")`;
+            div.dataset.index = i;
+            slideshowEl.appendChild(div);
+            slides.push(div);
+            if (--pending === 0) startSlideshow();
+        };
+        img.onerror = () => {
+            console.warn('[login] background image not found:', src);
+            if (--pending === 0) startSlideshow();
+        };
+        img.src = src;
+    });
+
+    let currentIndex = 0;
+    let slideTimer   = null;
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            if (i === index) {
+                slide.classList.add('visible');
+                // Restart the ken-burns animation on this slide
+                slide.classList.remove('ken');
+                void slide.offsetWidth;
+                slide.classList.add('ken');
+            } else {
+                slide.classList.remove('visible');
+            }
+        });
+        currentIndex = index;
+    }
+
+    function nextSlide() {
+        if (slides.length === 0) return;
+        const next = (currentIndex + 1) % slides.length;
+        showSlide(next);
+    }
+
+    function startSlideshow() {
+        if (slides.length === 0) return;
+
+        // First image on screen immediately
+        showSlide(0);
+
+        // Only one image? Nothing to cycle.
+        if (slides.length === 1) return;
+
+        // Advance every (duration + fade) so the fade time doesn't eat into visibility
+        slideTimer = setInterval(nextSlide, SLIDE_DURATION_MS + SLIDE_FADE_MS);
+    }
+
+    // Pause when the tab is hidden
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            clearInterval(slideTimer);
+            slideTimer = null;
+        } else if (!slideTimer && slides.length > 1) {
+            slideTimer = setInterval(nextSlide, SLIDE_DURATION_MS + SLIDE_FADE_MS);
+        }
+    });
+
+    // ============================================================
+    //  2. INTERACTIVE PARTICLE CANVAS
+    //     Particles drift, connect with lines, and gently chase the pointer.
+    // ============================================================
+    const canvas = document.getElementById('bgParticles');
+    const ctx    = canvas.getContext('2d');
+
+    let W = 0, H = 0, DPR = 1;
+    const LINK_DISTANCE = 140;   // px (before DPR scale)
+    const MOUSE_RADIUS  = 170;   // px (before DPR scale)
+
+    const pointer = { x: -9999, y: -9999, active: false };
+    let particles = [];
+
+    function resizeCanvas() {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        W = canvas.width  = Math.floor(window.innerWidth  * DPR);
+        H = canvas.height = Math.floor(window.innerHeight * DPR);
+        canvas.style.width  = window.innerWidth  + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+
+        const area  = window.innerWidth * window.innerHeight;
+        const count = Math.max(30, Math.min(90, Math.round(area / 26000)));
+        spawn(count);
+    }
+
+    function spawn(count) {
+        particles = [];
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: Math.random() * W,
+                y: Math.random() * H,
+                vx: (Math.random() - 0.5) * 0.35 * DPR,
+                vy: (Math.random() - 0.5) * 0.35 * DPR,
+                r: (Math.random() * 1.4 + 0.6) * DPR
+            });
+        }
+    }
+
+    function tick() {
+        ctx.clearRect(0, 0, W, H);
+
+        for (const p of particles) {
+            // Pointer attraction
+            if (pointer.active) {
+                const dx = pointer.x - p.x;
+                const dy = pointer.y - p.y;
+                const d2 = dx * dx + dy * dy;
+                const R  = MOUSE_RADIUS * DPR;
+                if (d2 < R * R && d2 > 0.01) {
+                    const d = Math.sqrt(d2);
+                    const f = (1 - d / R) * 0.09;
+                    p.vx += (dx / d) * f * DPR;
+                    p.vy += (dy / d) * f * DPR;
+                }
+            }
+
+            // Speed cap
+            const speed = Math.hypot(p.vx, p.vy);
+            const max   = 1.4 * DPR;
+            if (speed > max) {
+                p.vx = (p.vx / speed) * max;
+                p.vy = (p.vy / speed) * max;
+            }
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Wrap
+            if (p.x < -20) p.x = W + 20;
+            if (p.x > W + 20) p.x = -20;
+            if (p.y < -20) p.y = H + 20;
+            if (p.y > H + 20) p.y = -20;
+
+            // Damping
+            p.vx *= 0.995;
+            p.vy *= 0.995;
+        }
+
+        // Connections
+        const LINK2 = (LINK_DISTANCE * DPR) ** 2;
+        for (let i = 0; i < particles.length; i++) {
+            const a = particles[i];
+            for (let j = i + 1; j < particles.length; j++) {
+                const b  = particles[j];
+                const dx = a.x - b.x, dy = a.y - b.y;
+                const d2 = dx * dx + dy * dy;
+                if (d2 < LINK2) {
+                    const t = 1 - d2 / LINK2;
+                    ctx.strokeStyle = `rgba(110, 231, 183, ${t * 0.42})`; // emerald-300
+                    ctx.lineWidth   = 1 * DPR;
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Dots
+        for (const p of particles) {
+            ctx.fillStyle = 'rgba(209, 250, 229, 0.95)';   // emerald-100
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Pointer glow
+        if (pointer.active) {
+            const R = MOUSE_RADIUS * DPR;
+            const g = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, R);
+            g.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+            g.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(pointer.x - R, pointer.y - R, R * 2, R * 2);
+        }
+
+        requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('pointermove', (e) => {
+        pointer.x = e.clientX * DPR;
+        pointer.y = e.clientY * DPR;
+        pointer.active = true;
+    });
+    window.addEventListener('pointerleave', () => { pointer.active = false; });
+    window.addEventListener('pointerdown', (e) => {
+        pointer.x = e.clientX * DPR;
+        pointer.y = e.clientY * DPR;
+        pointer.active = true;
+    });
+    window.addEventListener('resize', resizeCanvas);
+
+    resizeCanvas();
+    tick();
+
+    // ============================================================
+    //  3. Password show / hide
+    // ============================================================
+    const togglePass = document.getElementById('togglePass');
+    const passInput  = document.getElementById('password');
+    const eyeIcon    = document.getElementById('eyeIcon');
+
+    const EYE_OPEN = `
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>`;
+
+    const EYE_OFF = `
+        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.79 19.79 0 0 1 5.06-5.94"/>
+        <path d="M1 1l22 22"/>
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a19.5 19.5 0 0 1-3.17 4.19"/>
+        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>`;
+
+    togglePass.addEventListener('click', () => {
+        const show = passInput.type === 'password';
+        passInput.type = show ? 'text' : 'password';
+        eyeIcon.innerHTML = show ? EYE_OFF : EYE_OPEN;
+        togglePass.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+
+    // ============================================================
+    //  4. Toast helper
+    // ============================================================
+    const toast     = document.getElementById('toast');
+    const toastMsg  = document.getElementById('toastMsg');
+    let   toastTid  = null;
+
+    function showToast(message, type = 'error', duration = 4000) {
+        toast.className = 'toast ' + type;
+        toastMsg.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTid);
+        toastTid = setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    // ============================================================
+    //  5. Form submit
+    // ============================================================
+    const form      = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const LOGIN_ENDPOINT = 'class/ApiHandler.php?action=special&entity=auth';
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const remember = document.getElementById('remember').checked;
+
+        if (!username) { showToast('Please enter your username'); return; }
+        if (!password) { showToast('Please enter your password'); return; }
+
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+
+        try {
+            const res = await fetch(LOGIN_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin', // <--- ADD THIS (Ensures session cookies are sent)
+                body: JSON.stringify({ user_name: username, password, remember })
+            });
+            const data = await res.json();
+
+            // if (data.success) {
+            //     showToast('Welcome back!', 'success', 1500);
+            //     const redirect = data.redirect || 'dashboard.php';
+            //     setTimeout(() => { window.location.href = redirect; }, 700);
+            // } else {
+            //     showToast(data.message || 'Invalid username or password');
+            //     submitBtn.classList.remove('loading');
+            //     submitBtn.disabled = false;
+            // }
+            if (data.success) {
+                showToast('Welcome back!', 'success', 1500);
+    
+                // Default fallback if role is somehow missing
+                let redirectUrl = 'dashboard.php'; 
+
+                // Check the user's role sent from the backend
+                if (data.user && data.user.role === 'admin') {
+                    redirectUrl = 'admin/index.php'; // Loads your admin index
+                } else if (data.user && data.user.role === 'worker') {
+                    redirectUrl = 'user/user_dashboard.php'; // Loads worker dashboard
+                } else if (data.redirect) {
+                    // Fallback to backend redirect if provided
+                    redirectUrl = data.redirect; 
+                }
+
+                // Redirect the user
+                setTimeout(() => { window.location.href = redirectUrl; }, 700);
+                
+            } else {
+                showToast(data.message || 'Invalid username or password');
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            showToast('Network error. Please try again.');
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+        }
+    });
+
+    document.getElementById('username').focus();
+})();
+</script>
+</body>
+</html>

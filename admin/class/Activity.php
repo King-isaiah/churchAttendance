@@ -1,5 +1,5 @@
 <?php
-require_once 'Database.php';
+require_once '../class/Database.php';
 
 class Activity extends Database {
     
@@ -56,6 +56,9 @@ class Activity extends Database {
                 LEFT JOIN locations ON activities.location_id = locations.id 
                 LEFT JOIN attendance_methods ON activities.attendance_method_id = attendance_methods.id 
                 WHERE activities.id = ?";
+        
+        
+        
         
         $result = $this->fetchOne($sql, [$id]);
         
@@ -191,15 +194,27 @@ class Activity extends Database {
                 throw new Exception("Activity not found", 404);
             }
             
-             if (isset($data['department_id'])) {
+        
+            if (isset($data['department_id'])) {
                 if (is_array($data['department_id'])) {
-                    $deptIds = array_filter($data['department_id'], function($val) {
-                        return $val !== '' && $val !== '0' && $val !== 0;
-                    });
-                    $data['department_id'] = empty($deptIds) ? null : json_encode(array_values($deptIds));
+                    // If any value in the array is 'all', we only want 'all'
+                    if (in_array('all', $data['department_id'], true)) {
+                        $data['department_id'] = json_encode(['all']);
+                    } else {
+                        // Otherwise, filter out empty, "0", and 0
+                        $deptIds = array_filter($data['department_id'], function($val) {
+                            return $val !== '' && $val !== '0' && $val !== 0;
+                        });
+                        $data['department_id'] = empty($deptIds) ? null : json_encode(array_values($deptIds));
+                    }
                 } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
+                    // Single "0" means "no department"
                     $data['department_id'] = null;
+                } else if ($data['department_id'] === 'all') {
+                    // Single string "all" – convert to the same array format
+                    $data['department_id'] = json_encode(['all']);
                 }
+                // Any other single value (e.g., "1", "2") stays as-is (string)
             }
             
             $this->validateActivityData($data, true);

@@ -82,7 +82,13 @@
                         <span class="hide">Events</span>
                     </a>                              
                 </div>
-                <div class="icon-square">🏠</div>
+                <div class="icon-square">
+                    <!-- <a href="../index.html">                         -->
+                    <a href="logout.php">                        
+                        <i class="fas fa-sign-out-alt"></i> 
+                        <span class="hide">Log Out</span>
+                    </a>                     
+                </div>
             
             </div>         
             

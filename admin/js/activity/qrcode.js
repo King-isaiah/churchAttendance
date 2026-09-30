@@ -75,7 +75,7 @@ function showQRCodeModal(activityId) {
 // Check if QR code exists and update button
 async function checkExistingQRCode(activityId) {
     try {
-        const response = await fetch(`class/ApiHandler.php?entity=activity_qr_codes&action=getQR&id=${activityId}`);
+        const response = await fetch(`../class/ApiHandler.php?entity=activity_qr_codes&action=getQR&id=${activityId}`);
         const data = await response.json();
         
         if (data.success && data.qr_data) {
@@ -135,7 +135,7 @@ async function generateQRCode(activityId) {
     generateBtn.disabled = true;
     
     try {
-        const response = await fetch('class/ApiHandler.php?entity=activity_qr_codes&action=generateQR', {
+        const response = await fetch('../class/ApiHandler.php?entity=activity_qr_codes&action=generateQR', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

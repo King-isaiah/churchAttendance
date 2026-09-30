@@ -1,16 +1,20 @@
 <?php
-require_once 'Database.php';
+require_once '../class/Database.php';
 
 class Member extends Database {
     
+    
     public function getAllMembers() {
         try {
-            $sql = "SELECT m.*, CASE 
+            $sql = "SELECT m.*, 
+                CASE 
                     WHEN m.department_id LIKE '[%' THEN 'Multiple Departments'
                     ELSE d.name 
-                END as department_name
+                END as department_name,
+                p.name as primary_dept_name
                 FROM members m
                 LEFT JOIN departments d ON m.department_id = d.id
+                LEFT JOIN departments p ON m.primary_dept_id = p.id
                 ORDER BY m.created_at DESC
             ";
             return $this->fetchAll($sql);
@@ -39,7 +43,7 @@ class Member extends Database {
                     $result['department_id'] = $result['department_id'];
                 }               
             }
-      
+        
         
             return $result;
         } catch (Exception $e) {
@@ -145,8 +149,19 @@ class Member extends Database {
             
             $this->validateMemberData($data, true);
             
-            return $this->update('members', $data, 'id = ?', [$id]);
-            
+            $id =  $this->update('members', $data, 'id = ?', [$id]);             
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Update Member.Please try again or call dev.',
+                    'status' => 400 // optional, will be used as HTTP status
+                ];                
+            }
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Member '{$data['user_name']}' updated ."
+            ];
         } catch (Exception $e) {
             error_log("Member update error [ID: $id]: " . $e->getMessage());
             throw $e;

@@ -10,6 +10,7 @@ class DashboardManager {
         this.chart = null;
         this.currentSlide = 0;
         this.searchTimeout = null;
+        this.deptSlide = 0;
     }
 
     async init() {
@@ -65,22 +66,22 @@ class DashboardManager {
     }
 
     async fetchDashboardStats() {
-      const response = await fetch('class/ApiHandler.php?action=getAll&entity=dashboard');     
+      const response = await fetch('../class/ApiHandler.php?action=getAll&entity=dashboard');     
         return response.json();
     }
 
     async fetchRecentActivities() {
-        const response = await fetch('class/ApiHandler.php?action=getAll&entity=activities');
+        const response = await fetch('../class/ApiHandler.php?action=getAll&entity=activities');
         return response.json();
     }
 
     async fetchDepartmentStats() {
-        const response = await fetch('class/ApiHandler.php?action=getAll&entity=departments');
+        const response = await fetch('../class/ApiHandler.php?action=getAll&entity=departments');
         return response.json();
     }
 
     async fetchAttendanceRewards() {
-      const response = await fetch('class/ApiHandler.php?action=special&entity=reports');   
+      const response = await fetch('../class/ApiHandler.php?action=special&entity=reports');   
       return response.json();
     }
 
@@ -92,7 +93,7 @@ class DashboardManager {
         }
 
         try {
-            const response = await fetch('class/ApiHandler.php?action=special&entity=dashboard&type=search', {
+            const response = await fetch('../class/ApiHandler.php?action=special&entity=dashboard&type=search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ search: searchTerm })
@@ -100,6 +101,7 @@ class DashboardManager {
             
             const result = await response.json();
             if (result.success) {
+                alert('you dey whine')
                 this.activities = result.data;
                 this.renderActivitiesSlider();
             }
@@ -119,7 +121,7 @@ class DashboardManager {
                 </div>
                 <div class="stat-info">
                     <h4>${this.stats.total_attendees || 0}</h4>
-                    <p>Total Attendees Today</p>
+                    <p>Total Attendees Last 24hrs</p>
                 </div>
             </div>
             <div class="stat-card">
@@ -128,7 +130,7 @@ class DashboardManager {
                 </div>
                 <div class="stat-info">
                     <h4>${this.stats.activities_this_week || 0}</h4>
-                    <p>Activities This Week</p>
+                    <p>Activities/Events Attended This Week</p>
                 </div>
             </div>
             <div class="stat-card">
@@ -137,7 +139,7 @@ class DashboardManager {
                 </div>
                 <div class="stat-info">
                     <h4>${this.stats.growth_percentage >= 0 ? '+' : ''}${this.stats.growth_percentage || 0}%</h4>
-                    <p>Growth</p>
+                    <p>Growth last 24hrs</p>
                 </div>
             </div>
         `;
@@ -255,7 +257,65 @@ class DashboardManager {
             }
         });
     }
+    async renderOnlineMembers() {
+        const container = document.getElementById('rewardsContainer');
+        if (!container) return;
 
+        container.innerHTML = '<div class="online-empty">Loading online members…</div>';
+
+        try {
+            const response = await fetch('../class/ApiHandler.php?action=getAll&entity=members');
+            const data     = await response.json();
+
+            if (!data.success) {
+                container.innerHTML = '<div class="online-empty">Failed to load members</div>';
+                return;
+            }
+
+            const members = data.data || [];
+            const onlineMembers = members.filter(
+                m => (m.status || '').toString().toLowerCase() === 'online'
+            );
+
+            if (onlineMembers.length === 0) {
+                container.innerHTML = `
+                    <div class="online-empty">
+                        <i class="fas fa-circle" style="color:#bbb;font-size:2rem;"></i>
+                        <p>No members online</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `
+                <div class="online-wrapper">
+                    <div class="online-header">
+                        <h4>Online Members</h4>
+                        <span class="online-count">${onlineMembers.length}</span>
+                    </div>
+                    <div class="online-list">
+            `;
+
+            onlineMembers.forEach(member => {
+                const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Unknown';
+                html += `
+                    <div class="online-member-item">
+                        <span class="online-dot"></span>
+                        <div class="online-member-info">
+                            <p class="online-member-name">${escapeHtml(fullName)}</p>
+                            <small class="online-member-dept">${escapeHtml(member.department_name || 'No Department')}</small>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+
+        } catch (err) {
+            console.error('Online members fetch failed:', err);
+            container.innerHTML = '<div class="online-empty">Error loading online members</div>';
+        }
+    }
     initializeChartQuarter() {
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         if (!ctx) return;
@@ -326,44 +386,48 @@ class DashboardManager {
         return labels;
     }
     renderActivitiesSlider() {
-      const slider = document.getElementById('activitiesSlider');
-      const dots = document.getElementById('sliderDots');
-      
-      if (!slider || !dots) return;
+        const track = document.getElementById('activitiesSlider');
+        const dots  = document.getElementById('sliderDots');
 
-      if (this.activities.length === 0) {
-          slider.innerHTML = '<div class="no-data">No activities found</div>';
-          dots.innerHTML = '';
-          return;
-      }
+        if (!track || !dots) return;
 
-      let slidesHTML = '';
-      this.activities.forEach((activity, index) => {
-        slidesHTML += `
-            <div class="sliding-go slide" id="section--${index + 1}">
-                <div class="">
-                    <h4>${escapeHtml(activity.name)}</h4>
-                    <h6>${activity.dayofactivity}</h6>
-                    <h6>${escapeHtml(activity.location || 'N/A')}</h6>
+        if (!this.activities || this.activities.length === 0) {
+            track.innerHTML = '<div class="no-data">No activities found</div>';
+            dots.innerHTML  = '';
+            return;
+        }
+
+        // Build slides (only slides — buttons stay put)
+        let slidesHTML = '';
+        this.activities.forEach((activity, index) => {
+            slidesHTML += `
+                <div class="sliding-go slide" id="section--${index + 1}">
+                    <div>
+                        <h4>${escapeHtml(activity.name || 'Untitled')}</h4>
+                        <h6>${escapeHtml(activity.dayofactivity || '')}</h6>
+                        <h6>${escapeHtml(activity.location || 'N/A')}</h6>
+                    </div>
                 </div>
-            </div>
-        `;
-      });
+            `;
+        });
+        track.innerHTML = slidesHTML;
 
-      slider.innerHTML = slidesHTML;
+        // Reset track position
+        track.style.transform = 'translateX(0)';
 
-      dots.innerHTML = '';
-      this.activities.forEach((_, index) => {
-          const dot = document.createElement('button');
-          dot.className = 'dots__dot';
-          dot.dataset.slide = index;
-          dot.addEventListener('click', () => this.goToSlide(index));
-          dots.appendChild(dot);
-      });
+        // Rebuild dots
+        dots.innerHTML = '';
+        this.activities.forEach((_, index) => {
+            const dot = document.createElement('button');
+            dot.className   = 'dots__dot';
+            dot.dataset.slide = index;
+            dot.addEventListener('click', () => this.goToSlide(index));
+            dots.appendChild(dot);
+        });
 
-      this.activateDot(0);
+        this.currentSlide = 0;
+        this.activateDot(0);
     }
-
     renderDepartments() {
         const container = document.getElementById('departmentsContainer');
         if (!container) return;
@@ -387,9 +451,25 @@ class DashboardManager {
         });
 
         container.innerHTML = html;
+        // Reset vertical scroll to the top
+        this.deptSlide = 0;
+        const track = document.getElementById('departmentsContainer');
+        if (track) track.style.transform = 'translateY(0)';
     }
 
-    
+    goToDeptSlide(index) {
+        const track = document.getElementById('departmentsContainer');
+        const first = track ? track.querySelector('.sunschl') : null;
+        if (!track || !first) return;
+
+        // Measure real pixel height + gap so it works on every viewport
+        const cardHeight = first.getBoundingClientRect().height;
+        const gap        = parseFloat(getComputedStyle(track).gap) || 16;
+        const offset     = index * (cardHeight + gap);
+
+        track.style.transform = `translateY(-${offset}px)`;
+        this.deptSlide = index;
+    }
     renderRewards() {
         const container = document.getElementById('rewardsContainer');
         if (!container) return;
@@ -527,12 +607,18 @@ class DashboardManager {
 
     goToSlide(slide) {
         this.currentSlide = slide;
-        const slides = document.querySelectorAll('.slide');
-        const dots = document.querySelectorAll('.dots__dot');
 
-        slides.forEach((s, i) => {
-            s.style.transform = `translateX(${100 * (i - slide)}%)`;
-        });
+        const track      = document.getElementById('activitiesSlider');
+        const firstSlide = track ? track.querySelector('.slide') : null;
+
+        if (track && firstSlide) {
+            // Measure the real slide width + gap in pixels — handles every viewport
+            const slideWidth = firstSlide.getBoundingClientRect().width;
+            const gap        = parseFloat(getComputedStyle(track).gap) || 16;
+            const offset     = slide * (slideWidth + gap);
+
+            track.style.transform = `translateX(-${offset}px)`;
+        }
 
         this.activateDot(slide);
     }
@@ -575,8 +661,10 @@ class DashboardManager {
         });
 
         // Slider buttons
-        document.querySelector('.slider__btn--right')?.addEventListener('click', () => this.nextSlide());
-        document.querySelector('.slider__btn--left')?.addEventListener('click', () => this.prevSlide());
+        const btnPrev = document.querySelector('.slider__btn--left');
+        const btnNext = document.querySelector('.slider__btn--right');
+        if (btnPrev) btnPrev.addEventListener('click', () => this.prevSlide());
+        if (btnNext) btnNext.addEventListener('click', () => this.nextSlide());
 
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
@@ -585,17 +673,37 @@ class DashboardManager {
         });
 
         // Tab buttons
-        document.querySelectorAll('.btn-group button').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('btn-active'));
-                e.target.classList.add('btn-active');
-                // Handle tab switching here
+        // Tab buttons — Attendance vs Online
+        const tabAttendance = document.getElementById('tabAttendance');
+        const tabOnline     = document.getElementById('tabOnline');
+
+        if (tabAttendance) {
+            tabAttendance.addEventListener('click', () => {
+                tabAttendance.classList.add('btn-active');
+                if (tabOnline) tabOnline.classList.remove('btn-active');
+                this.renderRewards();   // restore the attendance rewards list
             });
-        });
+        }
+
+        if (tabOnline) {
+            tabOnline.addEventListener('click', () => {
+                tabOnline.classList.add('btn-active');
+                if (tabAttendance) tabAttendance.classList.remove('btn-active');
+                this.renderOnlineMembers();   // show online members
+            });
+        }
 
         // Auto-advance slides
         setInterval(() => {
             this.nextSlide();
+        }, 5000);
+        // Auto-advance the vertical department slider every 5 s
+        setInterval(() => {
+            if (!this.departments || this.departments.length === 0) return;
+
+            // Loop back to the top when we've reached the last card
+            const nextIndex = (this.deptSlide + 1) % this.departments.length;
+            this.goToDeptSlide(nextIndex);
         }, 5000);
     }
 
@@ -608,3 +716,4 @@ document.addEventListener('DOMContentLoaded', () => {
     dashboardManager = new DashboardManager();
     dashboardManager.init();
 });
+

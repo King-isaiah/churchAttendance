@@ -1,5 +1,5 @@
 <?php
-require_once 'Database.php';
+require_once '../class/Database.php';
 
 class Department extends Database {
     
@@ -35,7 +35,21 @@ class Department extends Database {
     
     public function createDepartment($data) {
         try {
-            return $this->insert('departments', $data);
+            $id =  $this->insert('departments', $data);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Create Department.Please try again or call dev.',
+                    'status' => 500 
+                ];
+                
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Department created succesfully."
+            ];
         } catch (Exception $e) {
             error_log("Department create error: " . $e->getMessage());
             return false;
@@ -44,7 +58,21 @@ class Department extends Database {
     
     public function updateDepartment($id, $data) {
         try {
-            return $this->update('departments', $data, 'id = ?', [$id]);
+            $id =  $this->update('departments', $data, 'id = ?', [$id]);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Update Department.Please try again or call dev.',
+                    'status' => 500 
+                ];
+                // throw new Exception("Failed to insert location", 500);
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Location Updated succesfully."
+            ];
         } catch (Exception $e) {
             error_log("Department update error: " . $e->getMessage());
             return false;
@@ -63,11 +91,33 @@ class Department extends Database {
             $members = "SELECT * FROM members WHERE department_id = ?";
             $resultMember = $this->fetchOne($members, [$id]);    
             if ($resultMember) {
-                throw new Exception("Department already in use in members module", 404);
+                
+                // throw new Exception("Department already in use in members module", 404);
+                
+            
+                return [
+                    'success' => false,                    
+                    'message' => "Department already in use in members module.",
+                    'status' => 404
+                ];
             }        
            
             // Delete the speaker from the speakers table
-            return $this->delete('departments', 'id = ?', [$id]);
+            $id = $this->delete('departments', 'id = ?', [$id]);
+            if ($id === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to Delete Department.Please try again or call dev.',
+                    'status' => 500 
+                ];
+                // throw new Exception("Failed to insert location", 500);
+            }
+            
+            return [
+                'success' => true,
+                'id' => $id,
+                'message' => "Department deleted succesfully."
+            ];
         } catch (Exception $e) {
             error_log("Department delete error: " . $e->getMessage());
             return false;

@@ -41,44 +41,28 @@ class QRCodeScanner {
         `;
         
         this.modal.innerHTML = `
-            <div class="qr-scanner-content" style="
-                background: #111;
-                border-radius: 0;
-                width: 100%;
-                height: 100%;
-                max-width: 100%;
-                max-height: 100%;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-            ">
+            <div class="qr-scanner-content">
                 <div class="qr-scanner-header" style="
                     padding: 20px 16px 16px;
-                    background: rgba(0,0,0,0.8);
+                    background: green;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     flex-shrink: 0;
                 ">
-                    <h3 style="margin: 0; color: white; font-size: 18px;">Scan QR Code</h3>
-                    <button class="close-scanner" style="
-                        background: none;
-                        border: none;
-                        font-size: 28px;
-                        cursor: pointer;
-                        color: white;
-                        padding: 8px;
-                        width: 44px;
-                        height: 44px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    ">&times;</button>
+                    <h3 style="margin: 0; color: white; font-size: 18px;">Scan QR Code weee</h3>
+                    <button class="close-scanner">&times;</button>
                 </div>
                 
+<<<<<<< HEAD
                 <div class="qr-scanner-body" style="flex: 1; position: relative;">
                     <!-- HTML5 QR Code Scanner will be mounted here -->
                     <div id="qr-reader" style="width: 100%; height: 100%;"></div>
+=======
+                <div class="qr-scanner-body" style="">
+                    <!-- HTML5 QR Code Scanner will be mounted here -->
+                    <div id="qr-reader" style="width: 100%; height: 100%;"> We are moing slowly but surely</div>
+>>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
                     
                     <div class="file-upload-fallback" id="file-upload-fallback" style="
                         position: absolute;
@@ -102,6 +86,7 @@ class QRCodeScanner {
                         </div>
                         
                         <div style="width: 100%; max-width: 300px;">
+<<<<<<< HEAD
                             <button id="upload-qr-btn" class="btn-primaryScan" style="
                                 width: 100%;
                                 padding: 15px;
@@ -114,6 +99,9 @@ class QRCodeScanner {
                                 cursor: pointer;
                                 margin-bottom: 10px;
                             ">
+=======
+                            <button id="upload-qr-btn" class="btn-primaryScan">
+>>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
                                 📁 Upload & Scan
                             </button>
                             <button id="scan-qr-btn" class="btn-primaryScan" style="

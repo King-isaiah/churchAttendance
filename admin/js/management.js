@@ -255,7 +255,7 @@ function switchView(viewType, addToHistory = true) {
 async function loadData(type) {
     try {
         const config = managementConfig[type];        
-        const response = await fetch(`class/ApiHandler.php?action=getAll&entity=${config.entity}`);
+        const response = await fetch(`../class/ApiHandler.php?action=getAll&entity=${config.entity}`);
         const data = await response.json();
         
         if (data.success) {
@@ -456,7 +456,7 @@ document.getElementById('managementForm').addEventListener('submit', async funct
     
     try {
         const method = id ? 'PUT' : 'POST'; 
-        const url = `class/ApiHandler.php?action=${action}&entity=${config.entity}${id ? '&id=' + id : ''}`;
+        const url = `../class/ApiHandler.php?action=${action}&entity=${config.entity}${id ? '&id=' + id : ''}`;
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -486,7 +486,7 @@ document.getElementById('managementForm').addEventListener('submit', async funct
 async function viewItem(type, id) {
     try {
         const config = managementConfig[type];
-        const response = await fetch(`class/ApiHandler.php?action=get&entity=${config.entity}&id=${id}`);
+        const response = await fetch(`../class/ApiHandler.php?action=get&entity=${config.entity}&id=${id}`);
         const data = await response.json();
         
         if (data.success) {
@@ -593,7 +593,7 @@ async function deleteItem(type, id) {
     
     try {
         const config = managementConfig[type];
-        const response = await fetch(`class/ApiHandler.php?action=delete&entity=${config.entity}&id=${id}`, {
+        const response = await fetch(`../class/ApiHandler.php?action=delete&entity=${config.entity}&id=${id}`, {
             method: 'DELETE'
         });
         
@@ -601,9 +601,9 @@ async function deleteItem(type, id) {
         
         if (result.success) {
             loadData(type);
-            showSuccess('Item deleted successfully');
+            showSuccess(result.message);
         } else {
-            handleApiError(result, 'delete item');
+            showError(result.message);
         }
     } catch (error) {
         showError('Error: ' + error.message);
@@ -644,7 +644,7 @@ function closeModal() {
 async function loadItemData(type, id) {
     try {
         const config = managementConfig[type];
-        const response = await fetch(`class/ApiHandler.php?action=get&entity=${config.entity}&id=${id}`);
+        const response = await fetch(`../class/ApiHandler.php?action=get&entity=${config.entity}&id=${id}`);
         const data = await response.json();
         
         if (data.success) {

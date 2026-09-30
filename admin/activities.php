@@ -24,7 +24,6 @@ $statuses = $status->getAllStatuses();
 $attendanceMethods = $attendanceMethod->getAllAttendanceMethods();
     
 
-
 // Calculate active count for stats
 $activeCount = 0;
 foreach ($activities as $activityItem) {
@@ -51,7 +50,6 @@ foreach ($activities as $activityItem) {
             <option value="all">All Categories</option>
             <?php foreach($categories as $category): ?>
                 <?php 
-                // Get the category name from the array
                 $categoryName = $category['categories'] ?? $category['name'] ?? $category;
                 if($categoryName != 'All'): 
                 ?>
@@ -71,12 +69,6 @@ foreach ($activities as $activityItem) {
         </select>
     </div>
     <div class="filter-group">
-        <!-- <select id="dateFilter">
-            <option value="all">All Days</option>
-            <?php foreach($day as $days): ?>
-                <option value="<?php echo $days['dayofactivity']; ?>"><?php echo $days['dayofactivity']; ?></option>
-            <?php endforeach; ?>
-        </select> -->
         <input type="date" id="dateFilter">
     </div>
    
@@ -199,7 +191,7 @@ foreach ($activities as $activityItem) {
         
         <div class="sidebar-section">
             <h4>Categories Distribution</h4>
-            <h6>testing to see</h6>
+            
             <canvas id="categoriesChart" width="300" height="200"> thestoig to see</canvas>
         </div>
     </div>
@@ -317,7 +309,6 @@ foreach ($activities as $activityItem) {
                             <?php if(!empty($attendanceMethods)): ?>
                                 <?php foreach($attendanceMethods as $method): ?>
                                     <?php 
-                                    // Handle different possible data structures
                                     if (is_array($method)) {
                                         $methodCode = $method['code'] ?? $method['id'] ?? $method;
                                         $methodName = $method['name'] ?? $method;
@@ -341,30 +332,31 @@ foreach ($activities as $activityItem) {
 
                    
                              
-                <div class="department-selection">    
-                    <div class="form-group department-field" id="originalDepartment">
-                        <div class="form-group">
-                            <label for="eventDepartment1">Department</label>
-                            <select id="eventDepartment1" name="department_id[]" class="department-select">
-                                <option value="">Select Department</option> 
-                                <option value="0">All Departments</option>
-                                <?php foreach ($departments as $dept): ?>
-                                    <option value="<?php echo $dept['id']; ?>">
-                                        <?php echo htmlspecialchars($dept['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                    <!-- CORRECTED DEPARTMENT SECTION -->
+                    <div class="department-selection">
+                        <div id="createDepartmentContainer">
+                            <div class="form-group department-field" id="originalDepartment">
+                                <div class="form-group">
+                                    <label for="eventDepartment1">Department</label>
+                                    <select id="eventDepartment1" name="department_id[]" class="department-select">
+                                        <option value="">Select Department</option>
+                                        <option value="all">All Departments</option>
+                                        <?php foreach ($departments as $dept): ?>
+                                            <option value="<?php echo $dept['id']; ?>">
+                                                <?php echo htmlspecialchars($dept['name']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="additionalDepartments"></div>
                         </div>
-                        
+
+                        <button type="button" id="addDepartmentBtn" class="add-department-btn">
+                            + Add Another Department
+                        </button>
+                        <small class="hint">Maximum 7 departments total</small>
                     </div>
-                    
-                    <div id="additionalDepartments"></div>
-                    
-                    <button type="button" id="addDepartmentBtn"  class="add-department-btn">
-                        + Add Another Department
-                    </button>
-                    <small class="hint">Maximum 7 departments total</small>
-                </div>
                 </div>
                 
                 <div class="form-group">
