@@ -11,14 +11,52 @@
             $this->db = $this->getConnection();
         }
         
-        protected function getConnection() {
-            $host = 'localhost';
-            $dbname = 'church_attendance';
-            $user = 'root';
-            $pass = '';
-            $charset = 'utf8mb4';
+        // protected function getConnection() {
+        //     $host = 'localhost';
+        //     $dbname = 'church_attendance';
+        //     $user = 'root';
+        //     $pass = '';
+        //     $charset = 'utf8mb4';
             
-            $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+        //     $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+            
+        //     try {
+        //         $pdo = new PDO($dsn, $user, $pass);
+        //         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        //         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        //         $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+        //         return $pdo;
+        //     } catch (PDOException $e) {
+        //         error_log("Database connection failed: " . $e->getMessage());
+        //         throw new Exception("Database connection failed: " . $e->getMessage());
+        //     }
+        // }
+        protected function getConnection() {
+            // 1. Detect if we are on localhost or the live server
+            $isLocalhost = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1']);
+            
+            if ($isLocalhost) {
+                // ==========================================
+                // LOCAL WAMP CONFIGURATION
+                // ==========================================
+                $host = 'localhost';
+                $dbname = 'church_attendance';
+                $user = 'root';
+                $pass = '';
+                
+            } else {
+                // ==========================================
+                // LIVE INFINITYFREE CONFIGURATION
+                // ==========================================
+                $host = 'sql304.infinityfree.com';
+                $dbname = 'if0_43093237_church_attendance';
+                $user = 'if0_43093237';
+                $pass = 'vAe14a7A7Ko18bk'; 
+                
+            }
+            
+            // 2. Use MySQL (InfinityFree and WAMP both use MySQL)
+            $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
             
             try {
                 $pdo = new PDO($dsn, $user, $pass);
@@ -31,7 +69,6 @@
                 throw new Exception("Database connection failed: " . $e->getMessage());
             }
         }
-        
         /**
          * Enhanced error classification system
          */
