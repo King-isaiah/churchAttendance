@@ -14,7 +14,7 @@ class UserProfile {
 
 async loadDepartments() {
     try {
-        const url = `class/ApiHandler.php?action=getAll&entity=departments`;
+        const url = `../class/ApiHandler.php?action=getAll&entity=departments`;
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -135,7 +135,7 @@ populateDepartmentDropdown(departments) {
     async fetchProfileData() {
         try {           
             let unique_id = this.uniqueId
-            const response = await fetch(`class/ApiHandler.php?action=get&entity=members&id=${unique_id}`);           
+            const response = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${unique_id}`);           
             const result = await response.json();
             if (result.success && result.data) {
                 // showSuccess('we in fm')
@@ -264,7 +264,7 @@ async handleProfileSubmit(e) {
             // department_id: '12',               
         };
     
-        const url = `class/ApiHandler.php?action=update&entity=members&id=${this.uniqueId}`;
+        const url = `../class/ApiHandler.php?action=update&entity=members&id=${this.uniqueId}`;
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -351,7 +351,7 @@ async handleProfileSubmit(e) {
                 password: data.new_password                
             };
             
-            const url = `class/ApiHandler.php?action=update&entity=members&id=${this.uniqueId}`;
+            const url = `../class/ApiHandler.php?action=update&entity=members&id=${this.uniqueId}`;
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {

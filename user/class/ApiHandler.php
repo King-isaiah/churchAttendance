@@ -3,8 +3,8 @@
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 
-    // require_once '/../../class/Database.php';
-    require_once '../../class/Database.php';
+    // require_once 'Database.php';
+    require_once __DIR__ . '/../../class/Database.php';
     require_once 'Location.php';
     require_once 'Department.php';
     require_once 'Category.php';
