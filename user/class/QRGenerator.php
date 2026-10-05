@@ -1,5 +1,5 @@
 <?php
-require_once 'Database.php';
+require_once '../class/Database.php';
 require_once 'Activity.php';
 class QRGenerator extends Database {
     public function generateQRCode($activityId, $data) {
