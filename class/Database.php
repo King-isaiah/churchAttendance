@@ -1,11 +1,6 @@
 <?php
-   
-
-
-
     class Database {
-        protected $db;
-        
+        protected $db;        
         // Error type constants
         const ERROR_USER_FACING = 'user_facing';
         const ERROR_DEVELOPER = 'developer';
@@ -13,9 +8,7 @@
         public function __construct() {
             $this->db = $this->getConnection();
         }
-        
-       
-      
+
         // This is for render
         // protected function getConnection() {
         //     // Check if we're on Render (DATABASE_URL environment variable exists)
@@ -176,27 +169,23 @@
         protected function fetchOne($sql, $params = []) {
             $stmt = $this->executeQuery($sql, $params);
             return $stmt->fetch();
+        }    
+          
+        protected function insert($table, $data) {
+            try {
+                $columns = implode(', ', array_keys($data));
+                $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                $values = array_values($data);
+                
+                $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+                
+                $this->executeQuery($sql, $values);
+                return $this->db->lastInsertId();
+            } catch (PDOException $e) {
+                // This will now throw exceptions with proper HTTP status codes
+                $this->classifyError($e);
+            }
         }
-        
-        
-        
-     
-
-protected function insert($table, $data) {
-    try {
-        $columns = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
-        $values = array_values($data);
-        
-        $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
-        
-        $this->executeQuery($sql, $values);
-        return $this->db->lastInsertId();
-    } catch (PDOException $e) {
-        // This will now throw exceptions with proper HTTP status codes
-        $this->classifyError($e);
-    }
-}
 
         protected function update($table, $data, $where, $whereParams) {
             try {
@@ -247,6 +236,7 @@ protected function insert($table, $data) {
             return $result['count'] > 1;
         }
 
+        
         private function classifyError(PDOException $e) {
             $errorCode = $e->getCode();
             $errorMessage = $e->getMessage();
@@ -314,6 +304,31 @@ protected function insert($table, $data) {
         
         protected function rollBack() {
             return $this->db->rollBack();
+        }
+
+        // stuffs gotten fromt he database user
+        protected function recordExists($table, $conditions, $excludeId = null) {
+            $whereClauses = [];
+            $params = [];
+            
+            foreach ($conditions as $column => $value) {
+                $whereClauses[] = "$column = ?";
+                $params[] = $value;
+            }
+            
+            $sql = "SELECT COUNT(*) as count FROM $table WHERE " . implode(' AND ', $whereClauses);
+            
+            if ($excludeId) {
+                $sql .= " AND id != ?";
+                $params[] = $excludeId;
+            }
+            
+            $result = $this->fetchOne($sql, $params);
+            return $result['count'] > 0;
+        }
+
+        protected function valueExistsMultiple($table, $conditions, $excludeId = null) {
+            return $this->recordExists($table, $conditions, $excludeId);
         }
     }
 
