@@ -28,3 +28,6 @@ jobs:
           **/node_modules/**
           **/.vscode/**
           **/start-server.bat
+          **/fontawesome/**
+          **/images/**
+          **/video/**
