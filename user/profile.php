@@ -1,7 +1,7 @@
 <?php
    include_once "include/user_header.php"; 
     
-    $departments = ['Worship Team', 'Youth Ministry', 'Children Ministry', 'Outreach', 'Administration'];
+    // $departments = ['Worship Team', 'Youth Ministry', 'Children Ministry', 'Outreach', 'Administration'];
 ?>
 
 <!DOCTYPE html>

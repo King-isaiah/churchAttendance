@@ -556,7 +556,7 @@ async handleProfileSubmit(e) {
                                 <button type="button" class="btn-secondary" onclick="exportMyData()" style="margin-right: 10px;">
                                     <i class="fas fa-download"></i> Export My Data
                                 </button>
-                                <button type="button" class="btn-danger" onclick="requestDataDeletion()">
+                                <button type="button" class="btn-secondary" onclick="requestDataDeletion()">
                                     <i class="fas fa-trash"></i> Request Data Deletion
                                 </button>
                             </div>

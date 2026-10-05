@@ -1,9 +1,6 @@
 <?php
 include "include/header.php";
-// include "class/Location.php";
-// include "class/Department.php";
-// include "class/Category.php";
-// include "class/Speaker.php";
+
 
 
 
