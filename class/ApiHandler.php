@@ -87,11 +87,27 @@
 
         private function handleGet() {
             switch ($this->action) {
-                case 'getAll': $this->getAll(); break;
-                case 'get':    $this->get();    break;
-                case 'getQR':  $this->getQR();  break;
+                case 'getAll':
+                    $this->getAll();
+                    break;
+                case 'get':
+                    $this->get();
+                    break;
+                case 'getOthers':
+                    $this->getOthers();
+                    break;
+                case 'getCurrentUser':
+                    $this->getCurrentUser();
+                    break;
+                case 'getQR': 
+                    $this->getQR();
+                    break;
                 default:
-                    $this->sendResponse(['success' => false, 'message' => 'Invalid action get request', 'errorType' => 'client'], 400);
+                    $this->sendResponse([
+                        'success' => false, 
+                        'message' => 'Invalid action get request',
+                        'errorType' => 'client'
+                    ], 400);
             }
         }
 
@@ -121,6 +137,42 @@
             }
         }
 
+        private function getOthers() {
+            $entityClass = $this->getEntityClass();
+            if (!$entityClass) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid entity',
+                    'errorType' => 'clientgetOthers'
+                ], 400);
+                return;
+            }
+            
+            $entity = new $entityClass();
+            
+            // Map entity to method name
+            $methodMap = [            
+                'activities' => 'getLocationActivitiesWithLocationCoordinate',
+                'attendance' => 'getLocationActivitiesWithLocationCoordinate',
+                'categories' => 'getCategoriesInEvents',
+            ];
+            
+            $method = $methodMap[$this->entity] ?? 'getOthers';
+            
+            if (method_exists($entity, $method)) {
+                $data = $entity->$method();
+                $this->sendResponse([
+                    'success' => true, 
+                    'data' => $data
+                ]);
+            } else {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => "Method $method not found for {$this->entity}",
+                    'errorType' => 'servergetOthers'
+                ], 500);
+            }
+        }
         // -------------------- Core Actions --------------------
 
         private function getAll() {
