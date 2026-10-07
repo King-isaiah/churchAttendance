@@ -89,8 +89,8 @@
                                         <i class="fas fa-users"></i>
                                     </div>
                                     <div class="notification-content">
-                                        <p>New event: Youth Night this Friday</p>
-                                        <span class="notification-time">2 hours ago</span>
+                                        <p></p>
+                                        <span class="notification-time"></span>
                                     </div>
                                 </div>
                             </div>
