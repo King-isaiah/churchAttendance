@@ -65,7 +65,7 @@ class UserActivities {
 
     async populateCategories() {
         try {
-            const response = await fetch('class/ApiHandler.php?entity=categories&action=getAll');
+            const response = await fetch('../class/ApiHandler.php?entity=categories&action=getAll');
             
             if (!response.ok) {
                 showError('response for populateCategoryfailed')
@@ -124,7 +124,7 @@ class UserActivities {
 
     async fetchActivities() {       
         try {
-            const response = await fetch('class/ApiHandler.php?entity=activities&action=getAll');
+            const response = await fetch('../class/ApiHandler.php?entity=activities&action=getAll');
         
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -170,23 +170,7 @@ class UserActivities {
     
     
     
-    // async fetchActivities() {
-    //     try {
-    //         const response = await fetch('class/ApiHandler.php?entity=activities&action=getAll');
-    //         const data = await response.json();
-            
-    //         // Return the actual data from your API
-    //         if (data.success) {
-    //             return data.data; // This should be your actual activities from the database
-    //         } else {
-    //             return []; // Return empty array if API call wasn't successful
-    //         }
-            
-    //     } catch (error) {
-    //         console.error('Error fetching activities:', error);
-    //         throw new Error('Failed to fetch activities: ' + error.message);
-    //     }
-    // }
+     
 
     filterActivities() {
         const searchTerm = document.getElementById('activitySearch').value.toLowerCase();
@@ -373,7 +357,7 @@ class UserActivities {
     async fetchActivityDetails(activityId) {
         try {
          
-            const response = await fetch(`class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
+            const response = await fetch(`../class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
             const data = await response.json();
           
             if (data.success) {

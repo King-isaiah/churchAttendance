@@ -1,11 +1,6 @@
 <?php
-   
-
-
-
     class Database {
-        protected $db;
-        
+        protected $db;        
         // Error type constants
         const ERROR_USER_FACING = 'user_facing';
         const ERROR_DEVELOPER = 'developer';
@@ -13,77 +8,97 @@
         public function __construct() {
             $this->db = $this->getConnection();
         }
-        
+
+        // This is for render
         // protected function getConnection() {
-        //     $host = 'localhost';
-        //     $dbname = 'church_attendance';
-        //     $user = 'root';
-        //     $pass = '';
-        //     $charset = 'utf8mb4';
+        //     // Check if we're on Render (DATABASE_URL environment variable exists)
+        //     $databaseUrl = getenv('DATABASE_URL');
             
-        //     $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
-            
-        //     try {
-        //         $pdo = new PDO($dsn, $user, $pass);
-        //         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        //         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        //         $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-        //         return $pdo;
-        //     } catch (PDOException $e) {
-        //         error_log("Database connection failed: " . $e->getMessage());
-        //         throw new Exception("Database connection failed: " . $e->getMessage());
+        //     if ($databaseUrl) {
+        //         // We're on Render - use PostgreSQL
+        //         $db = parse_url($databaseUrl);
+                
+        //         $host = $db['host'];
+        //         $port = $db['port'] ?? '5432';
+        //         $dbname = ltrim($db['path'], '/');
+        //         $user = $db['user'];
+        //         $pass = $db['pass'];
+                
+                
+        //         $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;";
+                
+        //         try {
+        //             $pdo = new PDO($dsn, $user, $pass);
+        //             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        //             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        //             // Note: ATTR_EMULATE_PREPARES is not set for PostgreSQL
+        //             return $pdo;
+        //         } catch (PDOException $e) {
+        //             error_log("Database connection failed: " . $e->getMessage());
+        //             throw new Exception("Database connection failed: " . $e->getMessage());
+        //         }
+        //     } else {
+        //         // We're on localhost - use MySQL (your original code)
+        //         $host = 'localhost';
+        //         $dbname = 'church_attendance';
+        //         $user = 'root';
+        //         $pass = '';
+        //         $charset = 'utf8mb4';
+                
+        //         $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+                
+        //         try {
+        //             $pdo = new PDO($dsn, $user, $pass);
+        //             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        //             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        //             $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+        //             return $pdo;
+        //         } catch (PDOException $e) {
+        //             error_log("Database connection failed: " . $e->getMessage());
+        //             throw new Exception("Database connection failed: " . $e->getMessage());
+        //         }
         //     }
         // }
-
+        
+        // This is for infinity free
         protected function getConnection() {
-            // Check if we're on Render (DATABASE_URL environment variable exists)
-            $databaseUrl = getenv('DATABASE_URL');
+            // 1. Detect if we are on localhost or the live server
+            $isLocalhost = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1']);
             
-            if ($databaseUrl) {
-                // We're on Render - use PostgreSQL
-                $db = parse_url($databaseUrl);
-                
-                $host = $db['host'];
-                $port = $db['port'] ?? '5432';
-                $dbname = ltrim($db['path'], '/');
-                $user = $db['user'];
-                $pass = $db['pass'];
-                
-                $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;";
-                
-                try {
-                    $pdo = new PDO($dsn, $user, $pass);
-                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                    // Note: ATTR_EMULATE_PREPARES is not set for PostgreSQL
-                    return $pdo;
-                } catch (PDOException $e) {
-                    error_log("Database connection failed: " . $e->getMessage());
-                    throw new Exception("Database connection failed: " . $e->getMessage());
-                }
-            } else {
-                // We're on localhost - use MySQL (your original code)
+            if ($isLocalhost) {
+                // ==========================================
+                // LOCAL WAMP CONFIGURATION
+                // ==========================================
                 $host = 'localhost';
                 $dbname = 'church_attendance';
                 $user = 'root';
                 $pass = '';
-                $charset = 'utf8mb4';
                 
-                $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+            } else {
+                // ==========================================
+                // LIVE INFINITYFREE CONFIGURATION
+                // ==========================================
+                $host = 'sql304.infinityfree.com';
+                $dbname = 'if0_43093237_church_attendance';
+                $user = 'if0_43093237';
+                $pass = 'vAe14a7A7Ko18bk'; 
                 
-                try {
-                    $pdo = new PDO($dsn, $user, $pass);
-                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                    $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-                    return $pdo;
-                } catch (PDOException $e) {
-                    error_log("Database connection failed: " . $e->getMessage());
-                    throw new Exception("Database connection failed: " . $e->getMessage());
-                }
+            }
+            
+            // 2. Use MySQL (InfinityFree and WAMP both use MySQL)
+            $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+            
+            try {
+                $pdo = new PDO($dsn, $user, $pass);
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+                return $pdo;
+            } catch (PDOException $e) {
+                error_log("Database connection failed: " . $e->getMessage());
+                throw new Exception("Database connection failed: " . $e->getMessage());
             }
         }
-        
       
         
         /**
@@ -154,27 +169,23 @@
         protected function fetchOne($sql, $params = []) {
             $stmt = $this->executeQuery($sql, $params);
             return $stmt->fetch();
+        }    
+          
+        protected function insert($table, $data) {
+            try {
+                $columns = implode(', ', array_keys($data));
+                $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                $values = array_values($data);
+                
+                $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+                
+                $this->executeQuery($sql, $values);
+                return $this->db->lastInsertId();
+            } catch (PDOException $e) {
+                // This will now throw exceptions with proper HTTP status codes
+                $this->classifyError($e);
+            }
         }
-        
-        
-        
-     
-
-protected function insert($table, $data) {
-    try {
-        $columns = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
-        $values = array_values($data);
-        
-        $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
-        
-        $this->executeQuery($sql, $values);
-        return $this->db->lastInsertId();
-    } catch (PDOException $e) {
-        // This will now throw exceptions with proper HTTP status codes
-        $this->classifyError($e);
-    }
-}
 
         protected function update($table, $data, $where, $whereParams) {
             try {
@@ -225,6 +236,7 @@ protected function insert($table, $data) {
             return $result['count'] > 1;
         }
 
+        
         private function classifyError(PDOException $e) {
             $errorCode = $e->getCode();
             $errorMessage = $e->getMessage();
@@ -292,6 +304,31 @@ protected function insert($table, $data) {
         
         protected function rollBack() {
             return $this->db->rollBack();
+        }
+
+        // stuffs gotten fromt he database user
+        protected function recordExists($table, $conditions, $excludeId = null) {
+            $whereClauses = [];
+            $params = [];
+            
+            foreach ($conditions as $column => $value) {
+                $whereClauses[] = "$column = ?";
+                $params[] = $value;
+            }
+            
+            $sql = "SELECT COUNT(*) as count FROM $table WHERE " . implode(' AND ', $whereClauses);
+            
+            if ($excludeId) {
+                $sql .= " AND id != ?";
+                $params[] = $excludeId;
+            }
+            
+            $result = $this->fetchOne($sql, $params);
+            return $result['count'] > 0;
+        }
+
+        protected function valueExistsMultiple($table, $conditions, $excludeId = null) {
+            return $this->recordExists($table, $conditions, $excludeId);
         }
     }
 

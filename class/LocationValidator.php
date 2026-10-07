@@ -1,5 +1,5 @@
 <?php
-require_once '../class/Database.php';
+require_once 'Database.php';
 
 class LocationValidator extends Database {
     private $allowedRadius = 100; // meters

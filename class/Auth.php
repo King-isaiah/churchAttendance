@@ -65,7 +65,7 @@ class Auth extends Database {
         unset($user['password']);
 
         // Determine redirect based on role
-        $redirect = ($_SESSION['user_role'] === 'admin') ? 'admin/index.php' : 'user/user_dashboard.php';
+        $redirect = ($_SESSION['user_role'] === 'admin') ? 'admin/dashboard.php' : 'user/user_dashboard.php';
         // $data = [
 
         // ];

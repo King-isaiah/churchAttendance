@@ -812,7 +812,7 @@
 
                 // Check the user's role sent from the backend
                 if (data.user && data.user.role === 'admin') {
-                    redirectUrl = 'admin/index.php'; // Loads your admin index
+                    redirectUrl = 'admin/dashboard.php'; // Loads your admin index
                 } else if (data.user && data.user.role === 'worker') {
                     redirectUrl = 'user/user_dashboard.php'; // Loads worker dashboard
                 } else if (data.redirect) {

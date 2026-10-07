@@ -1136,7 +1136,7 @@ showImmediateScanFeedback() {
             
             console.log('Submitting attendance:', formData);
             
-            const response = await fetch('class/ApiHandler.php?entity=attendance&action=create', {
+            const response = await fetch('../class/ApiHandler.php?entity=attendance&action=create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

@@ -23,6 +23,20 @@
     require_once '../admin/class/Report.php';
     require_once '../admin/class/Notification.php';
     require_once 'Auth.php';
+    // require_once 'Location.php';
+    // require_once 'Department.php';
+    // require_once 'Category.php';
+    // require_once 'Speaker.php';
+    // require_once 'Event.php';    
+    // require_once 'Attendance.php';
+    // require_once 'Activity.php';
+    // require_once 'AttendanceMethod.php';
+    // require_once 'Status.php';
+    // require_once 'LocationValidator.php';
+    // require_once 'QRGenerator.php';
+    // require_once 'RSVP.php';
+    // require_once 'Report.php';
+    // require_once 'Notification.php';
 
     class ApiHandler {
         private $entity;
