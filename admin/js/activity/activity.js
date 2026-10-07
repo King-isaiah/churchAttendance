@@ -658,8 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
             time_exp: document.getElementById('time_exp').value,
             location_id: document.getElementById('location_id').value,
             attendance_method_id: document.getElementById('attendance_method_id').value,
-            // target_audience: document.getElementById('target_audience').value,
-            target_audience: 'target_audience',
+          
             expected_count: document.getElementById('expected_count').value,
             status_id: document.getElementById('status_id').value,
             department_id: departmentIds,
@@ -1050,10 +1049,7 @@ function showActivityDetailsModal(activity) {
                                     <label>Attendance Method:</label>
                                     <span>${formatAttendanceMethod(activity.attendance_method)}</span>
                                 </div>
-                                <div class="detail-item">
-                                    <label>Target Audience:</label>
-                                    <span>${formatTargetAudience(activity.target_audience)}</span>
-                                </div>
+                               
                                 <div class="detail-item">
                                     <label>Expected Attendance:</label>
                                     <span>${activity.expected_count || 0}</span>
@@ -1183,15 +1179,7 @@ function showEditActivityModal(activity) {
                                 </select>
                             </div>
                              
-                            <div class="form-group">
-                                <label for="edit_target_audience">Target Audience *</label>
-                                <select id="edit_target_audience" required>
-                                    <option value="all">All Members</option>
-                                    <option value="youth">Youth Only</option>
-                                    <option value="adults">Adults Only</option>
-                                    <option value="children">Children Only</option>
-                                </select>
-                            </div>
+                           
                         </div>
                         
                         <div class="form-group">
@@ -1221,7 +1209,6 @@ function showEditActivityModal(activity) {
     
     // Set the day value
     document.getElementById('edit_dayofactivity').value = activity.dayofactivity;
-    document.getElementById('edit_target_audience').value = activity.target_audience || 'all';
     
     // Populate other dynamic dropdowns
     populateEditFormDropdowns(activity);
@@ -1304,7 +1291,6 @@ async function handleEditFormSubmit(e) {
         time_exp: document.getElementById('edit_time_exp').value,
         location_id: document.getElementById('edit_location').value,
         attendance_method_id: document.getElementById('edit_attendance_method').value,
-        target_audience: document.getElementById('edit_target_audience').value,
         expected_count: document.getElementById('edit_expected_count').value,
         department_id: departmentIds
     };
@@ -1465,7 +1451,7 @@ async function handleEditFormSubmit(e) {
     const requiredFields = [
         'edit_name', 'edit_category', 'edit_status', 
         'edit_dayofactivity', 'edit_time', 'edit_time_exp',
-        'edit_location', 'edit_attendance_method', 'edit_target_audience',
+        'edit_location', 'edit_attendance_method',
         'edit_expected_count'
     ];
     
@@ -1552,7 +1538,7 @@ async function handleEditFormSubmit(e) {
         time_exp: document.getElementById('edit_time_exp').value,
         location_id: parseInt(document.getElementById('edit_location').value),
         attendance_method_id: parseInt(document.getElementById('edit_attendance_method').value),
-        target_audience: document.getElementById('edit_target_audience').value,
+        
         expected_count: expectedCount,
         department_id: validDepartmentIds // Send as array of strings
     };
