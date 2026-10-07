@@ -493,9 +493,9 @@ async getIPLocation() {
         
         // Update button icon to burger (for when it's collapsed)
         const expandBtnIcon = document.querySelector('.expand-btn i');
-        if (expandBtnIcon) {
-            expandBtnIcon.className = 'fas fa-bars';
-        }
+        // if (expandBtnIcon) {
+        //     expandBtnIcon.className = 'fas fa-bars';
+        // }
         
         this.navCollapsed = true;
         localStorage.setItem('navCollapsed', 'true');

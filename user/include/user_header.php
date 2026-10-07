@@ -29,9 +29,9 @@
             <div class="top-nav">
                 <div class="nav-left">
                     
-                    <button class="mobile-menu-btn" onclick="toggleNavList()">
+                    <!-- <button class="mobile-menu-btn" onclick="toggleNavList()">
                         <i class="fas fa-bars"></i>
-                    </button>
+                    </button> -->
                     <div class="user-welcome">
                         <div class="welcome-content">
                             <h6 class="welcome-text">Welcome, <span class="user-name"> <?php  echo $_SESSION['user_name'] ?></span>! 👋</h6>
@@ -125,7 +125,7 @@
                                     <span class="user-id">ID: MEM-22<?php echo $_SESSION['unique_id'] ?>3983</span>
                                 
                                     <input id='unique_id' type="hidden" value="<?php echo $_SESSION['unique_id']; ?>">
-                                    <!-- <input id='department_id' type="" value="<?php echo $_SESSION['primary_dept_id'] ; ?>"> -->
+                                    <input id='department_id' type="hidden" value="<?php echo $_SESSION['primary_dept_id'] ; ?>">
                                 </div>
                             </div>
 
