@@ -91,7 +91,7 @@ public function getLocationActivitiesWithLocationCoordinate() {
                 AND attendance_method_id = 3 
                 AND time_exp > ? 
                 AND dayofactivity = ?
-                AND delete IS NULL 
+                AND deleted IS NULL 
                 AND (
                     JSON_CONTAINS(activities.department_id, ?) 
                     OR JSON_CONTAINS(activities.department_id, '\"all\"')
