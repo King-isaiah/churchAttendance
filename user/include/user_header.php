@@ -66,7 +66,7 @@
                     <div class="notification-bell">
                         <button class="notification-btn">
                             <i class="fas fa-bell"></i>
-                            <span class="notification-count">3</span>
+                            <span class="notification-count">0</span>
                         </button>
                         <div class="notification-dropdown">
                             <div class="notification-header">
@@ -79,19 +79,11 @@
                                         <i class="fas fa-calendar-check"></i>
                                     </div>
                                     <div class="notification-content">
-                                        <p>Sunday Service starts in 2 hours</p>
-                                        <span class="notification-time">10 min ago</span>
+                                        <p></p>
+                                        <span class="notification-time"></span>
                                     </div>
                                 </div>
-                                <div class="notification-item unread">
-                                    <div class="notification-icon">
-                                        <i class="fas fa-trophy"></i>
-                                    </div>
-                                    <div class="notification-content">
-                                        <p>You've achieved 3-week streak! 🎉</p>
-                                        <span class="notification-time">1 hour ago</span>
-                                    </div>
-                                </div>
+                                
                                 <div class="notification-item">
                                     <div class="notification-icon">
                                         <i class="fas fa-users"></i>
