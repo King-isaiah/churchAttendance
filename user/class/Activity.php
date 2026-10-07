@@ -1,5 +1,5 @@
 <?php
-require_once '../class/Database.php';
+require_once 'Database.php';
 
 class Activity extends Database {
     

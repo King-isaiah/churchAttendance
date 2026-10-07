@@ -152,14 +152,14 @@ class UserDashboard {
             }
            
             // First get member info for welcome message
-            const memberResponse = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${this.userId}`);
+            const memberResponse = await fetch(`class/ApiHandler.php?action=get&entity=members&id=${this.userId}`);
             const memberResult = await memberResponse.json();
           
             if (memberResult.success && memberResult.data) {
                 const userData = memberResult.data;
                 // showSuccess('tracking it in')
                 // console.log(userData)
-                const memberAttendanceRecord = await fetch(`../class/ApiHandler.php?action=get&entity=reports&id=${this.userId}`);
+                const memberAttendanceRecord = await fetch(`class/ApiHandler.php?action=get&entity=reports&id=${this.userId}`);
                 const memberReport = await memberAttendanceRecord.json();
                 console.log(memberReport)
                 this.updateDashboardStats(memberReport);
@@ -261,7 +261,7 @@ updateDashboardStats(memberReport) {
 
     async loadUpcomingActivities() {
         try {
-            const response = await fetch(`../class/ApiHandler.php?action=getAll&entity=activities`);
+            const response = await fetch(`class/ApiHandler.php?action=getAll&entity=activities`);
             const result = await response.json();
             console.log(result)
 
@@ -398,7 +398,7 @@ updateDashboardStats(memberReport) {
 
     async loadRecentAttendance() {
         try {
-            const response = await fetch(`../class/ApiHandler.php?action=get&entity=attendance&id=${this.userId}`);
+            const response = await fetch(`class/ApiHandler.php?action=get&entity=attendance&id=${this.userId}`);
             const result = await response.json();
 
             const container = document.getElementById('recentAttendance');
@@ -549,7 +549,7 @@ updateDashboardStats(memberReport) {
     async markAttendance(qrData) {
         try {
             // You need to create this endpoint for marking attendance
-            const response = await fetch('../class/ApiHandler.php?action=create&entity=attendance', {
+            const response = await fetch('class/ApiHandler.php?action=create&entity=attendance', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -609,7 +609,7 @@ updateDashboardStats(memberReport) {
     async fetchActivityDetails(activityId) {
         try {
          
-            const response = await fetch(`../class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
+            const response = await fetch(`class/ApiHandler.php?entity=activities&action=get&id=${activityId}`);
             const data = await response.json();
           
             if (data.success) {

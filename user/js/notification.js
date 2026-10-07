@@ -98,7 +98,7 @@ class NotificationSystem {
                 return;
             }
             
-            const memberResponse = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${this.userId}`);
+            const memberResponse = await fetch(`class/ApiHandler.php?action=get&entity=members&id=${this.userId}`);
             const memberResult = await memberResponse.json();
           
             if (memberResult.success && memberResult.data) {
@@ -173,7 +173,7 @@ class NotificationSystem {
         try {
             let url = '';            
             if (this.userDepartmentId) {
-                url = `../class/ApiHandler.php?entity=notifications&action=get&id=${this.userDepartmentId}`;
+                url = `class/ApiHandler.php?entity=notifications&action=get&id=${this.userDepartmentId}`;
                 console.log('Fetching notifications for users ID:', this.userDepartmentId);
             } else {
                 // url = `class/ApiHandler.php?entity=notifications&action=getAll`;                
@@ -432,7 +432,7 @@ class NotificationSystem {
             if (locallyReadIds.length > 0) {
                 console.log('Syncing', locallyReadIds.length, 'locally read IDs with server');
                 
-                await fetch(`../class/ApiHandler.php?entity=notifications&action=special`, {
+                await fetch(`class/ApiHandler.php?entity=notifications&action=special`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -452,7 +452,7 @@ class NotificationSystem {
     
     async viewNotificationDetails(notificationId) {
         try {
-            const response = await fetch(`../class/ApiHandler.php?entity=notifications&action=get&id=${notificationId}`);
+            const response = await fetch(`class/ApiHandler.php?entity=notifications&action=get&id=${notificationId}`);
             const data = await response.json();
             
             if (data.success) {
@@ -537,7 +537,7 @@ class NotificationSystem {
         if (!confirm('Are you sure you want to delete this notification?')) return;
         
         try {
-            const response = await fetch(`../class/ApiHandler.php?entity=notifications&action=delete&id=${notificationId}`, {
+            const response = await fetch(`class/ApiHandler.php?entity=notifications&action=delete&id=${notificationId}`, {
                 method: 'DELETE'
             });
             

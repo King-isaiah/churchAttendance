@@ -52,7 +52,7 @@ class UserHeader {
 
             const time = getCurrentTime();
         
-            const response = await fetch(`../class/ApiHandler.php?entity=activities&action=getOthers`);          
+            const response = await fetch(`class/ApiHandler.php?entity=activities&action=getOthers`);          
             const data = await response.json();
           
             if (data.success) {                  
@@ -105,7 +105,7 @@ class UserHeader {
                                 status: 'present',
                             };
                             // Send to API
-                            fetch('../class/ApiHandler.php?entity=attendance&action=create', {
+                            fetch('class/ApiHandler.php?entity=attendance&action=create', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -324,7 +324,7 @@ async getIPLocation() {
            
         try {
             // showSuccess('fetchUserData try');
-            const response = await fetch('../class/ApiHandler.php?action=getCurrentUser&entity=members', {
+            const response = await fetch('class/ApiHandler.php?action=getCurrentUser&entity=members', {
                 method: 'GET',
                 credentials: 'include'                
             });            

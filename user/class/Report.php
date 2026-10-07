@@ -1,5 +1,5 @@
 <?php
-require_once '../class/Database.php';
+require_once 'Database.php';
 
 class Report extends Database {
     public function creatAReport($data){
