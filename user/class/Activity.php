@@ -3,50 +3,115 @@ require_once 'Database.php';
 
 class Activity extends Database {
     
-    public function getLocationActivitiesWithLocationCoordinate() {
-       try {  
-            function getToday() {
-                $today = new DateTime();
-                $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                return $days[$today->format('w')]; 
-            }   
-            function getCurrentTime() {
-                $now = new DateTime();
-                $hours = (int)$now->format('G');  // 0-23, no leading zeros
-                $minutes = (int)$now->format('i'); // 00-59
-                $seconds = (int)$now->format('s'); // 00-59
+    // public function getLocationActivitiesWithLocationCoordinate() {
+    //    try {  
+    //         function getToday() {
+    //             $today = new DateTime();
+    //             $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    //             return $days[$today->format('w')]; 
+    //         }   
+    //         function getCurrentTime() {
+    //             $now = new DateTime();
+    //             $hours = (int)$now->format('G');  // 0-23, no leading zeros
+    //             $minutes = (int)$now->format('i'); // 00-59
+    //             $seconds = (int)$now->format('s'); // 00-59
                 
-                return [
-                    'hours' => $hours,
-                    'minutes' => $minutes,
-                    'seconds' => $seconds
-                ];
-            }
+    //             return [
+    //                 'hours' => $hours,
+    //                 'minutes' => $minutes,
+    //                 'seconds' => $seconds
+    //             ];
+    //         }
 
            
-            $time = getCurrentTime();                
-            $day = getToday(); 
-            $test = 'Sunday';   
-            $timeString = sprintf('%02d:%02d:%02d', $time['hours'], $time['minutes'], $time['seconds']);          
-            $sql = "SELECT activities.*, locations.longitude AS longtitude, locations.latitude AS latitude 
-            FROM activities LEFT JOIN locations ON activities.location_id = locations.id 
-            WHERE status_id = 1 AND attendance_method_id = 3 AND time_exp > ? AND dayofactivity = ?";            
+    //         $time = getCurrentTime();                
+    //         $day = getToday(); 
+    //         $test = 'Sunday';   
+    //         $timeString = sprintf('%02d:%02d:%02d', $time['hours'], $time['minutes'], $time['seconds']);          
+    //         $sql = "SELECT activities.*, locations.longitude AS longtitude, locations.latitude AS latitude 
+    //         FROM activities LEFT JOIN locations ON activities.location_id = locations.id 
+    //         WHERE status_id = 1 AND attendance_method_id = 3 AND time_exp > ? AND dayofactivity = ?";            
                   
-            $result = $this->fetchAll($sql, [$timeString, $day]);
-            // $result = $this->fetchAll($sql, [$timeString, $test]);            
-            if(count($result) > 0 ){
-                return $result;
-            }else{
-                return []; 
-            }
-        } catch (Exception $e) {
-            error_log("Activity to get error [department: $day]: " . $e->getMessage());
-            if ($e->getCode() === 404) {
-                throw $e; 
-            }
-            throw new Exception("Unable to retrieve activity information for checking for submition of attendance");
+    //         $result = $this->fetchAll($sql, [$timeString, $day]);
+    //         // $result = $this->fetchAll($sql, [$timeString, $test]);            
+    //         if(count($result) > 0 ){
+    //             return $result;
+    //         }else{
+    //             return []; 
+    //         }
+    //     } catch (Exception $e) {
+    //         error_log("Activity to get error [department: $day]: " . $e->getMessage());
+    //         if ($e->getCode() === 404) {
+    //             throw $e; 
+    //         }
+    //         throw new Exception("Unable to retrieve activity information for checking for submition of attendance");
+    //     }
+    // }
+
+public function getLocationActivitiesWithLocationCoordinate() {
+    try {  
+        // 1. Ensure session is started to access the global variable
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
+
+        // 2. Get the primary department ID from the global session
+        $primaryDeptId = $_SESSION['primary_dept_id'] ?? null;
+
+        // If no department is assigned, return an empty array
+        if (!$primaryDeptId) {
+            return [];
+        }
+
+        function getToday() {
+            $today = new DateTime();
+            $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return $days[$today->format('w')]; 
+        }   
+        function getCurrentTime() {
+            $now = new DateTime();
+            return [
+                'hours' => (int)$now->format('G'),
+                'minutes' => (int)$now->format('i'),
+                'seconds' => (int)$now->format('s')
+            ];
+        }
+
+        $time = getCurrentTime();                
+        $day = getToday(); 
+        $timeString = sprintf('%02d:%02d:%02d', $time['hours'], $time['minutes'], $time['seconds']);          
+        
+        // 3. Prepare the department ID for JSON search. 
+        $deptJsonSearch = '"' . $primaryDeptId . '"';
+
+        // 4. Updated SQL: Check for user's dept OR check for "all"
+        $sql = "SELECT activities.*, locations.longitude AS longtitude, locations.latitude AS latitude 
+                FROM activities LEFT JOIN locations ON activities.location_id = locations.id 
+                WHERE status_id = 1 
+                AND attendance_method_id = 3 
+                AND time_exp > ? 
+                AND dayofactivity = ? 
+                AND (
+                    JSON_CONTAINS(activities.department_id, ?) 
+                    OR JSON_CONTAINS(activities.department_id, '\"all\"')
+                )";
+                
+        // 5. Execute with the new parameter
+        $result = $this->fetchAll($sql, [$timeString, $day, $deptJsonSearch]);
+        
+        if(count($result) > 0 ){
+            return $result;
+        }else{
+            return []; 
+        }
+    } catch (Exception $e) {
+        error_log("Activity to get error [department: $day]: " . $e->getMessage());
+        if ($e->getCode() === 404) {
+            throw $e; 
+        }
+        throw new Exception("Unable to retrieve activity information for checking for submition of attendance");
     }
+}
     public function getAllActivities() {
         try {
             $sql = "SELECT activities.*,activities.description AS description, activities.name AS activity,locations.name AS location,
