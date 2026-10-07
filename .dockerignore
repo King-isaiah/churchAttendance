@@ -1,6 +1,0 @@
-.git
-vendor
-.env
-docker-compose.yml
-.idea
-.vscode
