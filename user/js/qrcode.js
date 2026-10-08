@@ -54,15 +54,11 @@ class QRCodeScanner {
                     <button class="close-scanner">&times;</button>
                 </div>
                 
-<<<<<<< HEAD
+
                 <div class="qr-scanner-body" style="flex: 1; position: relative;">
                     <!-- HTML5 QR Code Scanner will be mounted here -->
-                    <div id="qr-reader" style="width: 100%; height: 100%;"></div>
-=======
-                <div class="qr-scanner-body" style="">
-                    <!-- HTML5 QR Code Scanner will be mounted here -->
                     <div id="qr-reader" style="width: 100%; height: 100%;"> We are moing slowly but surely</div>
->>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
+
                     
                     <div class="file-upload-fallback" id="file-upload-fallback" style="
                         position: absolute;
