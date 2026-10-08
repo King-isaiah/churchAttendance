@@ -16,26 +16,41 @@
     
 </head>
 <style>
+    /* Hide the default Html5QrcodeScanner UI elements */
+    #qr-reader__dashboard, 
+    #qr-reader__dashboard_section_csr, 
+    #qr-reader__header_message, 
+    #qr-reader__status_span,
+    #qr-reader__dashboard_section_swaplink {
+        display: none !important;
+    }
+
+    /* Ensure the video fills the container */
+    #qr-reader video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+    }
     .qr-scanner-body {
-    position: relative;
-    overflow: hidden;
-}
+        position: relative;
+        overflow: hidden;
+    }
 
-.scan-laser {
-    position: absolute;
-    width: 100%;
-    height: 3px;
-    background-color: #00ff00;
-    box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00;
-    animation: scanAnimation 2.5s ease-in-out infinite;
-    z-index: 5;
-}
+    .scan-laser {
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        background-color: #00ff00;
+        box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00;
+        animation: scanAnimation 2.5s ease-in-out infinite;
+        z-index: 5;
+    }
 
-@keyframes scanAnimation {
-    0% { top: 0%; }
-    50% { top: 100%; }
-    100% { top: 0%; }
-}
+    @keyframes scanAnimation {
+        0% { top: 0%; }
+        50% { top: 100%; }
+        100% { top: 0%; }
+    }
 </style>
 <body>
 

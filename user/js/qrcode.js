@@ -23,7 +23,6 @@ class QRCodeScanner {
     createModal() {
         if (this.modal) return;
 
-        // Create responsive modal
         this.modal = document.createElement('div');
         this.modal.className = 'qr-scanner-modal';
         this.modal.style.cssText = `
@@ -50,18 +49,16 @@ class QRCodeScanner {
                     align-items: center;
                     flex-shrink: 0;
                 ">
-                    <h3 style="margin: 0; color: white; font-size: 18px;">Scan QR Code weee</h3>
+                    <h3 style="margin: 0; color: white; font-size: 18px;">Scan QR Code</h3>
                     <button class="close-scanner">&times;</button>
                 </div>
                 
-
                 <div class="qr-scanner-body" style="flex: 1; position: relative;">
-                    
                     <!-- HTML5 QR Code Scanner will be mounted here -->
                     <div id="qr-reader" style="width: 100%; height: 100%;"></div>
                     
-                    <!-- Laser Animation -->
-                    <div class="scan-laser"></div>
+                    <!-- Laser Animation - Hidden by default -->
+                    <div class="scan-laser" style="display: none;"></div>
                     
                     <div class="file-upload-fallback" id="file-upload-fallback" style="
                         position: absolute;
@@ -270,6 +267,10 @@ class QRCodeScanner {
     startHtml5Scanner() {
         console.log('Starting Html5QrcodeScanner...');
         
+        // 1. Ensure laser is hidden initially
+        const laser = document.querySelector('.scan-laser');
+        if (laser) laser.style.display = 'none';
+
         // Show loading message
         this.showScanResult('Starting camera...', 'loading');
         
@@ -286,12 +287,15 @@ class QRCodeScanner {
         }
         
         // Make sure the element is visible and empty
-        qrReaderElement.innerHTML = '';
-        qrReaderElement.style.display = 'block';
+        if (qrReaderElement) {
+            qrReaderElement.innerHTML = '';
+            qrReaderElement.style.display = 'block';
+        }
         
         // Hide loading message after a moment
         setTimeout(() => {
-            document.getElementById('scan-result').style.display = 'none';
+            const scanResult = document.getElementById('scan-result');
+            if (scanResult) scanResult.style.display = 'none';
         }, 1000);
         
         // Create new scanner instance
@@ -300,8 +304,8 @@ class QRCodeScanner {
             { 
                 qrbox: { width: 250, height: 250 },
                 fps: 10,
-                facingMode: "environment", // <-- Forces back camera
-                rememberLastUsedCamera: false, // <-- Set to false to strictly enforce back camera
+                facingMode: "environment", // Forces back camera
+                rememberLastUsedCamera: false, // Prevents switching to front camera
                 showTorchButtonIfSupported: true,
                 showZoomSliderIfSupported: true,
                 defaultZoomValueIfSupported: 1
@@ -322,14 +326,35 @@ class QRCodeScanner {
         
         const onScanError = (errorMessage) => {
             // Just log errors, don't show to user
-            console.log('Scan error:', errorMessage);
+            // console.log('Scan error:', errorMessage);
         };
         
         // Render the scanner
         this.html5QrcodeScanner.render(onScanSuccess, onScanError);
+
+        // 2. Show laser after camera has initialized (1.5 second delay)
+        setTimeout(() => {
+            const activeLaser = document.querySelector('.scan-laser');
+            if (activeLaser) activeLaser.style.display = 'block';
+        }, 1500);
     }
 
     stopHtml5Scanner() {
+        if (this.html5QrcodeScanner) {
+            try {
+                this.html5QrcodeScanner.clear();
+                console.log('Scanner stopped');
+            } catch (e) {
+                console.log('Error stopping scanner:', e);
+            }
+        }
+    
+        // NEW: Hide the laser
+        const laser = document.querySelector('.scan-laser');
+        if (laser) {
+            laser.style.display = 'none';
+        }
+
         if (this.html5QrcodeScanner) {
             try {
                 this.html5QrcodeScanner.clear();
@@ -517,7 +542,7 @@ class QRCodeScanner {
         }
     }
 
-        async submitAttendance(activityId, data) {
+    async submitAttendance(activityId, data) {
         try {
             this.showScanResult('Submitting attendance...', 'loading');
             
@@ -526,39 +551,38 @@ class QRCodeScanner {
             
             const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const today = new Date();           
-            const dept = document.getElementById('department_id').value;
+            const dept = document.getElementById('department_id')?.value || 0;
             
-            // FIXED: Use data.data.activity_id instead of category_id
+            // Prepare data for the standard createAttendance method in Attendance.php
             const formUpdateAttendanceTable = {                
                 attendance_category: 'activity',
-                attendance_category_id: activityId, // Use the activityId passed in   
+                attendance_category_id: activityId,   
                 unique_id: uniqueId,  
                 department_id: dept,           
-                attendance_method_id: data.data.attendance_method_id || 3, // Fallback to 3
+                attendance_method_id: data.data.attendance_method_id || 3, // Fallback to 3 (QR)
                 dayofactivity: daysOfWeek[today.getDay()],
                 check_in_time: today.toTimeString().split(' ')[0],
                 status: new Date() > new Date(data.data.expires_at) ? 'late' : 'present',               
-                location_id: data.data.location_id || 0 // Might be null in QR table, fallback to 0
+                location_id: data.data.location_id || 0 
             };
             
             console.log('Submitting attendance:', formUpdateAttendanceTable);
             
-            // FIXED: Added credentials: 'include'
-            const responseCreateAttendance = await fetch('class/ApiHandler.php?entity=attendance&action=createQr', {
+            // FIXED: Using action=create instead of createQr
+            const responseCreateAttendance = await fetch('class/ApiHandler.php?entity=attendance&action=create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
+                credentials: 'include', // Send session cookies
                 body: JSON.stringify(formUpdateAttendanceTable)
             });
             
             const result = await responseCreateAttendance.json();
             
             if (result.success) {
-                // FIXED: Lowercase 'id', removed extra argument in JSON.stringify, added credentials
+                // FIXED: Only increment 'uses' to prevent negative max_uses. 
+                // Using lowercase 'id' instead of 'Id'
                 const formUpdateQr = { 
-                    uses: data.data.uses + 1,
-                    max_uses: data.data.max_uses - 1,
-                    // updated_at is handled automatically by the database
+                    uses: (data.data.uses || 0) + 1
                 };
                 
                 console.log('Updating QR usage:', formUpdateQr);
@@ -571,7 +595,10 @@ class QRCodeScanner {
                 
                 if(responseUpdteQr.ok){
                     this.showScanResult('Attendance recorded!', 'success');
+                } else {
+                    this.showScanResult('Attendance saved, but QR count failed.', 'info');
                 }
+                
                 setTimeout(() => {
                     this.closeScanner();
                 }, 2000);
