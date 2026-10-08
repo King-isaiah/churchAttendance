@@ -473,7 +473,15 @@
                 'rsvp'=>'saveRSVP',
                 'notifications' => 'createNotification',
             ];
-            
+            if ($this->entity === 'attendance') {
+                if ($this->action === 'createQr') {
+                    $method = 'createQrAttendance'; // Use the new QR method!
+                } else {
+                    $method = 'createAttendance'; // Use the standard method
+                }
+            } else {
+                $method = $methodMap[$this->entity] ?? 'create';
+            }
             $method = $methodMap[$this->entity] ?? 'create';
             
             if (method_exists($entity, $method)) {
