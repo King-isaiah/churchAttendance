@@ -56,9 +56,12 @@ class QRCodeScanner {
                 
 
                 <div class="qr-scanner-body" style="flex: 1; position: relative;">
+                    
                     <!-- HTML5 QR Code Scanner will be mounted here -->
-                    <div id="qr-reader" style="width: 100%; height: 100%;"> We are moing slowly but surely</div>
-
+                    <div id="qr-reader" style="width: 100%; height: 100%;"></div>
+                    
+                    <!-- Laser Animation -->
+                    <div class="scan-laser"></div>
                     
                     <div class="file-upload-fallback" id="file-upload-fallback" style="
                         position: absolute;
@@ -82,7 +85,6 @@ class QRCodeScanner {
                         </div>
                         
                         <div style="width: 100%; max-width: 300px;">
-<<<<<<< HEAD
                             <button id="upload-qr-btn" class="btn-primaryScan" style="
                                 width: 100%;
                                 padding: 15px;
@@ -95,9 +97,6 @@ class QRCodeScanner {
                                 cursor: pointer;
                                 margin-bottom: 10px;
                             ">
-=======
-                            <button id="upload-qr-btn" class="btn-primaryScan">
->>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
                                 📁 Upload & Scan
                             </button>
                             <button id="scan-qr-btn" class="btn-primaryScan" style="
@@ -299,17 +298,15 @@ class QRCodeScanner {
         this.html5QrcodeScanner = new Html5QrcodeScanner(
             "qr-reader", 
             { 
-                qrbox: {
-                    width: 250,
-                    height: 250
-                },
+                qrbox: { width: 250, height: 250 },
                 fps: 10,
-                rememberLastUsedCamera: true,
+                facingMode: "environment", // <-- Forces back camera
+                rememberLastUsedCamera: false, // <-- Set to false to strictly enforce back camera
                 showTorchButtonIfSupported: true,
                 showZoomSliderIfSupported: true,
                 defaultZoomValueIfSupported: 1
             },
-            /* verbose= */ false
+            false
         );
         
         // Define success and error handlers
@@ -520,63 +517,59 @@ class QRCodeScanner {
         }
     }
 
-    async submitAttendance(activityId, data) {
+        async submitAttendance(activityId, data) {
         try {
             this.showScanResult('Submitting attendance...', 'loading');
             
             const uniqueId = document.getElementById('unique_id')?.value;
+            if (!uniqueId) throw new Error('User not logged in');
             
-            if (!uniqueId) {
-                console.log('user is not logged in')
-                throw new Error('User not logged in');
-            }
-            
-            // const formData = {
-           
-          
             const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const today = new Date();           
-            const dayOfWeek = daysOfWeek[today.getDay()];
-            console.log(today);
-            const dept = document.getElementById('department_id').value
-            // console.log(today,dept);
-            console.log(dayOfWeek);
+            const dept = document.getElementById('department_id').value;
+            
+            // FIXED: Use data.data.activity_id instead of category_id
             const formUpdateAttendanceTable = {                
                 attendance_category: 'activity',
-                attendance_category_id: data.data.category_id,   
+                attendance_category_id: activityId, // Use the activityId passed in   
                 unique_id: uniqueId,  
                 department_id: dept,           
-                attendance_method_id: data.data.attendance_method_id,
-                dayofactivity: daysOfWeek[new Date().getDay()],
-                check_in_time: new Date().toTimeString().split(' ')[0],
+                attendance_method_id: data.data.attendance_method_id || 3, // Fallback to 3
+                dayofactivity: daysOfWeek[today.getDay()],
+                check_in_time: today.toTimeString().split(' ')[0],
                 status: new Date() > new Date(data.data.expires_at) ? 'late' : 'present',               
-                location_id: data.data.location_id
+                location_id: data.data.location_id || 0 // Might be null in QR table, fallback to 0
             };
             
             console.log('Submitting attendance:', formUpdateAttendanceTable);
             
-            const responseCreateAttendance = await fetch('class/ApiHandler.php?entity=attendance&action=create', {
+            // FIXED: Added credentials: 'include'
+            const responseCreateAttendance = await fetch('class/ApiHandler.php?entity=attendance&action=createQr', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(formUpdateAttendanceTable)
             });
             
             const result = await responseCreateAttendance.json();
             
             if (result.success) {
+                // FIXED: Lowercase 'id', removed extra argument in JSON.stringify, added credentials
                 const formUpdateQr = { 
-                    id: data.data.Id,
                     uses: data.data.uses + 1,
-                    max_uses: data.data.max_uses - 1,                
-                    qr_code: data.data.qr_code,                
+                    max_uses: data.data.max_uses - 1,
+                    // updated_at is handled automatically by the database
                 };
-                console.log('Submitting attendance:', formUpdateQr);
-                const responseUpdteQr = await fetch('class/ApiHandler.php?entity=activity_qr_codes&action=update', {
+                
+                console.log('Updating QR usage:', formUpdateQr);
+                const responseUpdteQr = await fetch(`class/ApiHandler.php?entity=activity_qr_codes&action=update&id=${data.data.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data.data.Id,formUpdateQr)
+                    credentials: 'include',
+                    body: JSON.stringify(formUpdateQr)
                 });
-                if(responseUpdteQr){
+                
+                if(responseUpdteQr.ok){
                     this.showScanResult('Attendance recorded!', 'success');
                 }
                 setTimeout(() => {
@@ -590,7 +583,6 @@ class QRCodeScanner {
             console.error('Attendance submission error:', error);
             this.showScanResult(`Submission failed: ${error.message}`, 'error');
             
-            // Resume scanning after 3 seconds
             setTimeout(() => {
                 if (this.isScanning && !this.useFallback) {
                     this.startHtml5Scanner();
@@ -598,6 +590,84 @@ class QRCodeScanner {
             }, 3000);
         }
     }
+    // async submitAttendance(activityId, data) {
+    //     try {
+    //         this.showScanResult('Submitting attendance...', 'loading');
+            
+    //         const uniqueId = document.getElementById('unique_id')?.value;
+            
+    //         if (!uniqueId) {
+    //             console.log('user is not logged in')
+    //             throw new Error('User not logged in');
+    //         }
+            
+    //         // const formData = {
+           
+          
+    //         const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    //         const today = new Date();           
+    //         const dayOfWeek = daysOfWeek[today.getDay()];
+    //         console.log(today);
+    //         const dept = document.getElementById('department_id').value
+    //         // console.log(today,dept);
+    //         console.log(dayOfWeek);
+    //         const formUpdateAttendanceTable = {                
+    //             attendance_category: 'activity',
+    //             attendance_category_id: data.data.category_id,   
+    //             unique_id: uniqueId,  
+    //             department_id: dept,           
+    //             attendance_method_id: data.data.attendance_method_id,
+    //             dayofactivity: daysOfWeek[new Date().getDay()],
+    //             check_in_time: new Date().toTimeString().split(' ')[0],
+    //             status: new Date() > new Date(data.data.expires_at) ? 'late' : 'present',               
+    //             location_id: data.data.location_id
+    //         };
+            
+    //         console.log('Submitting attendance:', formUpdateAttendanceTable);
+            
+    //         const responseCreateAttendance = await fetch('class/ApiHandler.php?entity=attendance&action=create', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(formUpdateAttendanceTable)
+    //         });
+            
+    //         const result = await responseCreateAttendance.json();
+            
+    //         if (result.success) {
+    //             const formUpdateQr = { 
+    //                 id: data.data.Id,
+    //                 uses: data.data.uses + 1,
+    //                 max_uses: data.data.max_uses - 1,                
+    //                 qr_code: data.data.qr_code,                
+    //             };
+    //             console.log('Submitting attendance:', formUpdateQr);
+    //             const responseUpdteQr = await fetch('class/ApiHandler.php?entity=activity_qr_codes&action=update', {
+    //                 method: 'PUT',
+    //                 headers: { 'Content-Type': 'application/json' },
+    //                 body: JSON.stringify(data.data.Id,formUpdateQr)
+    //             });
+    //             if(responseUpdteQr){
+    //                 this.showScanResult('Attendance recorded!', 'success');
+    //             }
+    //             setTimeout(() => {
+    //                 this.closeScanner();
+    //             }, 2000);
+    //         } else {
+    //             throw new Error(result.message || 'Failed to record attendance');
+    //         }
+            
+    //     } catch (error) {
+    //         console.error('Attendance submission error:', error);
+    //         this.showScanResult(`Submission failed: ${error.message}`, 'error');
+            
+    //         // Resume scanning after 3 seconds
+    //         setTimeout(() => {
+    //             if (this.isScanning && !this.useFallback) {
+    //                 this.startHtml5Scanner();
+    //             }
+    //         }, 3000);
+    //     }
+    // }
 
     stopScanner() {
         console.log('Stopping scanner...');

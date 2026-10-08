@@ -221,5 +221,30 @@ private function checkAttendanceExists($data) {
             return false;
         }
     }
+        /**
+     * Dedicated method for QR Code scanned attendance.
+     * Keeps logic separate from GPS-based createAttendance().
+     */
+    public function createQrAttendance($data) {
+        try {
+            // 1. Validate required fields
+            $this->validateAttendanceData($data);
+            
+            // 2. Check if attendance already exists for this specific QR scan
+            // We can reuse the checkAttendanceExists method since the logic is the same
+            $existingAttendance = $this->checkAttendanceExists($data);
+            
+            if ($existingAttendance) {
+                throw new Exception("Attendance already recorded for this activity via QR", 409);
+            }
+            
+            // 3. Insert the record
+            return $this->insert('attendance', $data);
+            
+        } catch (Exception $e) {
+            error_log("QR Attendance create error: " . $e->getMessage() . " | Data: " . json_encode($data));
+            throw $e; 
+        }
+    }
 }
 ?>
