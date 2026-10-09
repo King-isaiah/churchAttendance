@@ -95,7 +95,7 @@ class UserActivities {
                     option.textContent = category.categories || 'Unnamed Category';
                     categoryFilter.appendChild(option);
                 }
-                // showSuccess('enetered the for each')
+            
             });            
         } catch (error) {
             console.error('Error fetching categories:', error);
