@@ -8,9 +8,9 @@
     text-align: center;
     margin-bottom: 3rem;
     padding: 2rem;
-    background: linear-gradient(135deg, #8786E3 0%, #6a67d1 100%);
+    background: linear-gradient(135deg, #39FF14 0%, #2ECC0E 100%);
     border-radius: 12px;
-    color: white;
+    color: #000000;
 }
 
 .welcome-section h1 {
@@ -37,7 +37,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s ease;
 }
 
@@ -53,23 +53,23 @@
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    color: white;
+    color: #000000;
 }
 
-.stat-icon.present { background: #10b981; }
-.stat-icon.upcoming { background: #f59e0b; }
-.stat-icon.rate { background: #3b82f6; }
-.stat-icon.streak { background: #ef4444; }
+.stat-icon.present { background: #39FF14; }
+.stat-icon.upcoming { background: #FFD700; }
+.stat-icon.rate { background: #222222; color: #FFFFFF; }
+.stat-icon.streak { background: #FF7A00; }
 
 .stat-info h3 {
     font-size: 2rem;
     margin: 0;
-    color: #1f2937;
+    color: #111111;
 }
 
 .stat-info p {
     margin: 0;
-    color: #6b7280;
+    color: #333333;
     font-size: 0.9rem;
 }
 
@@ -83,7 +83,7 @@
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .section-header {
@@ -92,16 +92,16 @@
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #222222;
 }
 
 .section-header h3 {
     margin: 0;
-    color: #374151;
+    color: #111111;
 }
 
 .view-all {
-    color: #8786E3;
+    color: #1A8C06;
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
@@ -116,32 +116,32 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #222222;
     border-radius: 8px;
     margin-bottom: 0.75rem;
     transition: all 0.2s ease;
 }
 
 .activity-item:hover, .attendance-item:hover {
-    border-color: #8786E3;
-    box-shadow: 0 2px 4px rgba(135, 134, 227, 0.1);
+    border-color: #39FF14;
+    box-shadow: 0 2px 4px rgba(57, 255, 20, 0.25);
 }
 
 .activity-info h4, .attendance-details h4 {
     margin: 0 0 0.25rem 0;
-    color: #374151;
+    color: #111111;
 }
 
 .activity-info p, .attendance-details p {
     margin: 0.25rem 0;
-    color: #6b7280;
+    color: #333333;
     font-size: 0.9rem;
 }
 
 .activity-info i, .attendance-details i {
     width: 16px;
     margin-right: 0.5rem;
-    color: #9ca3af;
+    color: #555555;
 }
 
 .activity-actions {
@@ -152,18 +152,18 @@
 .attendance-date {
     text-align: center;
     padding-right: 1rem;
-    border-right: 1px solid #e5e7eb;
+    border-right: 1px solid #222222;
 }
 
 .attendance-date strong {
     display: block;
     font-size: 1.2rem;
-    color: #374151;
+    color: #111111;
 }
 
 .attendance-date span {
     font-size: 0.8rem;
-    color: #6b7280;
+    color: #333333;
     text-transform: uppercase;
 }
 
@@ -184,19 +184,19 @@
 }
 
 .status-present {
-    background: #c6f6d5;
-    color: #22543d;
+    background: rgba(57, 255, 20, 0.2);
+    color: #1A8C06;
 }
 
 .status-absent {
-    background: #fed7d7;
-    color: #822727;
+    background: rgba(255, 122, 0, 0.15);
+    color: #CC6200;
 }
 
 .no-data {
     text-align: center;
     padding: 3rem;
-    color: #6b7280;
+    color: #333333;
 }
 
 .no-data i {
@@ -217,7 +217,7 @@
 
 .user-role {
     font-size: 0.8rem;
-    color: #6b7280;
+    color: #333333;
 }
 
 .user-actions {
