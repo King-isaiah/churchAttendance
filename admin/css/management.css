@@ -8,11 +8,11 @@
 
 .management-menu {
     width: 30%;
-    background: #2c3e50;
+    background: #111111; /* Black */
     color: white;
     padding: 2rem;
     border-radius: 12px 0 0 12px;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); /* Original soft shadow */
 }
 
 .management-content {
@@ -20,7 +20,7 @@
     background: white;
     padding: 2rem;
     border-radius: 0 12px 12px 0;
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1); /* Original soft shadow */
 }
 
 .menu-list {
@@ -41,12 +41,13 @@
 }
 
 .menu-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(57, 255, 20, 0.15); /* Neon Green tint */
+    color: #39FF14; /* Neon Green */
 }
 
 .menu-item.active {
-    background: #8786E3;
-    color: white;
+    background: #39FF14; /* Neon Green */
+    color: #000000; /* Black text for contrast */
 }
 
 .menu-item i {
@@ -61,19 +62,19 @@
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #f8f9fa;
+    border-bottom: 2px solid #f8f9fa; /* Reverted to soft original */
 }
 
 .content-header h3 {
     margin: 0;
-    color: #2c3e50;
+    color: #111111; /* Black */
 }
 
 .table-container {
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Original soft shadow */
 }
 
 .data-table {
@@ -82,22 +83,22 @@
 }
 
 .data-table th {
-    background: #f8f9fa;
+    background: #f8f9fa; /* Reverted to soft original */
     padding: 1rem;
     text-align: left;
     font-weight: 600;
     color: #495057;
-    border-bottom: 2px solid #e9ecef;
+    border-bottom: 2px solid #e9ecef; /* Reverted to soft original */
 }
 
 .data-table td {
     padding: 1rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef; /* Reverted to soft original */
     color: #495057;
 }
 
 .data-table tr:hover {
-    background: #f8f9fa;
+    background: #f8f9fa; /* Reverted to soft original */
 }
 
 .action-buttons {
@@ -110,21 +111,23 @@
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    background: #f8f9fa;
+    background: #f8f9fa; /* Reverted to soft original */
     transition: background-color 0.3s ease;
+    color: #111111; /* Black */
 }
 
 .btn-icon:hover {
-    background: #e9ecef;
+    background: #FFD700; /* Yellow accent */
+    color: #000000;
 }
 
 .btn-danger {
-    background: #fff5f5;
-    color: #e53e3e;
+    background: rgba(255, 122, 0, 0.1); /* Orange tint */
+    color: #FF7A00; /* Orange */
 }
 
 .btn-danger:hover {
-    background: #fed7d7;
+    background: rgba(255, 122, 0, 0.25); /* Stronger Orange tint */
 }
 
 .no-data {
@@ -158,7 +161,7 @@
 }
 
 .close:hover {
-    color: #000;
+    color: #FF7A00; /* Orange */
 }
 
 .form-group {
@@ -177,7 +180,7 @@
 .form-group textarea {
     width: 100%;
     padding: 0.8rem;
-    border: 1px solid #ddd;
+    border: 1px solid #ddd; /* Reverted to soft original */
     border-radius: 8px;
     font-size: 0.9rem;
     transition: border-color 0.3s ease;
@@ -187,8 +190,8 @@
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #8786E3;
-    box-shadow: 0 0 0 3px rgba(135, 134, 227, 0.1);
+    border-color: #39FF14; /* Neon Green */
+    box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.25);
 }
 
 .form-actions {
@@ -200,8 +203,8 @@
 
 /* Button Styles */
 .btn-primary {
-    background: var(--primary-purple);
-    color: white;
+    background: #39FF14; /* Neon Green */
+    color: #000000; /* Black */
     border: none;
     padding: 0.8rem 1.5rem;
     border-radius: 8px;
@@ -214,7 +217,22 @@
 }
 
 .btn-primary:hover {
-    background: #6c6bd0;
+    background: #2ECC0E;
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #ddd;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
 }
 
 
@@ -336,7 +354,7 @@
     .content-header {   
         margin-bottom: .1rem;
         padding-bottom: 13px;
-        border-bottom: 2px solid #f8f9fa;
+        border-bottom: 2px solid #f8f9fa; /* Reverted to soft original */
     }
 
     .content-header h3 {        
@@ -370,7 +388,7 @@
     .search-box input {
         width: 100%;
         padding: 1px 5px 1px 14px;
-        border: 1px solid #ddd;
+        border: 1px solid #ddd; /* Reverted to soft original */
         border-radius: 4px;
         font-size: 6px;
         transition: border-color 0.3s;
@@ -430,7 +448,7 @@
     .content-header {   
         margin-bottom: .1rem;
         padding-bottom: 13px;
-        border-bottom: 2px solid #f8f9fa;
+        border-bottom: 2px solid #f8f9fa; /* Reverted to soft original */
     }
 
     .content-header h3 {        
@@ -464,7 +482,7 @@
     .search-box input {
         width: 100%;
         padding: 1px 5px 1px 14px;
-        border: 1px solid #ddd;
+        border: 1px solid #ddd; /* Reverted to soft original */
         border-radius: 4px;
         font-size: 6px;
         transition: border-color 0.3s;
@@ -524,7 +542,7 @@
     .content-header {   
         margin-bottom: .1rem;
         padding-bottom: 13px;
-        border-bottom: 2px solid #f8f9fa;
+        border-bottom: 2px solid #f8f9fa; /* Reverted to soft original */
     }
 
     .content-header h3 {        
@@ -558,7 +576,7 @@
     .search-box input {
         width: 100%;
         padding: 1px 5px 1px 14px;
-        border: 1px solid #ddd;
+        border: 1px solid #ddd; /* Reverted to soft original */
         border-radius: 4px;
         font-size: 6px;
         transition: border-color 0.3s;
@@ -594,9 +612,9 @@
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 3px solid #f3f3f3;
+    border: 3px solid #f3f3f3; /* Reverted to soft original */
     border-radius: 50%;
-    border-top: 3px solid #8786E3;
+    border-top: 3px solid #39FF14; /* Neon Green */
     animation: spin 1s linear infinite;
 }
 
@@ -613,8 +631,8 @@
 }
 
 .btn-nav {
-    background: #8786E3;
-    color: white;
+    background: #39FF14; /* Neon Green */
+    color: #000000; /* Black */
     border: none;
     border-radius: 6px;
     width: 40px;
@@ -627,11 +645,12 @@
 }
 
 .btn-nav:hover:not(:disabled) {
-    background: #6c6bd0;
+    background: #2ECC0E;
 }
 
 .btn-nav:disabled {
-    background: #ccc;
+    background: #FFD700; /* Yellow */
+    color: #000000;
     cursor: not-allowed;
 }
 .header-navigation {
@@ -644,16 +663,17 @@
 }
 
 .btn-nav {
-    background: #f0f0f0;
-    border: 1px solid #ddd;
+    background: #f0f0f0; /* Reverted to soft original */
+    border: 1px solid #ddd; /* Reverted to soft original */
     border-radius: 4px;
     padding: 8px 12px;
     cursor: pointer;
     transition: background-color 0.2s;
+    color: #111111;
 }
 
 .btn-nav:hover:not(:disabled) {
-    background: #e0e0e0;
+    background: #FFD700; /* Yellow */
 }
 
 .btn-nav:disabled {
@@ -674,7 +694,7 @@
     max-height: 80%; 
     background-color: white; 
     border-radius: 8px; 
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Reverted to soft original */
     overflow: hidden; 
     display: none; 
     z-index: 1000; 
@@ -689,8 +709,8 @@
 .custom-modal .modal-header,
 .custom-modal .modal-footer {
     padding: 10px; /* Padding for header and footer */
-    background-color: #f1f1f1; /* Light background for header/footer */
-    border-bottom: 1px solid #ddd; /* Divider line */
+    background-color: #f1f1f1; /* Reverted to soft original */
+    border-bottom: 1px solid #ddd; /* Reverted to soft original */
 }
 
 .custom-modal .modal-footer {
@@ -704,8 +724,8 @@
 
 /* Ensure the close button has no global interference */
 .custom-modal .close-modal {
-    background-color: #f44336; /* Red */
-    color: white;
+    background-color: #FF7A00; /* Orange */
+    color: #000000;
     border: none;
     padding: 10px 20px;
     cursor: pointer;
@@ -719,7 +739,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.5); /* Reverted to soft original */
     backdrop-filter: blur(5px); /* Blur effect */
     z-index: 900; /* Ensure it appears below the modal */
 }
@@ -739,7 +759,7 @@
 .search-box input {
     width: 100%;
     padding: 10px 15px 10px 40px;
-    border: 1px solid #ddd;
+    border: 1px solid #ddd; /* Reverted to soft original */
     border-radius: 4px;
     font-size: 16px;
     transition: border-color 0.3s;
@@ -747,8 +767,8 @@
 
 .search-box input:focus {
     outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    border-color: #39FF14; /* Neon Green */
+    box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.25);
 }
 
 .search-box i {
@@ -756,18 +776,18 @@
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #7f8c8d;
+    color: #7f8c8d; /* Reverted to soft original */
 }
 
 .results-count {
     font-size: 14px;
-    color: #7f8c8d;
+    color: #7f8c8d; /* Reverted to soft original */
 }
 
 
 .page-info {
     text-align: center;
     margin-top: 10px;
-    color: #7f8c8d;
+    color: #7f8c8d; /* Reverted to soft original */
     font-size: 14px;
 }

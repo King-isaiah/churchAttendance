@@ -439,7 +439,6 @@
         }
 
         // -------------------- Special Actions --------------------
-
         private function special() {
             if (empty($this->input)) {
                 $this->sendResponse(['success' => false, 'message' => 'Invalid data', 'errorType' => 'client'], 400);
@@ -453,22 +452,38 @@
             }
 
             $entity = new $entityClass();
-            $methodMap = [
-                'locations' => 'createLocation',
-                'departments' => 'createDepartment',
-                'categories' => 'createCategory',
-                'speakers' => 'createSpeaker',
-                'events' => 'createEvent',
-                'members' => 'createMember',
-                'attendance' => 'createAttendance',
-                'activities' => 'createActivity',
-                'attendance_methods' => 'createAttendanceMethod',
-                'statuses' => 'createStatus',
-                'activity_qr_codes' => 'generateQRCode',
-                'reports' => 'creatAReport',
-                'auth' => 'login',
-            ];
-            $method = $methodMap[$this->entity] ?? 'special';
+
+            // ---------------------------------------------------------
+            // NEW: Handle specific Auth tasks (Password Reset)
+            // ---------------------------------------------------------
+            if ($this->entity === 'auth' && isset($this->input['task'])) {
+                if ($this->input['task'] === 'request_reset') {
+                    $method = 'requestPasswordReset';
+                } elseif ($this->input['task'] === 'reset_password') {
+                    $method = 'resetPassword';
+                } else {
+                    $method = 'login'; // Fallback to normal login if task is unknown
+                }
+            } else {
+                // Original method mapping
+                $methodMap = [
+                    'locations' => 'createLocation',
+                    'departments' => 'createDepartment',
+                    'categories' => 'createCategory',
+                    'speakers' => 'createSpeaker',
+                    'events' => 'createEvent',
+                    'members' => 'createMember',
+                    'attendance' => 'createAttendance',
+                    'activities' => 'createActivity',
+                    'attendance_methods' => 'createAttendanceMethod',
+                    'statuses' => 'createStatus',
+                    'activity_qr_codes' => 'generateQRCode',
+                    'reports' => 'creatAReport',
+                    'auth' => 'login',
+                ];
+                $method = $methodMap[$this->entity] ?? 'special';
+            }
+            // ---------------------------------------------------------
 
             if (method_exists($entity, $method)) {
                 $result = $entity->$method($this->input);
@@ -478,9 +493,50 @@
                     $this->sendResponse(['success' => false, 'message' => 'Operation failed', 'errorType' => 'server'], 500);
                 }
             } else {
-                $this->sendResponse(['success' => false, 'message' => 'Method not found', 'errorType' => 'server'], 500);
+                $this->sendResponse(['success' => false, 'message' => "Method $method not found", 'errorType' => 'server'], 500);
             }
         }
+        // private function special() {
+        //     if (empty($this->input)) {
+        //         $this->sendResponse(['success' => false, 'message' => 'Invalid data', 'errorType' => 'client'], 400);
+        //         return;
+        //     }
+
+        //     $entityClass = $this->getEntityClass();
+        //     if (!$entityClass) {
+        //         $this->sendResponse(['success' => false, 'message' => 'Invalid entity', 'errorType' => 'client'], 400);
+        //         return;
+        //     }
+
+        //     $entity = new $entityClass();
+        //     $methodMap = [
+        //         'locations' => 'createLocation',
+        //         'departments' => 'createDepartment',
+        //         'categories' => 'createCategory',
+        //         'speakers' => 'createSpeaker',
+        //         'events' => 'createEvent',
+        //         'members' => 'createMember',
+        //         'attendance' => 'createAttendance',
+        //         'activities' => 'createActivity',
+        //         'attendance_methods' => 'createAttendanceMethod',
+        //         'statuses' => 'createStatus',
+        //         'activity_qr_codes' => 'generateQRCode',
+        //         'reports' => 'creatAReport',
+        //         'auth' => 'login',
+        //     ];
+        //     $method = $methodMap[$this->entity] ?? 'special';
+
+        //     if (method_exists($entity, $method)) {
+        //         $result = $entity->$method($this->input);
+        //         if ($result !== false) {
+        //             $this->sendSuccessResponse($result, 200);
+        //         } else {
+        //             $this->sendResponse(['success' => false, 'message' => 'Operation failed', 'errorType' => 'server'], 500);
+        //         }
+        //     } else {
+        //         $this->sendResponse(['success' => false, 'message' => 'Method not found', 'errorType' => 'server'], 500);
+        //     }
+        // }
 
         private function generateQR() {
             if (empty($this->input)) {

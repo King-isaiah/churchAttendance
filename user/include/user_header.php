@@ -183,7 +183,7 @@
                                 </a>                               
                               
                                 <div class="user-link-divider"></div>
-                                <a href="logout.php" class="user-link logout-link">
+                                <a href="../logout.php" class="user-link logout-link">
                                     <i class="fas fa-sign-out-alt"></i>
                                     <span>Logout</span>
                                 </a>

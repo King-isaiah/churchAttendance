@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub Church — Register</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --brand:      #39FF14;   /* Neon Green */
+        --brand-2:    #2ECC0E;   /* Darker Neon Green */
+        --brand-glow: #6ee7b7;
+        --danger:     #FF7A00;   /* Orange */
+        --warning:    #FFD700;   /* Yellow */
+        --text:       #f5fff9;
+        --muted:      #a4b8ad;
+        --card-border: rgba(57, 255, 20, .18);
+    }
+
+    html, body {
+        width: 100%; min-height: 100%;
+        background: #111111; /* Black */
+        color: var(--text);
+        font-family: 'Inter', system-ui, sans-serif;
+        overflow-x: hidden;
+    }
+
+    /* Background layers (simplified for registration) */
+    .bg-overlay {
+        position: fixed; inset: 0; z-index: 2; pointer-events: none;
+        background: radial-gradient(1200px 800px at 15% 20%, rgba(57,255,20,.15), transparent 60%),
+                    radial-gradient(1000px 700px at 85% 80%, rgba(255,122,0,.1), transparent 60%),
+                    linear-gradient(180deg, rgba(17,17,17,.95) 0%, rgba(17,17,17,.85) 100%);
+    }
+
+    .page {
+        position: relative; z-index: 3; min-height: 100vh;
+        display: grid; place-items: center; padding: 2rem 1.25rem;
+    }
+
+    .card {
+        position: relative; width: 100%; max-width: 500px;
+        padding: 2.75rem 2.25rem 2.25rem;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(57,255,20,.08), rgba(57,255,20,.02));
+        border: 1px solid var(--card-border);
+        backdrop-filter: blur(22px) saturate(150%);
+        box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(57,255,20,.18);
+        animation: cardIn .9s cubic-bezier(.22,1,.36,1) .1s forwards;
+    }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .logo {
+        width: 56px; height: 56px; border-radius: 16px;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+        display: grid; place-items: center; font-weight: 800; font-size: 1.15rem;
+        color: #000; margin-bottom: 1.5rem;
+        box-shadow: 0 12px 32px rgba(57,255,20,.5);
+    }
+
+    h1 {
+        font-size: 1.75rem; font-weight: 700; margin-bottom: .4rem;
+        background: linear-gradient(135deg, #ffffff 0%, #d1fae5 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    .subtitle { color: var(--muted); font-size: .92rem; margin-bottom: 2rem; }
+
+    .field { position: relative; margin-bottom: 1.05rem; }
+    .field input, .field select {
+        width: 100%; height: 56px; padding: 1.35rem 1.05rem 0;
+        font-family: inherit; font-size: .98rem; color: var(--text);
+        background: rgba(57,255,20,.06); border: 1px solid rgba(57,255,20,.14);
+        border-radius: 14px; outline: none; transition: all .25s;
+    }
+    .field select { padding-top: 1.5rem; appearance: none; }
+    .field input:focus, .field select:focus {
+        border-color: var(--brand); background: rgba(57,255,20,.12);
+        box-shadow: 0 0 0 4px rgba(57,255,20,.18);
+    }
+    .field label {
+        position: absolute; left: 1.05rem; top: 50%; transform: translateY(-50%);
+        color: var(--muted); font-size: .98rem; pointer-events: none; transition: all .22s;
+    }
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label,
+    .field select:focus + label,
+    .field select:valid + label {
+        top: 15px; font-size: .72rem; letter-spacing: .06em;
+        text-transform: uppercase; color: var(--brand); font-weight: 600;
+    }
+
+    .submit {
+        width: 100%; height: 54px; border: none; border-radius: 14px;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+        color: #000; font-weight: 700; font-size: 1rem; cursor: pointer;
+        box-shadow: 0 12px 32px rgba(57,255,20,.45);
+        transition: transform .18s, box-shadow .25s;
+        margin-top: 1rem;
+    }
+    .submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 18px 42px rgba(57,255,20,.65); }
+    .submit:disabled { opacity: .7; cursor: not-allowed; }
+
+    .foot { margin-top: 1.75rem; text-align: center; font-size: .85rem; color: var(--muted); }
+    .foot a { color: var(--warning); text-decoration: none; font-weight: 500; }
+    .foot a:hover { text-decoration: underline; }
+
+    .toast {
+        position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%) translateY(-140%);
+        padding: .85rem 1.25rem; border-radius: 12px; background: rgba(17,17,17,.95);
+        border: 1px solid rgba(57,255,20,.22); backdrop-filter: blur(16px);
+        font-size: .9rem; display: inline-flex; align-items: center; gap: .6rem;
+        box-shadow: 0 20px 60px rgba(0,0,0,.5); transition: transform .5s, opacity .3s;
+        opacity: 0; z-index: 100; max-width: 90vw;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.error { border-color: rgba(255,122,0,.5); }
+    .toast.success { border-color: rgba(57,255,20,.5); }
+    .toast__dot { width: 8px; height: 8px; border-radius: 50%; }
+    .toast.error .toast__dot { background: var(--danger); }
+    .toast.success .toast__dot { background: var(--brand); }
+</style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<div class="page">
+    <div class="card">
+        <div class="logo">HC</div>
+        <h1>Create Account</h1>
+        <p class="subtitle">Join the Hub Church workspace today.</p>
+
+        <form id="registerForm">
+            <div class="field">
+                <input type="text" id="first_name" placeholder=" " required>
+                <label for="first_name">First Name</label>
+            </div>
+            <div class="field">
+                <input type="text" id="last_name" placeholder=" " required>
+                <label for="last_name">Last Name</label>
+            </div>
+            <div class="field">
+                <input type="text" id="user_name" placeholder=" " required>
+                <label for="user_name">Username</label>
+            </div>
+            <div class="field">
+                <input type="email" id="email" placeholder=" " required>
+                <label for="email">Email Address</label>
+            </div>
+            <div class="field">
+                <input type="tel" id="phone" placeholder=" ">
+                <label for="phone">Phone Number (Optional)</label>
+            </div>
+            <div class="field">
+                <select id="department_id" required>
+                    <option value="" disabled selected>Select Department</option>
+                    <!-- Populated by JS -->
+                </select>
+                <label for="department_id">Department</label>
+            </div>
+            <div class="field">
+                <input type="password" id="password" placeholder=" " required>
+                <label for="password">Password</label>
+            </div>
+            <div class="field">
+                <input type="password" id="confirm_password" placeholder=" " required>
+                <label for="confirm_password">Confirm Password</label>
+            </div>
+
+            <button type="submit" class="submit" id="submitBtn">Register</button>
+        </form>
+
+        <p class="foot">
+            Already have an account? <a href="login.html">Sign In</a>
+        </p>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <span class="toast__dot"></span>
+    <span class="toast__msg" id="toastMsg"></span>
+</div>
+
+<script>
+(() => {
+    'use strict';
+    const API = 'class/ApiHandler.php';
+
+    // Toast helper
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    let toastTid = null;
+    function showToast(msg, type = 'error', duration = 4000) {
+        toast.className = 'toast ' + type;
+        toastMsg.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTid);
+        toastTid = setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    // 1. Load Departments
+    async function loadDepartments() {
+        try {
+            const res = await fetch(`${API}?action=getAll&entity=departments`);
+            const data = await res.json();
+            if (data.success && data.data) {
+                const select = document.getElementById('department_id');
+                data.data.forEach(dept => {
+                    const opt = document.createElement('option');
+                    opt.value = dept.id;
+                    opt.textContent = dept.name;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load departments', e);
+        }
+    }
+    loadDepartments();
+
+    // 2. Handle Form Submit
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const firstName = document.getElementById('first_name').value.trim();
+        const lastName = document.getElementById('last_name').value.trim();
+        const userName = document.getElementById('user_name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const deptId = document.getElementById('department_id').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        // Validation
+        if (!firstName || !lastName || !userName || !email || !deptId || !password) {
+            showToast('Please fill in all required fields');
+            return;
+        }
+        if (password !== confirmPassword) {
+            showToast('Passwords do not match');
+            return;
+        }
+        if (password.length < 6) {
+            showToast('Password must be at least 6 characters');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Account...';
+
+        const payload = {
+            first_name: firstName,
+            last_name: lastName,
+            user_name: userName,
+            email: email,
+            phone: phone,
+            department_id: [deptId], // Stored as array/JSON
+            primary_dept_id: deptId,
+            password: password,
+            role: 'worker'
+        };
+
+        try {
+            const res = await fetch(`${API}?action=create&entity=members`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('Account created successfully! Redirecting to login...', 'success');
+                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+            } else {
+                showToast(data.message || 'Registration failed. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Register';
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Network error. Please check your connection.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Register';
+        }
+    });
+})();
+</script>
+</body>
+</html>

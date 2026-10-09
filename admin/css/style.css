@@ -5,18 +5,27 @@
     box-sizing: border-box;
 }
 :root{
-    --primary:#e6ffde;
-    --light-primary:#03403f;
+    --primary:#39FF14; /* Neon Green */
+    --light-primary:#111111; /* Black */
     --transparent-overlay: rgba(255, 255, 255, 0.5);
-    --primary-purple:#8786E3;
-    --apple-logo:#ec4458;
-    --exotic-can:#9590f1;
+    --primary-purple:#39FF14; /* Replaced with Neon Green */
+    --apple-logo:#FF7A00; /* Orange */
+    --exotic-can:#2ECC0E; /* Darker Neon Green */
     --black-color:#000000;
-    --white-color:#ffff;
-    --exotic-logo:#6464ff;
-    --pear-background:#c9e78a;
-    --apple-background:#ffb2b2;
-    --exotic-background:#c1bff2;
+    --white-color:#ffffff;
+    --exotic-logo:#39FF14; /* Neon Green */
+    --pear-background:rgba(57, 255, 20, 0.15);
+    --apple-background:rgba(255, 122, 0, 0.15);
+    --exotic-background:rgba(57, 255, 20, 0.1);
+    
+    /* Additional variables used but missing in original root */
+    --link-hover: rgba(57, 255, 20, 0.15);
+    --alarm: #FF7A00;
+    --tooltip-bg: #111111;
+    --text-headline: #ffffff;
+    --text: #cccccc;
+    --text-dark: #ffffff;
+    --text-link: #ffffff;
 }
 
 
@@ -32,7 +41,7 @@
     width: 100%;
     height: 100vh;           /* full viewport height */
     overflow: hidden;        /* no page scroll – scrolling happens inside children */
-    background-color: #eef0ea;
+    background-color: #f4f4f4; /* Replaced with a soft structural gray */
 }
 
 .icon-square{
@@ -70,7 +79,7 @@
     border-radius: 12px;
     width: 15em;
     border: none;
-    background-color: aliceblue;
+    background-color: #f4f4f4; /* Replaced aliceblue */
 }
 .text-nav img{
     border-radius: 50%;
@@ -172,7 +181,7 @@
 }
 .last-text h6{    
     font-size: .7em;
-    color: rgb(101, 11, 236); 
+    color: #1A8C06; /* Replaced purple with darker neon green for readability */
 }
 .btn button{
     width: 18vh;
@@ -182,7 +191,7 @@
     height: 5vh;
 }
 .btn-active{
-    color: #8786E3;
+    color: #1A8C06; /* Replaced purple with darker neon green */
 }
 
 
@@ -201,9 +210,9 @@
     max-width: 18rem;
     min-width: 4rem;
     display: flex;
-    color: var(--white);
+    color: var(--white-color);
     flex-direction: column;
-    background: var(--primary-purple);
+    background: #111111; /* Replaced primary-purple with Black */
     box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
     transition: max-width 0.2s ease-in-out;
 }
@@ -241,12 +250,12 @@ body.collapsed .hide{
 }
 .hub-name{
     font-size: 1.25rem;
-    color: var(--text-headline);
+    color: #ffffff; /* White for contrast on black */
     white-space: nowrap;
 }
 .hub-workers{
     font-size: 1rem;
-    color: var(--text);
+    color: #cccccc; /* Light gray for contrast on black */
     font-weight: 600;
     font-size: 0.85rem;
 }
@@ -254,7 +263,7 @@ body.collapsed .hide{
 .logo__wrapper{
     display: flex;
     align-items: center;
-    color: var(--text);
+    color: #cccccc; /* Light gray for contrast on black */
     font-weight: 700;
     text-decoration: none;
     font-size: 1.35rem;
@@ -312,23 +321,23 @@ body.collapsed .expand-btn svg{
     flex-direction: column;
 }
 .sidebar-links li{
-    color: var(--text-dark);
+    color: #ffffff; /* White for contrast on black */
     min-width: 3rem;
 }
 .sidebar-link li .notification{
     background: var(--alarm);
 }
 .sidebar-links li svg{
-    stroke: var(--text-dark);
+    stroke: #cccccc; /* Light gray for contrast on black */
     width: 1.5rem;
     height: 1.5rem;
     min-width: 1.75rem;
 }
 .sidebar-links li a:hover{
-    background: var(--link-hover);
+    background: rgba(57, 255, 20, 0.15); /* Neon green tint */
 }
 .sidebar-links li a {
-    color: var(--text-dark);
+    color: #ffffff; /* White for contrast on black */
     width: 100%;
     padding-left: 0.6rem;
     font-size: 1.1rem;
@@ -342,7 +351,7 @@ body.collapsed .expand-btn svg{
     transition: background 0.2s ease-in-out;
 }
 .sidebar-links li a:focus {
-    outline: 1px solid var(--text-dark);
+    outline: 1px solid #ffffff;
 }
 .sidebar-links li a .link{
     overflow: hidden;
@@ -360,11 +369,11 @@ body.collapsed .expand-btn svg{
 }
 
 .sidebar-links .active:hover{
-    background: var(--link-hover);
+    background: rgba(57, 255, 20, 0.15); /* Neon green tint */
 }
 
 .sidebar-links .active svg{
-    stroke: var(--text-dark);
+    stroke: #39FF14; /* Neon Green */
 }
 
 .sidebar-links--bottom{
@@ -385,13 +394,13 @@ body.collapsed .expand-btn svg{
     margin-top: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent var(--tooltip-bg)  transparent transparent;
+    border-color: transparent #111111 transparent transparent;
 }
 
 .tooltip .tooltip__content{
     visibility: hidden;
-    background: var(--text-dark);
-    color: var(--text-link);
+    background: #111111;
+    color: #ffffff;
     text-align: center;
     border-radius: 6px;
     white-space: nowrap;
@@ -413,9 +422,9 @@ body.collapsed .expand-btn svg{
   top: 40%;
   z-index: 5;
   border: none;
-  background: rgba(255, 255, 255, 0.7);
+  background: #39FF14; /* Neon Green */
   font-family: inherit;
-  color: #333;
+  color: #000000; /* Black */
   border-radius: 50%;
   height: 1.5rem;
   width: 1.5rem;
@@ -463,7 +472,7 @@ body.collapsed .expand-btn svg{
 /* } */
 
 .dots__dot--active {
-  background-color: #888;
+  background-color: #39FF14; /* Neon Green */
   opacity: 1;
 }
 
@@ -552,7 +561,7 @@ body.collapsed .expand-btn svg{
 .calendar-weekdays div {
     text-align: center;
     font-weight: 600;
-    color: #495057;
+    color: #111111; /* Black */
     padding: 0.5rem;
 }
 
@@ -573,18 +582,18 @@ body.collapsed .expand-btn svg{
 }
 
 .calendar-day.has-event {
-    background: #e7f5ff;
-    border: 1px solid #339af0;
+    background: rgba(57, 255, 20, 0.1); /* Neon Green tint */
+    border: 1px solid #39FF14; /* Neon Green */
 }
 
 .calendar-day.has-event:hover {
-    background: #d0ebff;
+    background: rgba(57, 255, 20, 0.2);
 }
 
 .event-dot {
     width: 6px;
     height: 6px;
-    background: #339af0;
+    background: #39FF14; /* Neon Green */
     border-radius: 50%;
     position: absolute;
     bottom: 4px;
@@ -608,14 +617,14 @@ body.collapsed .expand-btn svg{
 
 .summary-card h4 {
     margin: 0 0 0.5rem 0;
-    color: #6c757d;
+    color: #333333; /* Dark Gray */
     font-size: 0.9rem;
 }
 
 .summary-card h3 {
     margin: 0 0 0.5rem 0;
     font-size: 2rem;
-    color: #495057;
+    color: #111111; /* Black */
 }
 
 .trend {
@@ -624,11 +633,11 @@ body.collapsed .expand-btn svg{
 }
 
 .trend.positive {
-    color: #2fb344;
+    color: #1A8C06; /* Darker Neon Green */
 }
 
 .trend.negative {
-    color: #e53e3e;
+    color: #FF7A00; /* Orange */
 }
 
 /* Progress Bar */
@@ -642,8 +651,8 @@ body.collapsed .expand-btn svg{
 
 .progress-fill {
     height: 100%;
-    background: #2fb344;
-    color: white;
+    background: #39FF14; /* Neon Green */
+    color: #000000; /* Black */
     font-size: 0.7rem;
     display: flex;
     align-items: center;
@@ -748,23 +757,23 @@ body.collapsed .expand-btn svg{
 
 /* Toast Types */
 .toastify.success {
-    border-left-color: #10b981;
-    background: linear-gradient(135deg, #f0fdf4, #ffffff);
+    border-left-color: #39FF14; /* Neon Green */
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), #ffffff);
 }
 
 .toastify.error {
-    border-left-color: #ef4444;
-    background: linear-gradient(135deg, #fef2f2, #ffffff);
+    border-left-color: #FF7A00; /* Orange */
+    background: linear-gradient(135deg, rgba(255, 122, 0, 0.1), #ffffff);
 }
 
 .toastify.warning {
-    border-left-color: #f59e0b;
-    background: linear-gradient(135deg, #fffbeb, #ffffff);
+    border-left-color: #FFD700; /* Yellow */
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), #ffffff);
 }
 
 .toastify.info {
-    border-left-color: #3b82f6;
-    background: linear-gradient(135deg, #eff6ff, #ffffff);
+    border-left-color: #111111; /* Black */
+    background: linear-gradient(135deg, #f4f4f4, #ffffff);
 }
 
 /* Toast Content */
@@ -788,29 +797,29 @@ body.collapsed .expand-btn svg{
 }
 
 .toastify.success .toastify-icon {
-    background: #10b981;
-    color: white;
+    background: #39FF14; /* Neon Green */
+    color: #000000; /* Black */
 }
 
 .toastify.error .toastify-icon {
-    background: #ef4444;
-    color: white;
+    background: #FF7A00; /* Orange */
+    color: #000000; /* Black */
 }
 
 .toastify.warning .toastify-icon {
-    background: #f59e0b;
-    color: white;
+    background: #FFD700; /* Yellow */
+    color: #000000; /* Black */
 }
 
 .toastify.info .toastify-icon {
-    background: #3b82f6;
-    color: white;
+    background: #111111; /* Black */
+    color: #ffffff;
 }
 
 .toastify-message {
     flex: 1;
     font-size: 14px;
-    color: #374151;
+    color: #111111; /* Black */
     line-height: 1.4;
     font-weight: 500;
 }
@@ -820,7 +829,7 @@ body.collapsed .expand-btn svg{
     border: none;
     font-size: 18px;
     cursor: pointer;
-    color: #9ca3af;
+    color: #333333; /* Dark Gray */
     margin-left: 10px;
     width: 24px;
     height: 24px;
@@ -833,8 +842,8 @@ body.collapsed .expand-btn svg{
 }
 
 .toastify-close:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: #f4f4f4;
+    color: #111111; /* Black */
 }
 
 /* Progress Bar */
@@ -855,19 +864,19 @@ body.collapsed .expand-btn svg{
 }
 
 .toastify.success .toastify-progress-bar {
-    background: #10b981;
+    background: #39FF14; /* Neon Green */
 }
 
 .toastify.error .toastify-progress-bar {
-    background: #ef4444;
+    background: #FF7A00; /* Orange */
 }
 
 .toastify.warning .toastify-progress-bar {
-    background: #f59e0b;
+    background: #FFD700; /* Yellow */
 }
 
 .toastify.info .toastify-progress-bar {
-    background: #3b82f6;
+    background: #111111; /* Black */
 }
 
 @keyframes progressBar {
@@ -910,7 +919,7 @@ body.collapsed .expand-btn svg{
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5); /* Kept structural */
     backdrop-filter: blur(5px);
     overflow: hidden; /* Prevent body scrolling */
 }
@@ -940,7 +949,7 @@ body.collapsed .expand-btn svg{
     flex-shrink: 0; /* Prevent footer from shrinking */
     padding-top: 1.5rem;
     margin-top: auto; /* Push footer to bottom */
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #e2e8f0; /* Kept soft */
 }
 
 /* Custom scrollbar for better appearance */
@@ -954,7 +963,7 @@ body.collapsed .expand-btn svg{
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: #c1c1c1; /* Kept soft */
     border-radius: 3px;
 }
 
@@ -974,8 +983,8 @@ body.collapsed .expand-btn svg{
 }
 
 .btn-secondary {
-    background: #6c757d;
-    color: white;
+    background: #FFD700; /* Yellow */
+    color: #000000; /* Black */
     border: none;
     padding: 0.8rem 1.5rem;
     border-radius: 8px;
@@ -985,7 +994,7 @@ body.collapsed .expand-btn svg{
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: #E6C200; /* Darker Yellow */
 }
 
 
@@ -998,7 +1007,7 @@ body.collapsed .expand-btn svg{
 
 .pagination button {
     padding: 8px 15px;
-    border: 1px solid #ddd;
+    border: 1px solid #ddd; /* Kept soft */
     background-color: white;
     cursor: pointer;
     border-radius: 4px;
@@ -1010,9 +1019,9 @@ body.collapsed .expand-btn svg{
 }
 
 .pagination button.active {
-    background-color: var(--primary-purple);
-    color: white;
-    border-color: #3498db;
+    background-color: #39FF14; /* Neon Green */
+    color: #000000; /* Black */
+    border-color: #2ECC0E;
 }
 
 .pagination button:disabled {

@@ -97,11 +97,99 @@ class Auth extends Database {
         }
         return null; // Not logged in
     }
-
     public function logout() {
+        // 1. Check if a user is actually logged in before updating the database
+        if (isset($_SESSION['user_id'])) {
+            $userId = $_SESSION['user_id'];
+            
+            // 2. Update the status to 'offline' in the members table
+            $updateData = ['status' => 'offline'];
+            $this->update('members', $updateData, 'id = ?', [$userId]);
+        }
+
+        // 3. Clear session data and destroy session
         session_unset();
         session_destroy();
+
         return ['success' => true, 'message' => 'Logged out successfully'];
+    }
+        // 1. Request Password Reset (Generate OTP)
+    public function requestPasswordReset($data) {
+        $email = $data['email'] ?? '';
+        if (empty($email)) {
+            throw new Exception("Email is required", 400);
+        }
+
+        // Check if user exists
+        $sql = "SELECT id, first_name FROM members WHERE email = ?";
+        $user = $this->fetchOne($sql, [$email]);
+
+        if (!$user) {
+            throw new Exception("No account found with that email address", 404);
+        }
+
+        // Generate 5-digit OTP
+        $otp = rand(10000, 99999);
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+        // Save OTP to database
+        $updateData = [
+            'reset_token' => $otp,
+            'reset_expires_at' => $expiresAt
+        ];
+        $this->update('members', $updateData, 'id = ?', [$user['id']]);
+
+        // --- NOTE: Email sending logic ---
+        // On InfinityFree, mail() often fails or goes to spam. 
+        // For testing, we will return the OTP in the JSON response.
+        // In production, uncomment the mail() function below.
+        
+        /*
+        $to = $email;
+        $subject = "Password Reset Code - Hub Church";
+        $message = "Hello " . $user['first_name'] . ",\n\nYour password reset code is: " . $otp . "\n\nThis code expires in 15 minutes.";
+        $headers = "From: no-reply@yourdomain.com";
+        mail($to, $subject, $message, $headers);
+        */
+
+        return [
+            'success' => true,
+            'message' => 'OTP generated successfully.',
+            'debug_otp' => $otp // Remove this line in production!
+        ];
+    }
+
+    // 2. Reset Password (Verify OTP)
+    public function resetPassword($data) {
+        $email = $data['email'] ?? '';
+        $otp = $data['otp'] ?? '';
+        $newPassword = $data['new_password'] ?? '';
+
+        if (empty($email) || empty($otp) || empty($newPassword)) {
+            throw new Exception("Email, OTP, and new password are required", 400);
+        }
+
+        // Verify OTP and expiration
+        $sql = "SELECT id FROM members WHERE email = ? AND reset_token = ? AND reset_expires_at > NOW()";
+        $user = $this->fetchOne($sql, [$email, $otp]);
+
+        if (!$user) {
+            throw new Exception("Invalid or expired OTP. Please request a new one.", 401);
+        }
+
+        // Update password and clear OTP
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $updateData = [
+            'password' => $hashedPassword,
+            'reset_token' => null,
+            'reset_expires_at' => null
+        ];
+        $this->update('members', $updateData, 'id = ?', [$user['id']]);
+
+        return [
+            'success' => true,
+            'message' => 'Password reset successfully. You can now login.'
+        ];
     }
 }
 ?>
