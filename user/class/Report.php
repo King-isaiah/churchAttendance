@@ -2,92 +2,174 @@
 require_once 'Database.php';
 
 class Report extends Database {
-    public function creatAReport($data){
-        try {         
-            $year = isset($data['year']) && $data['year'] !== 'all' ? (int)$data['year'] : null;
-            $month = isset($data['month']) && $data['month'] !== 'all' ? $data['month'] : null;
-            $status = isset($data['status']) && $data['status'] !== 'all' ? $data['status'] : null;
-            $unique_id = isset($data['unique_id']) ? $data['unique_id'] : null;
+    // public function creatAReport($data){
+    //     try {         
+    //         $year = isset($data['year']) && $data['year'] !== 'all' ? (int)$data['year'] : null;
+    //         $month = isset($data['month']) && $data['month'] !== 'all' ? $data['month'] : null;
+    //         $status = isset($data['status']) && $data['status'] !== 'all' ? $data['status'] : null;
+    //         $unique_id = isset($data['unique_id']) ? $data['unique_id'] : null;
 
-            $conditions = [];
+    //         $conditions = [];
 
            
-            if ($year !== null) {
-                $conditions[] = "YEAR(a.created_at) = $year";
-            }
+    //         if ($year !== null) {
+    //             $conditions[] = "YEAR(a.created_at) = $year";
+    //         }
 
-            if ($month !== null) {
-                $month = ucfirst(strtolower($month));
-                $conditions[] = "MONTHNAME(a.created_at) = '$month'";
-            }
+    //         if ($month !== null) {
+    //             $month = ucfirst(strtolower($month));
+    //             $conditions[] = "MONTHNAME(a.created_at) = '$month'";
+    //         }
 
  
-            if ($status !== null) {
-                $conditions[] = "a.status = '$status'"; 
-            }
+    //         if ($status !== null) {
+    //             $conditions[] = "a.status = '$status'"; 
+    //         }
 
             
-            if ($unique_id !== null) {
-                $conditions[] = "a.unique_id = $unique_id";
-            }
+    //         if ($unique_id !== null) {
+    //             $conditions[] = "a.unique_id = $unique_id";
+    //         }
 
-            $where = empty($conditions) ? '' : ' WHERE ' . implode(' AND ', $conditions);
+    //         $where = empty($conditions) ? '' : ' WHERE ' . implode(' AND ', $conditions);
 
-            $year = isset($data['year']) && $data['year'] !== 'all' ? (int)$data['year'] : null;
-            $month = isset($data['month']) && $data['month'] !== 'all' ? $data['month'] : null;
-            $status = isset($data['status']) && $data['status'] !== 'all' ? $data['status'] : null;
-            $unique_id = isset($data['unique_id']) ? $data['unique_id'] : null;
+    //         $year = isset($data['year']) && $data['year'] !== 'all' ? (int)$data['year'] : null;
+    //         $month = isset($data['month']) && $data['month'] !== 'all' ? $data['month'] : null;
+    //         $status = isset($data['status']) && $data['status'] !== 'all' ? $data['status'] : null;
+    //         $unique_id = isset($data['unique_id']) ? $data['unique_id'] : null;
 
-            $conditions = [];
+    //         $conditions = [];
 
        
-            if ($year !== null) {
-                $conditions[] = "YEAR(a.created_at) = $year";
-            }
+    //         if ($year !== null) {
+    //             $conditions[] = "YEAR(a.created_at) = $year";
+    //         }
 
         
-            if ($month !== null) {
-                $month = ucfirst(strtolower($month));
-                $conditions[] = "MONTHNAME(a.created_at) = '$month'";
-            }
+    //         if ($month !== null) {
+    //             $month = ucfirst(strtolower($month));
+    //             $conditions[] = "MONTHNAME(a.created_at) = '$month'";
+    //         }
 
 
-            if ($status !== null) {
-                $conditions[] = "a.status = '$status'"; 
-            }
+    //         if ($status !== null) {
+    //             $conditions[] = "a.status = '$status'"; 
+    //         }
 
 
-            if ($unique_id !== null) {
-                $conditions[] = "a.unique_id = $unique_id";
-            }
+    //         if ($unique_id !== null) {
+    //             $conditions[] = "a.unique_id = $unique_id";
+    //         }
 
-            $where = empty($conditions) ? '' : ' WHERE ' . implode(' AND ', $conditions);
+    //         $where = empty($conditions) ? '' : ' WHERE ' . implode(' AND ', $conditions);
 
-            $sql = "SELECT DATE(a.created_at) as date, a.attendance_category, a.created_at, a.status,a.unique_id,
-                        a.dayofactivity,  l.name as location_name, a.check_in_time,
-                        COALESCE(act.name, ev.title) as activity_or_event_name,                        
-                        COUNT(CASE WHEN a.status = 'present' THEN 1 END) as present_count,
-                        COUNT(CASE WHEN a.status = 'late' THEN 1 END) as absent_count,
-                        ROUND(
-                            (COUNT(a.status) * 100.0 / 
-                            NULLIF(COUNT(CASE WHEN a.status IN ('present', 'late') THEN 1 END), 0)
-                        ), 1) as attendance_rate
-                    FROM attendance a  LEFT JOIN activities act ON a.attendance_category = 'activity' AND a.attendance_category_id = act.id
-                    LEFT JOIN events ev ON a.attendance_category = 'event' AND a.attendance_category_id = ev.id
-                    LEFT JOIN locations l ON a.location_id = l.id $where GROUP BY 
-                        DATE(a.created_at),                        
-                        COALESCE(act.name, ev.title),
-                        l.name
-                    ORDER BY a.created_at DESC";
-                      
+    //         $sql = "SELECT DATE(a.created_at) as date, a.attendance_category, a.created_at, a.status,a.unique_id,
+    //                     a.dayofactivity,  l.name as location_name, a.check_in_time,
+    //                     COALESCE(act.name, ev.title) as activity_or_event_name,                        
+    //                     COUNT(CASE WHEN a.status = 'present' THEN 1 END) as present_count,
+    //                     COUNT(CASE WHEN a.status = 'late' THEN 1 END) as absent_count,
+    //                     ROUND(
+    //                         (COUNT(a.status) * 100.0 / 
+    //                         NULLIF(COUNT(CASE WHEN a.status IN ('present', 'late') THEN 1 END), 0)
+    //                     ), 1) as attendance_rate
+    //                 FROM attendance a  LEFT JOIN activities act ON a.attendance_category = 'activity' 
+    //                 AND a.attendance_category_id = act.id
+    //                 LEFT JOIN events ev ON a.attendance_category = 'event' 
+    //                 AND a.attendance_category_id = ev.id
+    //                 LEFT JOIN locations l ON a.location_id = l.id $where GROUP BY 
+    //                     DATE(a.created_at),                        
+    //                     COALESCE(act.name, ev.title),
+    //                     l.name
+    //                 ORDER BY a.created_at DESC";
+                 
                         
-                        return $this->fetchAll($sql);
+    //         return $this->fetchAll($sql);
                                     
-        } catch (Exception $e) {
-            error_log("Report getIndividualAttendance error: " . $e->getMessage());
-            return [];
+    //     } catch (Exception $e) {
+    //         error_log("Report getIndividualAttendance error: " . $e->getMessage());
+    //         return [];
+    //     }
+    // }
+
+public function creatAReport($data){
+    try {
+        // ---------- 1. Extract filters (status is OPTIONAL) ----------
+        $year      = isset($data['year'])      && $data['year']   !== 'all' ? (int)$data['year']  : null;
+        $month     = isset($data['month'])     && $data['month']  !== 'all' ? $data['month']      : null;
+        $status    = isset($data['status'])    && $data['status'] !== 'all' ? $data['status']     : null;
+        $unique_id = isset($data['unique_id'])                              ? $data['unique_id']  : null;
+
+        // ---------- 2. Build WHERE ----------
+        $conditions = [];
+        $params     = [];
+
+        if ($year !== null) {
+            $conditions[] = "YEAR(a.created_at) = ?";
+            $params[]     = $year;
         }
+
+        if ($month !== null) {
+            $month = ucfirst(strtolower($month));
+            $conditions[] = "MONTHNAME(a.created_at) = ?";
+            $params[]     = $month;
+        }
+
+        // Only filters by status when a specific status is requested.
+        // Send 'all' (or omit) to fetch every status.
+        if ($status !== null) {
+            $conditions[] = "a.status = ?";
+            $params[]     = $status;
+        }
+
+        if ($unique_id !== null) {
+            $conditions[] = "a.unique_id = ?";
+            $params[]     = $unique_id;
+        }
+
+        $where = empty($conditions) ? '' : ' WHERE ' . implode(' AND ', $conditions);
+
+        // ---------- 3. The query ----------
+        $sql = "SELECT 
+                    DATE(a.created_at) as date,
+                    MAX(a.attendance_category) as attendance_category,
+                    MAX(a.created_at) as created_at,
+                    MAX(a.status) as status,
+                    MAX(a.unique_id) as unique_id,
+                    MAX(a.dayofactivity) as dayofactivity,
+                    MAX(l.name) as location_name,
+                    MAX(a.check_in_time) as check_in_time,
+                    COALESCE(act.name, ev.title) as activity_or_event_name,
+                    COUNT(CASE WHEN a.status = 'present' THEN 1 END) as present_count,
+                    COUNT(CASE WHEN a.status = 'late'    THEN 1 END) as late_count,
+                    COUNT(*) as total_count,
+                    ROUND(
+                        COUNT(CASE WHEN a.status = 'present' THEN 1 END) * 100.0 /
+                        NULLIF(COUNT(CASE WHEN a.status IN ('present', 'late') THEN 1 END), 0),
+                        1
+                    ) as attendance_rate
+                FROM attendance a
+                LEFT JOIN activities act 
+                    ON a.attendance_category = 'activity' 
+                    AND a.attendance_category_id = act.id
+                LEFT JOIN events ev 
+                    ON a.attendance_category = 'event' 
+                    AND a.attendance_category_id = ev.id
+                LEFT JOIN locations l 
+                    ON a.location_id = l.id
+                $where
+                GROUP BY 
+                    DATE(a.created_at),
+                    COALESCE(act.name, ev.title),
+                    l.name
+                ORDER BY MAX(a.created_at) DESC";
+
+        return $this->fetchAll($sql, $params);
+
+    } catch (Exception $e) {
+        error_log("Report creatAReport error: " . $e->getMessage());
+        return [];
     }
+}
 
     public function getAReport($unique_id){
         $sql = "SELECT * FROM attendance WHERE unique_id = ? ";

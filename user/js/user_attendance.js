@@ -83,7 +83,7 @@ class UserAttendanceHistory {
                                 </div>
                                 <div class="summary-info">
                                     <h3 id="attendanceRate">0%</h3>
-                                    <p>Attendance Rate</p>
+                                    <p>Attendance Ratio</p>
                                 </div>
                             </div>
                         </div>
@@ -248,27 +248,47 @@ class UserAttendanceHistory {
     }
 
     transformApiData(apiData) {
-        const individualRecords = [];
-        
-        apiData.forEach(group => {           
-            for (let i = 0; i < (group.present_count || 0); i++) {
-                individualRecords.push({
-                    id: `${group.date}_${group.activity_or_event_name}_present_${i}`,
-                    date: group.date || group.created_at,
-                    activity_name: group.activity_or_event_name || 'Unknown',
-                    location: group.location_name || 'Unknown',
-                    category: group.attendance_category || 'activity',
-                    status: group.status,
-                    present_count: group.check_in_time,                
-                    attendance_rate: group.attendance_rate || 0,                    
-                });
-            }
-            
-            
-        });
-        
-        return individualRecords;
-    }
+    const individualRecords = [];
+    
+    apiData.forEach((group, index) => {
+        const baseDate    = group.date || group.created_at;
+        const activityName = group.activity_or_event_name || 'Unknown';
+        const location     = group.location_name || 'Unknown';
+        const category     = group.attendance_category || 'activity';
+        const rate         = group.attendance_rate || 0;
+        const checkIn      = group.check_in_time || '';
+
+        // -------- PRESENT rows --------
+        for (let i = 0; i < (group.present_count || 0); i++) {
+            individualRecords.push({
+                id: `${baseDate}_${activityName}_present_${index}_${i}`,
+                date: baseDate,
+                activity_name: activityName,
+                location: location,
+                category: category,
+                status: 'present',
+                check_in_time: checkIn,
+                attendance_rate: rate
+            });
+        }
+
+        // -------- LATE rows --------
+        for (let i = 0; i < (group.late_count || 0); i++) {
+            individualRecords.push({
+                id: `${baseDate}_${activityName}_late_${index}_${i}`,
+                date: baseDate,
+                activity_name: activityName,
+                location: location,
+                category: category,
+                status: 'late',
+                check_in_time: checkIn,
+                attendance_rate: rate
+            });
+        }
+    });
+    
+    return individualRecords;
+}
 
     getCurrentUserId() {
         // Try different methods to get the user's unique_id
@@ -352,7 +372,8 @@ class UserAttendanceHistory {
                         ${this.capitalizeFirst(record.status)}
                     </span>
                 </td>
-                <td>${record.present_count}</td>               
+                <td>${record.check_in_time}</td>   
+                            
                 <td>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: ${record.attendance_rate}%">
@@ -445,7 +466,7 @@ class UserAttendanceHistory {
     updateSummary() {
         const totalCount = this.filteredRecords.length;
         const presentCount = this.filteredRecords.filter(record => record.status === 'present').length;
-        const absentCount = this.filteredRecords.filter(record => record.status === 'absent').length;
+        const absentCount = this.filteredRecords.filter(record => record.status === 'late').length;
         const attendanceRate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
         // Update summary cards

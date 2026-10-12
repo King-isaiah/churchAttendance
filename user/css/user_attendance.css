@@ -258,3 +258,29 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Late status — RED */
+.attendance-row.status-late {
+    background-color: #fef2f2;      /* soft red background */
+    border-left: 4px solid #e53e3e; /* red accent bar */
+}
+
+.status-badge.status-late {
+    background: #fed7d7;
+    color: #822727;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: inline-block;
+}
+
+.status-badge.status-present {
+    background: #c6f6d5;
+    color: #22543d;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: inline-block;
+}
