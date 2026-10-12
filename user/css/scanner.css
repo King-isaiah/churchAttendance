@@ -1,207 +1,235 @@
-#qr-video{
-    /* width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block; */
+/* =========================================
+   QR SCANNER MODAL STYLES
+   ========================================= */
 
-
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    background: transparent;
-}
-<<<<<<< HEAD
-=======
-.qr-scanner-content{
-    background:green;
-    border-radius: 0;
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
->>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
-.scanning-overlay{
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-}
-.qr-scanner-body{
-    padding: 0;
-    flex: 1;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-<<<<<<< HEAD
-}
-=======
-   flex: 1; 
-   position: relative;
-}
-
->>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
-.scanning-line{
-    position: absolute;
-    top: 20%;
-    left: 15%;
-    right: 15%;
-    height: 3px;
-    background: linear-gradient(to right, transparent, #00ff00, transparent);
-    animation: scanLine 2s infinite ease-in-out;
-}
-.file-upload-fallback{
-    display: none; 
-    flex: 1; 
-    text-align: center; 
-    padding: 40px 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: #111;
-}
-.QrImageUploade{
-    display: block;
-    padding: 20px;
-    background: #007bff;
-    color: white;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 16px;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-.btn-primaryScan{
-    width: 100%;
-    padding: 20px;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 16px;
-}
-<<<<<<< HEAD
-=======
-#upload-qr-btn{
-    width: 100%;
-    padding: 15px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
->>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
-.btn-primary{
-    width: 100%;
-    padding: 20px;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 16px;
-}
-.scan-result{
+.qr-scanner-modal {
     display: none;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.95);
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-scanner-content {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+}
+
+.qr-scanner-header {
     padding: 20px;
-    z-index: 100;
-}
-#result-content{
-    text-align: center; color: white;
-}
-#scan-again-btn{
-    margin-top: 30px;
-    padding: 16px 32px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    cursor: pointer;
-    display: none;
-}
-.qr-scanner-footer{
-    padding: 16px;
-    background: rgba(0,0,0,0.8);
+    background: #28a745; /* Green header to match your app */
     display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
     flex-shrink: 0;
 }
-#toggle-camera-btn{
-    flex: 1;
-    min-width: 120px;
-    padding: 14px 16px;
-    background: rgba(255,255,255,0.1);
+
+.qr-scanner-header h3 {
+    margin: 0;
     color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 14px;
-}
-#torch-toggle-btn{
-    flex: 1;
-    min-width: 120px;
-    padding: 14px 16px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
+    font-weight: 600;
 }
 
-#use-fallback-btn{
-    flex: 1;
-    min-width: 120px;
-    padding: 14px 16px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 14px;
-<<<<<<< HEAD
-=======
-}
-.close-scanner{
+.close-scanner {
     background: none;
     border: none;
     font-size: 28px;
     cursor: pointer;
     color: white;
-    padding: 8px;
-    width: 44px;
-    height: 44px;
+    padding: 0;
+    line-height: 1;
+}
+
+/* =========================================
+   CAMERA AREA & LASER
+   ========================================= */
+
+.qr-scanner-body {
+    flex: 1;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px; /* Prevents it from getting too small */
+}
+
+/* Ensure the video fills the container */
+#qr-reader {
+    width: 100%;
+    height: 100%;
+    border: none !important;
+}
+
+#qr-reader video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+/* The animated laser line */
+.scan-laser {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background-color: #00ff00;
+    box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00;
+    animation: scanAnimation 2.5s ease-in-out infinite;
+    z-index: 5;
+    display: none; /* Hidden by default, shown by JS */
+}
+
+@keyframes scanAnimation {
+    0% { top: 0%; }
+    50% { top: 100%; }
+    100% { top: 0%; }
+}
+
+/* =========================================
+   HIDE THE LIBRARY'S DEFAULT UI
+   ========================================= */
+
+#qr-reader__dashboard,
+#qr-reader__dashboard_section_csr,
+#qr-reader__header_message,
+#qr-reader__status_span,
+#qr-reader__dashboard_section_swaplink {
+    display: none !important;
+}
+
+/* =========================================
+   SCAN RESULT OVERLAY
+   ========================================= */
+
+.scan-result {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 20;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+#result-content {
+    text-align: center;
+    color: white;
+}
+
+#scan-again-btn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* =========================================
+   FOOTER & CONTROLS
+   ========================================= */
+
+.qr-scanner-footer {
+    padding: 16px;
+    background: #f8f9fa;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    border-top: 1px solid #eee;
+}
+
+.btn-scanner {
+    flex: 1;
+    min-width: 120px;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
->>>>>>> d699a23fc825e4471293168cd0ef87b8c726773a
+    gap: 8px;
+}
+
+.btn-scanner-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-scanner-secondary {
+    background: #e9ecef;
+    color: #333;
+}
+
+.btn-scanner-danger {
+    background: #dc3545;
+    color: white;
+}
+
+/* =========================================
+   FILE UPLOAD FALLBACK
+   ========================================= */
+
+.file-upload-fallback {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #111;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+}
+
+.file-upload-fallback h3 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.file-upload-fallback p {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .qr-scanner-content {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+    
+    .qr-scanner-body {
+        min-height: 400px; /* Larger camera view on mobile */
+    }
 }
