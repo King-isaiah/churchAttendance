@@ -1,370 +1,184 @@
-// QR Code Scanner functionality using Html5QrcodeScanner
-class QRCodeScanner {  
+// QR Scanner — Real camera control using Html5Qrcode (not the pre-built scanner)
+class QRCodeScanner {
     constructor() {
-        console.log('QRCodeScanner constructor called - Using Html5QrcodeScanner');        
-        this.scanner = null;
-        this.isScanning = false;
-        this.modal = null;
-        this.currentActivityId = null;
+        this.html5QrCode = null;       // The Html5Qrcode instance
+        this.isScanning  = false;
+        this.modal       = null;
         this.lastScannedCode = null;
         this.scanCooldown = 2000;
-        this.useFallback = false;
-        this.html5QrcodeScanner = null;
-        this.QrString = null
+        this.cameras      = [];        // {id, label}[]
+        this.currentCameraId = null;
+        this.currentZoom  = 1;
+        this.zoomSupported = false;
+        this.originalZoom = 1;
         this.init();
     }
-    
+
     init() {
-        console.log('Initializing QR scanner with Html5QrcodeScanner...');
         this.createModal();
         this.setupEventListeners();
     }
 
+    // ---------- BUILD MODAL ----------
     createModal() {
         if (this.modal) return;
-
         this.modal = document.createElement('div');
         this.modal.className = 'qr-scanner-modal';
-        
         this.modal.innerHTML = `
             <div class="qr-scanner-content">
-                <!-- Header: only X button -->
                 <div class="qr-scanner-header">
-                    <button class="close-scanner" aria-label="Close">&times;</button>
+                    <button class="close-scanner">&times;</button>
                 </div>
-
                 <div class="qr-scanner-body">
-                    <!-- Camera area -->
-                    <div class="camera-wrapper">
-                        <div id="qr-reader" style="width:100%;height:100%;"></div>
-                        <!-- Corner brackets -->
-                        <div class="corner-bracket corner-tl"></div>
-                        <div class="corner-bracket corner-tr"></div>
-                        <div class="corner-bracket corner-bl"></div>
-                        <div class="corner-bracket corner-br"></div>
-                        <!-- Laser -->
-                        <div class="scan-laser"></div>
-                        <!-- Upload fallback -->
-                        <div class="file-upload-fallback" id="file-upload-fallback">
-                            <div style="font-size:64px;margin-bottom:20px;">📁</div>
-                            <h3>Upload QR Code</h3>
-                            <p>Take a photo or choose from gallery</p>
-                            <button id="upload-qr-btn" style="
-                                padding:14px 24px;background:#4A90E2;color:white;border:none;
-                                border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;
-                            ">Browse Files</button>
-                            <input type="file" id="qr-image-upload" accept="image/*" capture="environment" style="display:none;">
-                        </div>
-                    </div>
-
-                    <!-- Camera Controls -->
-                    <div class="camera-controls">
-                        <button class="btn-stop-camera" id="stop-camera-btn">
-                            <span class="stop-square"></span> Stop Camera
+                    <!-- TABS -->
+                    <div class="scan-tabs">
+                        <button class="scan-tab active" data-tab="camera">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            Camera
                         </button>
-                        <button class="btn-icon-circle" id="flash-btn" title="Toggle Flash">⚡</button>
-                        <button class="btn-icon-circle" id="switch-camera-btn" title="Switch Camera">🔄</button>
+                        <button class="scan-tab" data-tab="image">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                            Scan Image
+                        </button>
                     </div>
 
-                    <!-- Camera dropdown (visual) -->
-                    <select class="camera-select" id="camera-select">
-                        <option>camera 0, facing back</option>
-                    </select>
-
-                    <!-- Zoom (visual) -->
-                    <div class="zoom-control">
-                        <span class="zoom-label">Zoom</span>
-                        <input type="range" class="zoom-slider" id="zoom-slider" min="1" max="5" value="1" step="0.1">
-                        <span class="zoom-value" id="zoom-value">1.0x</span>
-                    </div>
-
-                    <!-- Scanned Result section -->
-                    <div class="scanned-result-section">
-                        <div class="scanned-result-header">
-                            <h3>Scanned Result</h3>
-                            <button class="history-btn">
-                                History <span class="history-dot"></span>
+                    <!-- CAMERA PANEL -->
+                    <div class="tab-panel active" id="panel-camera">
+                        <div class="camera-off-box" id="cameraOff">
+                            <div class="camera-off-icon">📷</div>
+                            <div class="camera-off-title">Camera is off.</div>
+                            <div class="camera-off-sub">Press Start Camera to scan.</div>
+                            <button class="btn-start-camera" id="start-camera-btn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                Start Camera
                             </button>
                         </div>
-                        <div class="scan-status" id="scan-status">
-                            <span class="scan-status-dot"></span>
-                            <span id="scan-status-text">Waiting to start...</span>
+
+                        <div id="cameraOn" style="display:none">
+                            <div class="camera-wrapper">
+                                <div id="qr-reader"></div>
+                                <div class="corner-bracket corner-tl"></div>
+                                <div class="corner-bracket corner-tr"></div>
+                                <div class="corner-bracket corner-bl"></div>
+                                <div class="corner-bracket corner-br"></div>
+                                <div class="scan-laser" id="scan-laser"></div>
+                            </div>
+
+                            <div class="camera-controls">
+                                <button class="btn-stop-camera" id="stop-camera-btn">
+                                    <span class="stop-square"></span> Stop Camera
+                                </button>
+                                <button class="btn-icon-circle" id="torch-btn" title="Toggle Flash">⚡</button>
+                                <button class="btn-icon-circle" id="switch-camera-btn" title="Switch Camera">🔄</button>
+                            </div>
+
+                            <select class="camera-select" id="camera-select"></select>
+
+                            <div class="zoom-control">
+                                <span class="zoom-label">Zoom</span>
+                                <input type="range" class="zoom-slider" id="zoom-slider" min="1" max="5" value="1" step="0.1">
+                                <span class="zoom-value" id="zoom-value">1.0x</span>
+                            </div>
                         </div>
-                        <div class="scan-result-box" id="scan-result-box">
-                            Scan a QR code to see results here...
+
+                        <div class="scanned-result-section">
+                            <div class="scanned-result-header">
+                                <h3>Scanned Result</h3>
+                                <button class="history-btn">History <span class="history-dot"></span></button>
+                            </div>
+                            <div class="scan-status" id="scan-status" style="display:none">
+                                <span class="scan-status-dot" id="scan-status-dot"></span>
+                                <span id="scan-status-text">Scanning for QR codes...</span>
+                            </div>
+                            <div class="scan-result-box" id="scan-result-box">Scan a QR code to see results here...</div>
+                            <button id="scan-again-btn">Scan Again</button>
                         </div>
-                        <button id="scan-again-btn">Scan Again</button>
+                    </div>
+
+                    <!-- SCAN IMAGE PANEL -->
+                    <div class="tab-panel" id="panel-image">
+                        <div class="image-drop-zone" id="image-drop-zone">
+                            <div class="folder-icon">📁</div>
+                            <div class="image-drop-title">Choose an image to scan</div>
+                            <div class="image-drop-sub">PNG · JPG · WEBP · GIF · BMP</div>
+                            <button class="btn-browse-files" id="browse-files-btn">Browse files</button>
+                            <input type="file" id="qr-image-upload" accept="image/*" style="display:none">
+                        </div>
+                        <div class="scanned-result-section">
+                            <div class="scanned-result-header">
+                                <h3>Scanned Result</h3>
+                                <button class="history-btn">History <span class="history-dot"></span></button>
+                            </div>
+                            <div class="scan-status" id="scan-status-img" style="display:none">
+                                <span class="scan-status-dot" id="scan-status-dot-img"></span>
+                                <span id="scan-status-text-img">Waiting for image...</span>
+                            </div>
+                            <div class="scan-result-box" id="scan-result-box-img">Scan a QR code to see results here...</div>
+                            <button id="scan-again-btn-img">Scan Again</button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
-
         document.body.appendChild(this.modal);
         this.setupModalEvents();
     }
 
+    // ---------- EVENTS ----------
     setupModalEvents() {
-        if (!this.modal) return;
+        const $ = (s) => this.modal.querySelector(s);
 
-        const closeBtn      = this.modal.querySelector('.close-scanner');
-        const stopBtn       = this.modal.querySelector('#stop-camera-btn');
-        const uploadBtn     = this.modal.querySelector('#upload-qr-btn');
-        const fileInput     = this.modal.querySelector('#qr-image-upload');
-        const scanAgainBtn  = this.modal.querySelector('#scan-again-btn');
-        const zoomSlider    = this.modal.querySelector('#zoom-slider');
-        const zoomValue     = this.modal.querySelector('#zoom-value');
+        $('.close-scanner').addEventListener('click', () => this.closeScanner());
+        this.modal.addEventListener('click', (e) => { if (e.target === this.modal) this.closeScanner(); });
 
-        if (closeBtn)  closeBtn.addEventListener('click',  () => this.closeScanner());
-        if (uploadBtn) uploadBtn.addEventListener('click', () => this.triggerFileUpload());
-        if (fileInput) fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
-
-        if (stopBtn) {
-            stopBtn.addEventListener('click', () => {
-                this.stopHtml5Scanner();
-                this.updateScanStatus('Camera stopped', 'idle');
-                this.showScanResult('Camera stopped. Click Scan Again to resume.', 'info');
+        // Tabs
+        this.modal.querySelectorAll('.scan-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.modal.querySelectorAll('.scan-tab').forEach(t => t.classList.remove('active'));
+                this.modal.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+                // If switching away from camera while on, stop camera
+                if (tab.dataset.tab !== 'camera' && this.html5QrCode) this.stopCamera();
             });
-        }
-
-        if (scanAgainBtn) {
-            scanAgainBtn.addEventListener('click', () => {
-                scanAgainBtn.style.display = 'none';
-                this.clearScanResult();
-                this.startHtml5Scanner();
-            });
-        }
-
-        if (zoomSlider && zoomValue) {
-            zoomSlider.addEventListener('input', () => {
-                zoomValue.textContent = parseFloat(zoomSlider.value).toFixed(1) + 'x';
-            });
-        }
-
-        // Close when clicking on the light overlay (outside the card)
-        this.modal.addEventListener('click', (e) => {
-            if (e.target === this.modal) this.closeScanner();
         });
-    }
 
-    updateScanStatus(text, state = 'scanning') {
-        const statusText = document.getElementById('scan-status-text');
-        const statusDot  = this.modal.querySelector('.scan-status-dot');
-        if (!statusText || !statusDot) return;
+        // Start / Stop camera
+        $('#start-camera-btn').addEventListener('click', () => this.startCamera());
+        $('#stop-camera-btn').addEventListener('click', () => this.stopCamera());
+        $('#switch-camera-btn').addEventListener('click', () => this.switchCamera());
+        $('#torch-btn').addEventListener('click', () => this.toggleTorch());
 
-        statusText.textContent = text;
-        if (state === 'scanning') {
-            statusDot.style.background = '#FFC107';
-            statusDot.style.boxShadow  = '0 0 0 4px rgba(255,193,7,0.2)';
-            statusDot.style.animation  = 'pulse 1.5s ease-in-out infinite';
-        } else if (state === 'success') {
-            statusDot.style.background = '#4CAF50';
-            statusDot.style.boxShadow  = '0 0 0 4px rgba(76,175,80,0.2)';
-            statusDot.style.animation  = 'none';
-        } else if (state === 'error') {
-            statusDot.style.background = '#E53935';
-            statusDot.style.boxShadow  = '0 0 0 4px rgba(229,57,53,0.2)';
-            statusDot.style.animation  = 'none';
-        } else {
-            statusDot.style.background = '#999';
-            statusDot.style.boxShadow  = 'none';
-            statusDot.style.animation  = 'none';
-        }
-    }
+        // Camera select
+        $('#camera-select').addEventListener('change', (e) => {
+            this.currentCameraId = e.target.value;
+            this.stopCamera().then(() => this.startCamera());
+        });
 
-    showScanResult(message, type = 'info') {
-        const box = document.getElementById('scan-result-box');
-        const scanAgainBtn = document.getElementById('scan-again-btn');
-        if (!box) return;
+        // Zoom slider
+        $('#zoom-slider').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            $('#zoom-value').textContent = val.toFixed(1) + 'x';
+            this.applyZoom(val);
+        });
 
-        box.className = 'scan-result-box';
-        box.textContent = message;
+        // File upload
+        $('#browse-files-btn').addEventListener('click', () => $('#qr-image-upload').click());
+        $('#image-drop-zone').addEventListener('click', (e) => {
+            if (e.target.id !== 'browse-files-btn') $('#qr-image-upload').click();
+        });
+        $('#qr-image-upload').addEventListener('change', (e) => this.handleFileUpload(e));
 
-        if (type === 'success') {
-            box.classList.add('success');
-            this.updateScanStatus('Scan successful!', 'success');
-        } else if (type === 'error') {
-            box.classList.add('error');
-            this.updateScanStatus('Scan failed', 'error');
-        } else if (type === 'loading') {
-            box.classList.add('loading');
-            this.updateScanStatus('Processing...', 'scanning');
-        } else {
-            this.updateScanStatus('Scanning for QR codes...', 'scanning');
-        }
-
-        if (scanAgainBtn && (type === 'success' || type === 'error' || type === 'info')) {
-            scanAgainBtn.style.display = 'inline-block';
-        } else if (scanAgainBtn) {
-            scanAgainBtn.style.display = 'none';
-        }
-    }
-
-    clearScanResult() {
-        const box = document.getElementById('scan-result-box');
-        if (box) {
-            box.className = 'scan-result-box';
-            box.textContent = 'Scan a QR code to see results here...';
-        }
-        this.updateScanStatus('Scanning for QR codes...', 'scanning');
-    }
-
-    async openScanner(activityId = null) {
-        if (this.isScanning) return;
-
-        this.currentActivityId = activityId;
-        this.lastScannedCode = null;
-
-        if (!this.modal) this.createModal();
-
-        // Reset UI
-        const fallbackSection = document.getElementById('file-upload-fallback');
-        const qrReader        = document.getElementById('qr-reader');
-        const scanAgainBtn    = document.getElementById('scan-again-btn');
-        const laser           = document.querySelector('.scan-laser');
-
-        if (fallbackSection) fallbackSection.style.display = 'none';
-        if (qrReader) qrReader.innerHTML = '';
-        if (scanAgainBtn) scanAgainBtn.style.display = 'none';
-        if (laser) laser.style.display = 'none';
-
-        this.clearScanResult();
-
-        this.modal.style.display = 'block';
-        this.isScanning = true;
-        this.useFallback = false;
-
-        if (typeof Html5QrcodeScanner === 'undefined') {
-            showError('QR Scanner library not loaded');
-            this.showFallbackMode();
-            return;
-        }
-
-        this.startHtml5Scanner();
-    }
-
-    startHtml5Scanner() {
-        console.log('Starting Html5QrcodeScanner...');
-
-        // Hide laser until camera is ready
-        const laser = document.querySelector('.scan-laser');
-        if (laser) laser.style.display = 'none';
-
-        this.updateScanStatus('Requesting camera permission...', 'scanning');
-
-        const qrReaderElement = document.getElementById('qr-reader');
-
-        if (this.html5QrcodeScanner) {
-            try { this.html5QrcodeScanner.clear(); } catch (e) {}
-        }
-
-        if (qrReaderElement) {
-            qrReaderElement.innerHTML = '';
-            qrReaderElement.style.display = 'block';
-        }
-
-        this.html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader",
-            {
-                qrbox: { width: 220, height: 220 },
-                fps: 10,
-                facingMode: "environment",
-                rememberLastUsedCamera: false,
-                showTorchButtonIfSupported: false,
-                showZoomSliderIfSupported: false,
-                defaultZoomValueIfSupported: 1
-            },
-            false
-        );
-
-        const onScanSuccess = (decodedText) => {
-            console.log('QR Code scanned:', decodedText);
-            this.stopHtml5Scanner();
-            this.processScannedData(decodedText);
-        };
-
-        const onScanError = () => { /* silence */ };
-
-        this.html5QrcodeScanner.render(onScanSuccess, onScanError);
-
-        // Poll until the video element is live, THEN show the laser
-        this.checkCameraStatus();
-    }
-
-    checkCameraStatus() {
-        const laser = document.querySelector('.scan-laser');
-        let attempts = 0;
-        const maxAttempts = 30;
-
-        const interval = setInterval(() => {
-            const video = document.querySelector('#qr-reader video');
-
-            if (video && video.readyState >= 2 && video.videoWidth > 0) {
-                if (laser) laser.style.display = 'block';
-                this.updateScanStatus('Scanning for QR codes...', 'scanning');
-                clearInterval(interval);
-                console.log('Camera active, laser started.');
-                return;
-            }
-
-            attempts++;
-            if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                this.updateScanStatus('Camera is taking too long. Try refreshing.', 'error');
-                console.warn('Camera check timed out.');
-            }
-        }, 500);
-    }
-
-    stopHtml5Scanner() {
-        const laser = document.querySelector('.scan-laser');
-        if (laser) laser.style.display = 'none';
-
-        if (this.html5QrcodeScanner) {
-            try {
-                this.html5QrcodeScanner.clear();
-                console.log('Scanner stopped');
-            } catch (e) {
-                console.log('Error stopping scanner:', e);
-            }
-        }
-    }
-  
-
-    setupModalEvents() {
-        if (!this.modal) return;
-
-        const closeBtn = this.modal.querySelector('.close-scanner');
-        const fallbackBtn = this.modal.querySelector('#use-fallback-btn');
-        const uploadBtn = this.modal.querySelector('#upload-qr-btn');
-        const fileInput = this.modal.querySelector('#qr-image-upload');
-        const scanAgainBtn = this.modal.querySelector('#scan-again-btn');
-        const stopCameraBtn = this.modal.querySelector('#stop-camera-btn');
-
-        if (closeBtn) closeBtn.addEventListener('click', () => this.closeScanner());
-        if (fallbackBtn) fallbackBtn.addEventListener('click', () => this.showFallbackMode());
-        
-        if (stopCameraBtn) {
-            stopCameraBtn.addEventListener('click', () => {
-                this.stopHtml5Scanner();
-                this.showScanResult('Camera stopped', 'info');
-                stopCameraBtn.style.display = 'none';
-                fallbackBtn.style.display = 'block';
-            });
-        }
-
-        if (uploadBtn) uploadBtn.addEventListener('click', () => this.triggerFileUpload());
-        if (fileInput) fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
-        
-        if (scanAgainBtn) {
-            scanAgainBtn.addEventListener('click', () => {
-                document.getElementById('scan-result').style.display = 'none';
-                this.lastScannedCode = null;
-                this.startHtml5Scanner();
-            });
-        }
-
-        this.modal.addEventListener('click', (e) => {
-            if (e.target === this.modal) this.closeScanner();
+        // Scan again (both panels)
+        $('#scan-again-btn').addEventListener('click', () => {
+            $('#scan-again-btn').style.display = 'none';
+            this.clearResult('camera');
+            this.startCamera();
+        });
+        $('#scan-again-btn-img').addEventListener('click', () => {
+            $('#scan-again-btn-img').style.display = 'none';
+            this.clearResult('image');
+            $('#qr-image-upload').value = '';
         });
     }
 
@@ -374,321 +188,382 @@ class QRCodeScanner {
         });
     }
 
+    // ---------- OPEN MODAL ----------
     async openScanner(activityId = null) {
         if (this.isScanning) return;
-
         this.currentActivityId = activityId;
         this.lastScannedCode = null;
 
-        if (!this.modal) this.createModal();
+        // Reset UI
+        document.getElementById('cameraOff').style.display = 'flex';
+        document.getElementById('cameraOn').style.display = 'none';
+        document.getElementById('scan-status').style.display = 'none';
+        document.getElementById('scan-again-btn').style.display = 'none';
+        this.clearResult('camera');
+        this.clearResult('image');
 
-        const scanResult = document.getElementById('scan-result');
-        const fallbackSection = document.getElementById('file-upload-fallback');
-        const qrReader = document.getElementById('qr-reader');
-        const stopCameraBtn = this.modal.querySelector('#stop-camera-btn');
-        const fallbackBtn = this.modal.querySelector('#use-fallback-btn');
-        
-        if (scanResult) scanResult.style.display = 'none';
-        if (fallbackSection) fallbackSection.style.display = 'none';
-        if (qrReader) qrReader.innerHTML = '';
-        if (stopCameraBtn) stopCameraBtn.style.display = 'block';
-        if (fallbackBtn) fallbackBtn.style.display = 'block';
+        // Reset tabs to Camera
+        this.modal.querySelectorAll('.scan-tab').forEach(t => t.classList.remove('active'));
+        this.modal.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        this.modal.querySelector('.scan-tab[data-tab="camera"]').classList.add('active');
+        document.getElementById('panel-camera').classList.add('active');
 
-        this.modal.style.display = 'flex';
+        this.modal.style.display = 'block';
         this.isScanning = true;
         this.useFallback = false;
-        
-        if (typeof Html5QrcodeScanner === 'undefined') {
-            showError('QR Scanner library not loaded');
-            this.showFallbackMode();
+
+        if (typeof Html5Qrcode === 'undefined') {
+            this.updateStatus('camera', 'QR Scanner library not loaded', 'error');
             return;
         }
-
-        this.startHtml5Scanner();
     }
 
-    startHtml5Scanner() {
-        console.log('Starting Html5QrcodeScanner...');
-        
-        // 1. Ensure laser is hidden initially
-        const laser = document.querySelector('.scan-laser');
-        if (laser) laser.style.display = 'none';
-
-        this.showScanResult('Starting camera...', 'loading');
-        
-        const qrReaderElement = document.getElementById('qr-reader');
-        
-        if (this.html5QrcodeScanner) {
-            try { this.html5QrcodeScanner.clear(); } catch (e) {}
-        }
-        
-        if (qrReaderElement) {
-            qrReaderElement.innerHTML = '';
-            qrReaderElement.style.display = 'block';
-        }
-        
-        setTimeout(() => {
-            const scanResult = document.getElementById('scan-result');
-            if (scanResult) scanResult.style.display = 'none';
-        }, 1000);
-        
-        this.html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader", 
-            { 
-                qrbox: { width: 250, height: 250 },
-                fps: 10,
-                facingMode: "environment",
-                rememberLastUsedCamera: false,
-                showTorchButtonIfSupported: true,
-                showZoomSliderIfSupported: true,
-                defaultZoomValueIfSupported: 1
-            },
-            false
-        );
-        
-        const onScanSuccess = (decodedText, decodedResult) => {
-            console.log('QR Code scanned:', decodedText);
-            this.stopHtml5Scanner();
-            this.processScannedData(decodedText);
-        };
-        
-        const onScanError = (errorMessage) => {
-            // console.log('Scan error:', errorMessage);
-        };
-        
-        this.html5QrcodeScanner.render(onScanSuccess, onScanError);
-
-        // 2. Check if camera is actually on before showing the laser
-        this.checkCameraStatus();
-    }
-
-    // NEW METHOD: Continuously check if the video element is active
-    checkCameraStatus() {
-        const laser = document.querySelector('.scan-laser');
-        let attempts = 0;
-        const maxAttempts = 20; // 20 * 500ms = 10 seconds timeout
-
-        const interval = setInterval(() => {
-            const video = document.querySelector('#qr-reader video');
-            
-            // Check if video exists and is playing (readyState >= 2 means it has data)
-            if (video && video.readyState >= 2) {
-                if (laser) laser.style.display = 'block';
-                clearInterval(interval);
-                console.log('Camera active, laser started.');
-            }
-            
-            attempts++;
-            if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                console.warn('Camera check timed out.');
-            }
-        }, 500);
-    }
-
-    stopHtml5Scanner() {
-        const laser = document.querySelector('.scan-laser');
-        if (laser) laser.style.display = 'none';
-
-        if (this.html5QrcodeScanner) {
+    // ---------- ENUMERATE CAMERAS ----------
+    async loadCameras() {
+        try {
+            // Request permission first (needed on iOS/Safari to get labels)
             try {
-                this.html5QrcodeScanner.clear();
-                console.log('Scanner stopped');
-            } catch (e) {
-                console.log('Error stopping scanner:', e);
+                const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
+                tmp.getTracks().forEach(t => t.stop());
+            } catch (e) { /* permission may still be granted later */ }
+
+            const cams = await Html5Qrcode.getCameras();
+            this.cameras = cams || [];
+
+            const select = document.getElementById('camera-select');
+            select.innerHTML = '';
+
+            if (this.cameras.length === 0) {
+                select.innerHTML = '<option>No cameras found</option>';
+                return false;
+            }
+
+            this.cameras.forEach((cam, i) => {
+                const opt = document.createElement('option');
+                opt.value = cam.id;
+                opt.textContent = cam.label || `Camera ${i + 1}`;
+                select.appendChild(opt);
+            });
+
+            // Prefer back camera
+            const backCam = this.cameras.find(c => /back|rear|environment/i.test(c.label));
+            this.currentCameraId = backCam ? backCam.id : this.cameras[0].id;
+            select.value = this.currentCameraId;
+            return true;
+        } catch (err) {
+            console.error('Camera enumeration failed:', err);
+            this.updateStatus('camera', 'Camera permission denied', 'error');
+            return false;
+        }
+    }
+
+    // ---------- START CAMERA ----------
+    async startCamera() {
+        // Show ON state
+        document.getElementById('cameraOff').style.display = 'none';
+        document.getElementById('cameraOn').style.display = 'block';
+        document.getElementById('scan-status').style.display = 'flex';
+        this.updateStatus('camera', 'Requesting camera permission...', 'scanning');
+
+        // Load cameras if we haven't yet
+        if (this.cameras.length === 0) {
+            const ok = await this.loadCameras();
+            if (!ok) {
+                this.stopCamera();
+                return;
+            }
+        }
+
+        if (!this.html5QrCode) {
+            this.html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+        }
+
+        const config = {
+            fps: 10,
+            qrbox: (w, h) => {
+                const size = Math.min(w, h) * 0.7;
+                return { width: size, height: size };
+            },
+            aspectRatio: 1.0
+        };
+
+        try {
+            await this.html5QrCode.start(
+                this.currentCameraId,
+                config,
+                (decodedText) => this.onScanSuccess(decodedText),
+                () => { /* silence scan errors */ }
+            );
+
+            // Detect capabilities: zoom, torch
+            this.detectCapabilities();
+
+            // Show laser + start status
+            document.getElementById('scan-laser').classList.add('running');
+            this.updateStatus('camera', 'Scanning for QR codes...', 'scanning');
+            this.clearResult('camera');
+        } catch (err) {
+            console.error('Camera start failed:', err);
+            this.updateStatus('camera', 'Could not start camera: ' + (err.message || err), 'error');
+            this.stopCamera();
+        }
+    }
+
+    // ---------- STOP CAMERA ----------
+    async stopCamera() {
+        document.getElementById('scan-laser').classList.remove('running');
+        if (this.html5QrCode) {
+            try { await this.html5QrCode.stop(); } catch (e) { /* silent */ }
+        }
+        document.getElementById('cameraOff').style.display = 'flex';
+        document.getElementById('cameraOn').style.display = 'none';
+        document.getElementById('scan-status').style.display = 'none';
+    }
+
+    // ---------- SWITCH CAMERA ----------
+    async switchCamera() {
+        if (this.cameras.length < 2) return;
+        const currentIdx = this.cameras.findIndex(c => c.id === this.currentCameraId);
+        const nextIdx = (currentIdx + 1) % this.cameras.length;
+        this.currentCameraId = this.cameras[nextIdx].id;
+        document.getElementById('camera-select').value = this.currentCameraId;
+
+        await this.stopCamera();
+        document.getElementById('cameraOff').style.display = 'none';
+        document.getElementById('cameraOn').style.display = 'block';
+        await this.startCamera();
+    }
+
+    // ---------- DETECT CAPABILITIES (zoom + torch) ----------
+    detectCapabilities() {
+        const video = document.querySelector('#qr-reader video');
+        if (!video) return;
+        const stream = video.srcObject;
+        if (!stream) return;
+        const track = stream.getVideoTracks()[0];
+        if (!track) return;
+
+        // Zoom
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (caps.zoom) {
+            this.zoomSupported = true;
+            this.originalZoom = caps.zoom.min || 1;
+            const slider = document.getElementById('zoom-slider');
+            slider.min = caps.zoom.min || 1;
+            slider.max = caps.zoom.max || 5;
+            slider.step = caps.zoom.step || 0.1;
+            slider.value = caps.zoom.min || 1;
+            document.getElementById('zoom-value').textContent = parseFloat(slider.value).toFixed(1) + 'x';
+        } else {
+            this.zoomSupported = false;
+        }
+
+        // Torch
+        const torchBtn = document.getElementById('torch-btn');
+        if (caps.torch === true) {
+            torchBtn.style.opacity = '1';
+            torchBtn.style.pointerEvents = 'auto';
+            this.currentTrack = track;
+        } else {
+            torchBtn.style.opacity = '.4';
+            torchBtn.style.pointerEvents = 'none';
+            this.currentTrack = null;
+        }
+    }
+
+    async applyZoom(value) {
+        if (!this.zoomSupported) return;
+        const video = document.querySelector('#qr-reader video');
+        if (!video || !video.srcObject) return;
+        const track = video.srcObject.getVideoTracks()[0];
+        if (!track) return;
+        try {
+            await track.applyConstraints({ advanced: [{ zoom: value }] });
+        } catch (e) {
+            console.log('Zoom apply failed:', e);
+        }
+    }
+
+    async toggleTorch() {
+        if (!this.currentTrack) return;
+        const btn = document.getElementById('torch-btn');
+        const on = btn.classList.toggle('active');
+        try {
+            await this.currentTrack.applyConstraints({ advanced: [{ torch: on }] });
+        } catch (e) {
+            console.log('Torch failed:', e);
+            btn.classList.remove('active');
+        }
+    }
+
+    // ---------- SCAN SUCCESS ----------
+    async onScanSuccess(decodedText) {
+        // Prevent duplicate scans
+        const now = Date.now();
+        if (this.lastScannedCode && now - this.lastScannedCode.time < this.scanCooldown && this.lastScannedCode.data === decodedText) {
+            return;
+        }
+        this.lastScannedCode = { data: decodedText, time: now };
+
+        // Stop camera and laser
+        document.getElementById('scan-laser').classList.remove('running');
+        if (this.html5QrCode) { try { await this.html5QrCode.pause(true); } catch(e){} }
+
+        this.updateStatus('camera', 'QR code detected! Processing...', 'scanning');
+
+        // Process — reuse your existing pipeline
+        this.processScannedData(decodedText);
+    }
+
+    // ---------- PROCESS (keeps your existing API flow) ----------
+    async processScannedData(data) {
+        try {
+            const res = await fetch(`class/ApiHandler.php?action=get&entity=activity_qr_codes&id=${data}`);
+            const qrResponse = await res.json();
+            this.processAttendanceFromQR(qrResponse, 'camera');
+        } catch (error) {
+            if (data && !isNaN(data)) {
+                this.processAttendanceFromQR({ data: { activity_id: data, id: data } }, 'camera');
+            } else {
+                this.showResult('camera', 'Data: ' + data.substring(0, 30) + '...', 'info');
             }
         }
     }
 
-    showFallbackMode() {
-        this.useFallback = true;
-        const qrReader = document.getElementById('qr-reader');
-        const fallbackSection = document.getElementById('file-upload-fallback');
-        const scanResult = document.getElementById('scan-result');
-        const stopCameraBtn = this.modal.querySelector('#stop-camera-btn');
-        
-        if (qrReader) qrReader.style.display = 'none';
-        this.stopHtml5Scanner();
-        
-        if (scanResult) scanResult.style.display = 'none';
-        if (fallbackSection) fallbackSection.style.display = 'flex';
-        if (stopCameraBtn) stopCameraBtn.style.display = 'none';
+    async processAttendanceFromQR(qrData, panel = 'camera') {
+        if (!qrData || typeof qrData !== 'object' || !qrData.data || !qrData.data.activity_id) {
+            this.showResult(panel, 'The system doesn\'t recognize this code', 'error');
+            return;
+        }
+        await this.submitAttendance(qrData.data.activity_id, qrData, panel);
     }
 
-    triggerFileUpload() {
-        const fileInput = document.getElementById('qr-image-upload');
-        if (fileInput) fileInput.click();
+    async submitAttendance(activityId, data, panel = 'camera') {
+        try {
+            this.showResult(panel, 'Submitting attendance...', 'loading');
+
+            const uniqueId = document.getElementById('unique_id')?.value;
+            if (!uniqueId) throw new Error('User not logged in');
+            const dept = document.getElementById('department_id')?.value || 0;
+            const daysOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const today = new Date();
+
+            const payload = {
+                attendance_category: 'activity',
+                attendance_category_id: activityId,
+                unique_id: uniqueId,
+                department_id: dept,
+                attendance_method_id: data.data.attendance_method_id || 3,
+                dayofactivity: daysOfWeek[today.getDay()],
+                check_in_time: today.toTimeString().split(' ')[0],
+                status: new Date() > new Date(data.data.expires_at) ? 'late' : 'present',
+                location_id: data.data.location_id || 0
+            };
+
+            const res = await fetch('class/ApiHandler.php?entity=attendance&action=create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                // Increment QR uses
+                if (data.data.id) {
+                    await fetch(`class/ApiHandler.php?entity=activity_qr_codes&action=update&id=${data.data.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ uses: (data.data.uses || 0) + 1 })
+                    });
+                }
+                this.showResult(panel, 'Attendance recorded!', 'success');
+                setTimeout(() => this.closeScanner(), 2000);
+            } else {
+                throw new Error(result.message || 'Failed to record attendance');
+            }
+        } catch (err) {
+            this.showResult(panel, 'Submission failed: ' + err.message, 'error');
+        }
     }
 
+    // ---------- FILE UPLOAD SCAN ----------
     async handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        this.showScanResult('Processing image...', 'loading');
+        this.showResult('image', 'Processing image...', 'loading');
 
         try {
-            const html5QrCode = new Html5Qrcode("qr-reader");
-            const decodedText = await html5QrCode.scanFile(file, true);
-            console.log('QR Code from file:', decodedText);
+            const tempScanner = new Html5Qrcode("qr-reader", { verbose: false });
+            const decodedText = await tempScanner.scanFile(file, true);
             this.processScannedData(decodedText);
-        } catch (error) {
-            console.error('Error processing image:', error);
-            this.showScanResult('No QR code found in image', 'error');
+        } catch (err) {
+            console.error('File scan failed:', err);
+            this.showResult('image', 'No QR code found in this image', 'error');
         }
     }
 
-    async processScannedData(data) {
-        console.log('Processing scanned data:', data);        
-        this.stopHtml5Scanner();
-        
-        const now = Date.now();
-        if (this.lastScannedCode && now - this.lastScannedCode.time < this.scanCooldown && this.lastScannedCode.data === data) {
-            return;
-        }
-        
-        this.lastScannedCode = { data: data, time: now };
-        
-        try {
-            this.QrString = data;
-            const checkQrCode = await fetch(`class/ApiHandler.php?action=get&entity=activity_qr_codes&id=${data}`);        
-            const qrResponse = await checkQrCode.json();    
-            this.processAttendanceFromQR(qrResponse);    
-        } catch (error) {
-            if (data && !isNaN(data)) {
-                this.showScanResult('QR Code Scanned!', 'success');
-                this.processAttendanceFromQR({ activity_id: data, id: data });
-            } else {
-                this.showScanResult('Data: ' + data.substring(0, 30) + '...', 'info');
-                setTimeout(() => {
-                    if (this.isScanning && !this.useFallback) this.startHtml5Scanner();
-                }, 3000);
-            }
+    // ---------- UI HELPERS ----------
+    updateStatus(panel, text, state = 'scanning') {
+        const idSuffix = panel === 'camera' ? '' : '-img';
+        const textEl = document.getElementById('scan-status-text' + idSuffix);
+        const dotEl  = document.getElementById('scan-status-dot' + idSuffix);
+        const rowEl  = document.getElementById('scan-status' + idSuffix);
+        if (!textEl || !dotEl) return;
+
+        textEl.textContent = text;
+        dotEl.className = 'scan-status-dot ' + (state === 'scanning' ? '' : state);
+        if (rowEl) rowEl.style.display = 'flex';
+    }
+
+    showResult(panel, message, type = 'info') {
+        const idSuffix = panel === 'camera' ? '' : '-img';
+        const box = document.getElementById('scan-result-box' + idSuffix);
+        const againBtn = document.getElementById('scan-again-btn' + idSuffix);
+        if (!box) return;
+
+        box.className = 'scan-result-box ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'loading' ? 'loading' : '');
+        box.textContent = message;
+
+        const stateMap = { success: 'success', error: 'error', loading: 'scanning', info: 'idle' };
+        this.updateStatus(panel, message, stateMap[type] || 'scanning');
+
+        if (againBtn && (type === 'success' || type === 'error' || type === 'info')) {
+            againBtn.style.display = 'inline-block';
         }
     }
 
-    async processAttendanceFromQR(qrData) {
-        if (!qrData || typeof qrData !== 'object') {           
-            this.showScanResult('Invalid QR code format', 'error');
-            return;
+    clearResult(panel) {
+        const idSuffix = panel === 'camera' ? '' : '-img';
+        const box = document.getElementById('scan-result-box' + idSuffix);
+        const againBtn = document.getElementById('scan-again-btn' + idSuffix);
+        if (box) {
+            box.className = 'scan-result-box';
+            box.textContent = 'Scan a QR code to see results here...';
         }
-        
-        try {           
-            const activityId = qrData.data.activity_id;
-            if (!activityId) {
-                this.showScanResult('The system doesnt recognize this code', 'error');
-                throw new Error('No activity ID found');
-            } else {     
-                await this.submitAttendance(activityId, qrData);
-            }
-        } catch (error) {
-            this.showScanResult(`Error: ${error.message}`, 'error');
-            setTimeout(() => {
-                if (this.isScanning && !this.useFallback) this.startHtml5Scanner();
-            }, 3000);
-        }
+        if (againBtn) againBtn.style.display = 'none';
     }
 
-    async submitAttendance(activityId, data) {
-        try {
-            this.showScanResult('Submitting attendance...', 'loading');
-            
-            const uniqueId = document.getElementById('unique_id')?.value;
-            if (!uniqueId) throw new Error('User not logged in');
-            
-            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const today = new Date();           
-            const dept = document.getElementById('department_id')?.value || 0;
-            
-            const formUpdateAttendanceTable = {                
-                attendance_category: 'activity',
-                attendance_category_id: activityId,   
-                unique_id: uniqueId,  
-                department_id: dept,           
-                attendance_method_id: data.data.attendance_method_id || 3,
-                dayofactivity: daysOfWeek[today.getDay()],
-                check_in_time: today.toTimeString().split(' ')[0],
-                status: new Date() > new Date(data.data.expires_at) ? 'late' : 'present',               
-                location_id: data.data.location_id || 0 
-            };
-            
-            const responseCreateAttendance = await fetch('class/ApiHandler.php?entity=attendance&action=create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(formUpdateAttendanceTable)
-            });
-            
-            const result = await responseCreateAttendance.json();
-            
-            if (result.success) {
-                const formUpdateQr = { uses: (data.data.uses || 0) + 1 };
-                
-                await fetch(`class/ApiHandler.php?entity=activity_qr_codes&action=update&id=${data.data.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(formUpdateQr)
-                });
-                
-                this.showScanResult('Attendance recorded!', 'success');
-                setTimeout(() => { this.closeScanner(); }, 2000);
-            } else {
-                throw new Error(result.message || 'Failed to record attendance');
-            }
-        } catch (error) {
-            this.showScanResult(`Submission failed: ${error.message}`, 'error');
-            setTimeout(() => {
-                if (this.isScanning && !this.useFallback) this.startHtml5Scanner();
-            }, 3000);
+    // ---------- CLOSE ----------
+    async closeScanner() {
+        document.getElementById('scan-laser').classList.remove('running');
+        if (this.html5QrCode) {
+            try { await this.html5QrCode.stop(); } catch (e) {}
+            try { this.html5QrCode.clear(); } catch (e) {}
+            this.html5QrCode = null;
         }
-    }
-
-    stopScanner() {
-        this.stopHtml5Scanner();
-        this.isScanning = false;
-    }
-
-    closeScanner() {
-        this.stopScanner();
         if (this.modal) this.modal.style.display = 'none';
-        this.useFallback = false;
+        this.isScanning = false;
         this.lastScannedCode = null;
-    }
-
-    showScanResult(message, type = 'info') {
-        const scanResult = document.getElementById('scan-result');
-        const resultContent = document.getElementById('result-content');
-        const scanAgainBtn = document.getElementById('scan-again-btn');
-        
-        if (!scanResult || !resultContent) return;
-        
-        scanResult.style.display = 'flex';
-        
-        let icon = '', color = '';
-        switch(type) {
-            case 'success': icon = '✅'; color = '#28a745'; break;
-            case 'error': icon = '❌'; color = '#dc3545'; break;
-            case 'loading': icon = '⏳'; color = '#007bff'; break;
-            default: icon = 'ℹ️'; color = '#17a2b8';
-        }
-        
-        resultContent.innerHTML = `
-            <div style="font-size: 64px; margin-bottom: 20px;">${icon}</div>
-            <h3 style="margin: 0 0 8px 0; color: ${color}; font-size: 24px;">${message}</h3>
-        `;
-        
-        if (scanAgainBtn && (type === 'success' || type === 'error' || type === 'info')) {
-            scanAgainBtn.style.display = 'block';
-        } else if (scanAgainBtn) {
-            scanAgainBtn.style.display = 'none';
-        }
+        this.cameras = [];
+        this.currentCameraId = null;
     }
 }
 
-// Global function to open QR scanner
+// Global opener
 function openQRScanner(activityId = null) {
-    if (!window.qrCodeScanner) {
-        window.qrCodeScanner = new QRCodeScanner();
-    }
+    if (!window.qrCodeScanner) window.qrCodeScanner = new QRCodeScanner();
     window.qrCodeScanner.openScanner(activityId);
 }
