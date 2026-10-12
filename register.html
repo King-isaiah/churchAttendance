@@ -251,17 +251,18 @@
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creating Account...';
-
+        const joinDate = new Date().toISOString().split('T')[0]; 
         const payload = {
             first_name: firstName,
             last_name: lastName,
             user_name: userName,
             email: email,
             phone: phone,
-            department_id: [deptId], // Stored as array/JSON
+            department_id: deptId, // Stored as array/JSON
             primary_dept_id: deptId,
             password: password,
-            role: 'worker'
+            role: 'worker',
+            join_date : joinDate
         };
 
         try {

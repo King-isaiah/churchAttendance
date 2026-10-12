@@ -66,11 +66,11 @@ class Report extends Database {
             $sql = "SELECT DATE(a.created_at) as date, a.attendance_category, a.created_at, a.status,a.unique_id,
                         a.dayofactivity,  l.name as location_name, a.check_in_time,
                         COALESCE(act.name, ev.title) as activity_or_event_name,                        
-                        COUNT(CASE WHEN a.status = 'Present' THEN 1 END) as present_count,
-                        COUNT(CASE WHEN a.status = 'Absent' THEN 1 END) as absent_count,
+                        COUNT(CASE WHEN a.status = 'present' THEN 1 END) as present_count,
+                        COUNT(CASE WHEN a.status = 'late' THEN 1 END) as absent_count,
                         ROUND(
-                            (COUNT(CASE WHEN a.status = 'Present' THEN 1 END) * 100.0 / 
-                            NULLIF(COUNT(CASE WHEN a.status IN ('Present', 'Absent') THEN 1 END), 0)
+                            (COUNT(a.status) * 100.0 / 
+                            NULLIF(COUNT(CASE WHEN a.status IN ('present', 'late') THEN 1 END), 0)
                         ), 1) as attendance_rate
                     FROM attendance a  LEFT JOIN activities act ON a.attendance_category = 'activity' AND a.attendance_category_id = act.id
                     LEFT JOIN events ev ON a.attendance_category = 'event' AND a.attendance_category_id = ev.id
@@ -79,11 +79,7 @@ class Report extends Database {
                         COALESCE(act.name, ev.title),
                         l.name
                     ORDER BY a.created_at DESC";
-                        // $sql .= "
-                        //     GROUP BY DATE(a.dayofactivity), a.attendance_category, 
-                        //             a.attendance_category_id
-                        //     ORDER BY DATE(a.dayofactivity) DESC
-                        // ";
+                      
                         
                         return $this->fetchAll($sql);
                                     
