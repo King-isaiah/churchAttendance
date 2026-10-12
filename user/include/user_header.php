@@ -1,17 +1,11 @@
 <?php session_start() ?>
-<?php 
-    // if (!isset($_SESSION['unique_id'])) {
-    // header('Location: login.php');
-    // exit();
-// }
-?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/user_header.css">
-    <link rel="stylesheet" href="css/qr_scanner.css">
+    <link rel="stylesheet" href="css/user_header.css">    
     <link rel="stylesheet" href="css/scanner.css">
     
 </head>

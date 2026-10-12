@@ -28,37 +28,73 @@ class QRCodeScanner {
         
         this.modal.innerHTML = `
             <div class="qr-scanner-content">
+                <!-- Header: only X button -->
                 <div class="qr-scanner-header">
-                    <h3>Scan QR Code</h3>
-                    <button class="close-scanner">&times;</button>
+                    <button class="close-scanner" aria-label="Close">&times;</button>
                 </div>
-                
+
                 <div class="qr-scanner-body">
-                    <!-- HTML5 QR Code Scanner will be mounted here -->
-                    <div id="qr-reader" style="width: 100%; height: 100%;"></div>
-                    
-                    <!-- Laser Animation - Hidden by default -->
-                    <div class="scan-laser"></div>
-                    
-                    <!-- Upload Fallback -->
-                    <div class="file-upload-fallback" id="file-upload-fallback">
-                        <div style="font-size: 64px; color: #007bff; margin-bottom: 20px;">📷</div>
-                        <h3>Upload QR Code</h3>
-                        <p>Take a photo or choose from gallery</p>
-                        <button id="upload-qr-btn" class="btn-scanner btn-scanner-primary" style="width: 100%; max-width: 250px;">📁 Upload & Scan</button>
-                        <input type="file" id="qr-image-upload" accept="image/*" capture="environment" style="display: none;">
+                    <!-- Camera area -->
+                    <div class="camera-wrapper">
+                        <div id="qr-reader" style="width:100%;height:100%;"></div>
+                        <!-- Corner brackets -->
+                        <div class="corner-bracket corner-tl"></div>
+                        <div class="corner-bracket corner-tr"></div>
+                        <div class="corner-bracket corner-bl"></div>
+                        <div class="corner-bracket corner-br"></div>
+                        <!-- Laser -->
+                        <div class="scan-laser"></div>
+                        <!-- Upload fallback -->
+                        <div class="file-upload-fallback" id="file-upload-fallback">
+                            <div style="font-size:64px;margin-bottom:20px;">📁</div>
+                            <h3>Upload QR Code</h3>
+                            <p>Take a photo or choose from gallery</p>
+                            <button id="upload-qr-btn" style="
+                                padding:14px 24px;background:#4A90E2;color:white;border:none;
+                                border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;
+                            ">Browse Files</button>
+                            <input type="file" id="qr-image-upload" accept="image/*" capture="environment" style="display:none;">
+                        </div>
                     </div>
-                    
-                    <!-- Scan Result Overlay -->
-                    <div class="scan-result" id="scan-result">
-                        <div id="result-content"></div>
+
+                    <!-- Camera Controls -->
+                    <div class="camera-controls">
+                        <button class="btn-stop-camera" id="stop-camera-btn">
+                            <span class="stop-square"></span> Stop Camera
+                        </button>
+                        <button class="btn-icon-circle" id="flash-btn" title="Toggle Flash">⚡</button>
+                        <button class="btn-icon-circle" id="switch-camera-btn" title="Switch Camera">🔄</button>
+                    </div>
+
+                    <!-- Camera dropdown (visual) -->
+                    <select class="camera-select" id="camera-select">
+                        <option>camera 0, facing back</option>
+                    </select>
+
+                    <!-- Zoom (visual) -->
+                    <div class="zoom-control">
+                        <span class="zoom-label">Zoom</span>
+                        <input type="range" class="zoom-slider" id="zoom-slider" min="1" max="5" value="1" step="0.1">
+                        <span class="zoom-value" id="zoom-value">1.0x</span>
+                    </div>
+
+                    <!-- Scanned Result section -->
+                    <div class="scanned-result-section">
+                        <div class="scanned-result-header">
+                            <h3>Scanned Result</h3>
+                            <button class="history-btn">
+                                History <span class="history-dot"></span>
+                            </button>
+                        </div>
+                        <div class="scan-status" id="scan-status">
+                            <span class="scan-status-dot"></span>
+                            <span id="scan-status-text">Waiting to start...</span>
+                        </div>
+                        <div class="scan-result-box" id="scan-result-box">
+                            Scan a QR code to see results here...
+                        </div>
                         <button id="scan-again-btn">Scan Again</button>
                     </div>
-                </div>
-                
-                <div class="qr-scanner-footer">
-                    <button class="btn-scanner btn-scanner-secondary" id="use-fallback-btn">📁 Upload Image</button>
-                    <button class="btn-scanner btn-scanner-danger" id="stop-camera-btn" style="display: none;">⏹ Stop Camera</button>
                 </div>
             </div>
         `;
@@ -66,6 +102,233 @@ class QRCodeScanner {
         document.body.appendChild(this.modal);
         this.setupModalEvents();
     }
+
+    setupModalEvents() {
+        if (!this.modal) return;
+
+        const closeBtn      = this.modal.querySelector('.close-scanner');
+        const stopBtn       = this.modal.querySelector('#stop-camera-btn');
+        const uploadBtn     = this.modal.querySelector('#upload-qr-btn');
+        const fileInput     = this.modal.querySelector('#qr-image-upload');
+        const scanAgainBtn  = this.modal.querySelector('#scan-again-btn');
+        const zoomSlider    = this.modal.querySelector('#zoom-slider');
+        const zoomValue     = this.modal.querySelector('#zoom-value');
+
+        if (closeBtn)  closeBtn.addEventListener('click',  () => this.closeScanner());
+        if (uploadBtn) uploadBtn.addEventListener('click', () => this.triggerFileUpload());
+        if (fileInput) fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+
+        if (stopBtn) {
+            stopBtn.addEventListener('click', () => {
+                this.stopHtml5Scanner();
+                this.updateScanStatus('Camera stopped', 'idle');
+                this.showScanResult('Camera stopped. Click Scan Again to resume.', 'info');
+            });
+        }
+
+        if (scanAgainBtn) {
+            scanAgainBtn.addEventListener('click', () => {
+                scanAgainBtn.style.display = 'none';
+                this.clearScanResult();
+                this.startHtml5Scanner();
+            });
+        }
+
+        if (zoomSlider && zoomValue) {
+            zoomSlider.addEventListener('input', () => {
+                zoomValue.textContent = parseFloat(zoomSlider.value).toFixed(1) + 'x';
+            });
+        }
+
+        // Close when clicking on the light overlay (outside the card)
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) this.closeScanner();
+        });
+    }
+
+    updateScanStatus(text, state = 'scanning') {
+        const statusText = document.getElementById('scan-status-text');
+        const statusDot  = this.modal.querySelector('.scan-status-dot');
+        if (!statusText || !statusDot) return;
+
+        statusText.textContent = text;
+        if (state === 'scanning') {
+            statusDot.style.background = '#FFC107';
+            statusDot.style.boxShadow  = '0 0 0 4px rgba(255,193,7,0.2)';
+            statusDot.style.animation  = 'pulse 1.5s ease-in-out infinite';
+        } else if (state === 'success') {
+            statusDot.style.background = '#4CAF50';
+            statusDot.style.boxShadow  = '0 0 0 4px rgba(76,175,80,0.2)';
+            statusDot.style.animation  = 'none';
+        } else if (state === 'error') {
+            statusDot.style.background = '#E53935';
+            statusDot.style.boxShadow  = '0 0 0 4px rgba(229,57,53,0.2)';
+            statusDot.style.animation  = 'none';
+        } else {
+            statusDot.style.background = '#999';
+            statusDot.style.boxShadow  = 'none';
+            statusDot.style.animation  = 'none';
+        }
+    }
+
+    showScanResult(message, type = 'info') {
+        const box = document.getElementById('scan-result-box');
+        const scanAgainBtn = document.getElementById('scan-again-btn');
+        if (!box) return;
+
+        box.className = 'scan-result-box';
+        box.textContent = message;
+
+        if (type === 'success') {
+            box.classList.add('success');
+            this.updateScanStatus('Scan successful!', 'success');
+        } else if (type === 'error') {
+            box.classList.add('error');
+            this.updateScanStatus('Scan failed', 'error');
+        } else if (type === 'loading') {
+            box.classList.add('loading');
+            this.updateScanStatus('Processing...', 'scanning');
+        } else {
+            this.updateScanStatus('Scanning for QR codes...', 'scanning');
+        }
+
+        if (scanAgainBtn && (type === 'success' || type === 'error' || type === 'info')) {
+            scanAgainBtn.style.display = 'inline-block';
+        } else if (scanAgainBtn) {
+            scanAgainBtn.style.display = 'none';
+        }
+    }
+
+    clearScanResult() {
+        const box = document.getElementById('scan-result-box');
+        if (box) {
+            box.className = 'scan-result-box';
+            box.textContent = 'Scan a QR code to see results here...';
+        }
+        this.updateScanStatus('Scanning for QR codes...', 'scanning');
+    }
+
+    async openScanner(activityId = null) {
+        if (this.isScanning) return;
+
+        this.currentActivityId = activityId;
+        this.lastScannedCode = null;
+
+        if (!this.modal) this.createModal();
+
+        // Reset UI
+        const fallbackSection = document.getElementById('file-upload-fallback');
+        const qrReader        = document.getElementById('qr-reader');
+        const scanAgainBtn    = document.getElementById('scan-again-btn');
+        const laser           = document.querySelector('.scan-laser');
+
+        if (fallbackSection) fallbackSection.style.display = 'none';
+        if (qrReader) qrReader.innerHTML = '';
+        if (scanAgainBtn) scanAgainBtn.style.display = 'none';
+        if (laser) laser.style.display = 'none';
+
+        this.clearScanResult();
+
+        this.modal.style.display = 'block';
+        this.isScanning = true;
+        this.useFallback = false;
+
+        if (typeof Html5QrcodeScanner === 'undefined') {
+            showError('QR Scanner library not loaded');
+            this.showFallbackMode();
+            return;
+        }
+
+        this.startHtml5Scanner();
+    }
+
+    startHtml5Scanner() {
+        console.log('Starting Html5QrcodeScanner...');
+
+        // Hide laser until camera is ready
+        const laser = document.querySelector('.scan-laser');
+        if (laser) laser.style.display = 'none';
+
+        this.updateScanStatus('Requesting camera permission...', 'scanning');
+
+        const qrReaderElement = document.getElementById('qr-reader');
+
+        if (this.html5QrcodeScanner) {
+            try { this.html5QrcodeScanner.clear(); } catch (e) {}
+        }
+
+        if (qrReaderElement) {
+            qrReaderElement.innerHTML = '';
+            qrReaderElement.style.display = 'block';
+        }
+
+        this.html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader",
+            {
+                qrbox: { width: 220, height: 220 },
+                fps: 10,
+                facingMode: "environment",
+                rememberLastUsedCamera: false,
+                showTorchButtonIfSupported: false,
+                showZoomSliderIfSupported: false,
+                defaultZoomValueIfSupported: 1
+            },
+            false
+        );
+
+        const onScanSuccess = (decodedText) => {
+            console.log('QR Code scanned:', decodedText);
+            this.stopHtml5Scanner();
+            this.processScannedData(decodedText);
+        };
+
+        const onScanError = () => { /* silence */ };
+
+        this.html5QrcodeScanner.render(onScanSuccess, onScanError);
+
+        // Poll until the video element is live, THEN show the laser
+        this.checkCameraStatus();
+    }
+
+    checkCameraStatus() {
+        const laser = document.querySelector('.scan-laser');
+        let attempts = 0;
+        const maxAttempts = 30;
+
+        const interval = setInterval(() => {
+            const video = document.querySelector('#qr-reader video');
+
+            if (video && video.readyState >= 2 && video.videoWidth > 0) {
+                if (laser) laser.style.display = 'block';
+                this.updateScanStatus('Scanning for QR codes...', 'scanning');
+                clearInterval(interval);
+                console.log('Camera active, laser started.');
+                return;
+            }
+
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                this.updateScanStatus('Camera is taking too long. Try refreshing.', 'error');
+                console.warn('Camera check timed out.');
+            }
+        }, 500);
+    }
+
+    stopHtml5Scanner() {
+        const laser = document.querySelector('.scan-laser');
+        if (laser) laser.style.display = 'none';
+
+        if (this.html5QrcodeScanner) {
+            try {
+                this.html5QrcodeScanner.clear();
+                console.log('Scanner stopped');
+            } catch (e) {
+                console.log('Error stopping scanner:', e);
+            }
+        }
+    }
+  
 
     setupModalEvents() {
         if (!this.modal) return;
