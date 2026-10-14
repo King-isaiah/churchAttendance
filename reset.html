@@ -64,7 +64,7 @@
             </div>
             <button type="submit" class="submit" id="submitBtn">Reset Password</button>
         </form>
-        <p class="foot"><a href="login.php">Back to Login</a></p>
+        <p class="foot"><a href="login.html">Back to Login</a></p>
     </div>
 </div>
 <div class="toast" id="toast"><span class="toast__dot"></span><span id="toastMsg"></span></div>
@@ -111,7 +111,7 @@
             if (data.success) {
                 showToast('Password reset successfully! Redirecting to login...', 'success');
                 sessionStorage.removeItem('reset_email');
-                setTimeout(() => { window.location.href = 'login.php'; }, 2000);
+                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
             } else {
                 showToast(data.message || 'Invalid or expired code');
                 btn.disabled = false; btn.textContent = 'Reset Password';
