@@ -92,7 +92,7 @@
             if (data.success) {
                 showToast('Reset code sent! Please check your email inbox.', 'success', 5000);
                 sessionStorage.setItem('reset_email', email);
-                setTimeout(() => { window.location.href = 'reset.php'; }, 2500);
+                setTimeout(() => { window.location.href = 'reset.html'; }, 2500);
             } else {
                 showToast(data.message || 'Failed to send code');
                 btn.disabled = false; btn.textContent = 'Send Reset Code';
