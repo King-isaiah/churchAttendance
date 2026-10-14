@@ -61,50 +61,7 @@
 </div>
 <div class="toast" id="toast"><span class="toast__dot"></span><span id="toastMsg"></span></div>
 
-<!-- <script>
-(() => {
-    const API = 'class/ApiHandler.php';
-    const toast = document.getElementById('toast'), toastMsg = document.getElementById('toastMsg');
-    let tid;
-    function showToast(msg, type='error') {
-        toast.className = 'toast ' + type; toastMsg.textContent = msg;
-        toast.classList.add('show'); clearTimeout(tid);
-        tid = setTimeout(() => toast.classList.remove('show'), 5000);
-    }
 
-    document.getElementById('forgotForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value.trim();
-        if (!email) return showToast('Please enter your email');
-
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true; btn.textContent = 'Sending...';
-
-        try {
-            const res = await fetch(`${API}?action=special&entity=auth`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ task: 'request_reset', email })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                // In production, remove the debug_otp alert. For now, it helps you test.
-                showToast(`Code sent! (Debug OTP: ${data.debug_otp})`, 'success', 8000);
-                // Store email in sessionStorage to use on the reset page
-                sessionStorage.setItem('reset_email', email);
-                setTimeout(() => { window.location.href = 'reset.php'; }, 2500);
-            } else {
-                showToast(data.message || 'Failed to send code');
-                btn.disabled = false; btn.textContent = 'Send Reset Code';
-            }
-        } catch (err) {
-            showToast('Network error. Please try again.');
-            btn.disabled = false; btn.textContent = 'Send Reset Code';
-        }
-    });
-})();
-</script> -->
 <script>
 (() => {
     const API = 'class/ApiHandler.php';

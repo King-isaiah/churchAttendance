@@ -179,8 +179,7 @@ class Auth extends Database {
         curl_close($ch);
 
         if ($httpCode !== 201) {
-            error_log("Brevo API Error | HTTP $httpCode | $response | cURL: $curlError");
-            throw new Exception("Could not send the reset email. Please try again later.", 500);
+            throw new Exception("Brevo says: HTTP $httpCode | Response: $response | cURL Error: $curlError", 500);
         }
         // --------------------------------------------------
 
