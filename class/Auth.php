@@ -124,7 +124,8 @@ class Auth extends Database {
         $user = $this->fetchOne($sql, [$email]);
 
         if (!$user) {
-            throw new Exception("No account found with that email address", 404);
+            // TEMPORARY: show exactly what email was received
+            throw new Exception("No account found for email: [" . $email . "] (length: " . strlen($email) . ")", 404);
         }
 
         // Generate 5-digit OTP
