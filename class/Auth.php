@@ -174,9 +174,9 @@ class Auth extends Database {
             $mail->send();
 
         } catch (Exception $e) {
-            error_log("PHPMailer Error: " . $mail->ErrorInfo);
-            throw new Exception("Could not send the reset email. Please try again later.", 500);
-        }
+    error_log("PHPMailer Error: " . $mail->ErrorInfo);
+    throw new Exception("Could not send the reset email. Please try again later.", 500);
+}
         // --------------------------------------------------
 
         return [
