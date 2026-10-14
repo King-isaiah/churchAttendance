@@ -151,8 +151,8 @@ class Auth extends Database {
             $mail->Username   = 'eshiozemhea@gmail.com';        // Your Gmail address
             // $mail->Password   = 'kpfk hmtb wdrt qqou';
             $mail->Password   = 'kwghwzmbixyucbeh';
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;   // ← SMTPS = SSL
+$mail->Port       = 465;                                                // ← 465
 
             // Recipients
             $mail->setFrom('eshiozemhea@gmail.com', 'Hub Church');
