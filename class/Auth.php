@@ -1,9 +1,7 @@
 <?php
 require_once 'Database.php';
 
-require_once __DIR__ . '/../PHPMailer/src/Exception.php';
-require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
-require_once __DIR__ . '/../PHPMailer/src/SMTP.php';
+
 class Auth extends Database {
     
     public function __construct() {
@@ -113,7 +111,8 @@ class Auth extends Database {
 
         return ['success' => true, 'message' => 'Logged out successfully'];
     }
-        // 1. Request Password Reset (Generate OTP)
+    
+    // 1. Request Password Reset (Generate OTP)
     public function requestPasswordReset($data) {
         $email = $data['email'] ?? '';
         if (empty($email)) {
@@ -133,51 +132,56 @@ class Auth extends Database {
         $expiresAt = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
         // Save OTP to database
-        $updateData = [
+        $this->update('members', [
             'reset_token' => $otp,
             'reset_expires_at' => $expiresAt
-        ];
-        $this->update('members', $updateData, 'id = ?', [$user['id']]);
+        ], 'id = ?', [$user['id']]);
 
-        // ---------- SEND THE EMAIL VIA GMAIL SMTP ----------
-        try {
-            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-
-            // Server settings
-            $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            // $mail->SMTPDebug = 2;
-            $mail->Username   = 'eshiozemhea@gmail.com';        // Your Gmail address
-            // $mail->Password   = 'kpfk hmtb wdrt qqou';
-            $mail->Password   = 'kwghwzmbixyucbeh';
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;   // ← SMTPS = SSL
-$mail->Port       = 465;                                                // ← 465
-
-            // Recipients
-            $mail->setFrom('eshiozemhea@gmail.com', 'Hub Church');
-            $mail->addAddress($email, $user['first_name']);
-
-            // Content
-            $mail->isHTML(true);
-            $mail->Subject = 'Password Reset Code - Hub Church';
-            $mail->Body    = "
+        // ---------- SEND EMAIL VIA BREVO API ----------
+        require_once __DIR__ . '/config.php';
+        $apiKey = BREVO_API_KEY;
+        $payload = [
+            'sender' => [
+                'name'  => 'Hub Church',
+                'email' => 'eshiozemheafuwape@gmail.com'
+            ],
+            'to' => [[
+                'email' => $email,
+                'name'  => $user['first_name']
+            ]],
+            'subject' => 'Password Reset Code - Hub Church',
+            'htmlContent' => "
                 <h2>Password Reset Code</h2>
                 <p>Hello " . htmlspecialchars($user['first_name']) . ",</p>
                 <p>Your password reset code is:</p>
                 <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
                 <p>This code expires in <strong>15 minutes</strong>.</p>
                 <p>If you did not request this, please ignore this email.</p>
-            ";
-            $mail->AltBody = "Hello " . $user['first_name'] . ",\n\nYour password reset code is: " . $otp . "\n\nThis code expires in 15 minutes.";
+            "
+        ];
 
-            $mail->send();
+        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+            CURLOPT_HTTPHEADER     => [
+                'accept: application/json',
+                'api-key: ' . $apiKey,
+                'content-type: application/json'
+            ],
+            CURLOPT_TIMEOUT        => 15
+        ]);
 
-   } catch (Exception $e) {
-    error_log("PHPMailer Error: " . $mail->ErrorInfo);
-    // TEMPORARY: Return the real SMTP error so we can debug
-    throw new Exception("SMTP Error: " . $mail->ErrorInfo, 500);
-}
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode !== 201) {
+            error_log("Brevo API Error | HTTP $httpCode | $response | cURL: $curlError");
+            throw new Exception("Could not send the reset email. Please try again later.", 500);
+        }
         // --------------------------------------------------
 
         return [
