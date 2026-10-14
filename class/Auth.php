@@ -1,6 +1,9 @@
 <?php
 require_once 'Database.php';
 
+require_once __DIR__ . '/../PHPMailer/src/Exception.php';
+require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
+require_once __DIR__ . '/../PHPMailer/src/SMTP.php';
 class Auth extends Database {
     
     public function __construct() {
@@ -89,10 +92,7 @@ class Auth extends Database {
                 'first_name' => $_SESSION['first_name'],
                 'unique_id' => $_SESSION['unique_id'],
                 'last_name' => $_SESSION['last_name'],
-                'last_name' => $_SESSION['last_name'],
-                'last_name' => $_SESSION['last_name'],
-                'last_name' => $_SESSION['last_name'],
-                'last_name' => $_SESSION['last_name'],
+               
             ];
         }
         return null; // Not logged in
@@ -139,23 +139,48 @@ class Auth extends Database {
         ];
         $this->update('members', $updateData, 'id = ?', [$user['id']]);
 
-        // --- NOTE: Email sending logic ---
-        // On InfinityFree, mail() often fails or goes to spam. 
-        // For testing, we will return the OTP in the JSON response.
-        // In production, uncomment the mail() function below.
-        
-        /*
-        $to = $email;
-        $subject = "Password Reset Code - Hub Church";
-        $message = "Hello " . $user['first_name'] . ",\n\nYour password reset code is: " . $otp . "\n\nThis code expires in 15 minutes.";
-        $headers = "From: no-reply@yourdomain.com";
-        mail($to, $subject, $message, $headers);
-        */
+        // ---------- SEND THE EMAIL VIA GMAIL SMTP ----------
+        try {
+            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->SMTPDebug = 2;
+            $mail->Username   = 'eshiozemhea@gmail.com';        // Your Gmail address
+            $mail->Password   = 'kpfkhmtbwdrtqqou';
+            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            // Recipients
+            $mail->setFrom('eshiozemhea@gmail.com', 'Hub Church');
+            $mail->addAddress($email, $user['first_name']);
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Password Reset Code - Hub Church';
+            $mail->Body    = "
+                <h2>Password Reset Code</h2>
+                <p>Hello " . htmlspecialchars($user['first_name']) . ",</p>
+                <p>Your password reset code is:</p>
+                <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
+                <p>This code expires in <strong>15 minutes</strong>.</p>
+                <p>If you did not request this, please ignore this email.</p>
+            ";
+            $mail->AltBody = "Hello " . $user['first_name'] . ",\n\nYour password reset code is: " . $otp . "\n\nThis code expires in 15 minutes.";
+
+            $mail->send();
+
+        } catch (Exception $e) {
+            error_log("PHPMailer Error: " . $mail->ErrorInfo);
+            throw new Exception("Could not send the reset email. Please try again later.", 500);
+        }
+        // --------------------------------------------------
 
         return [
             'success' => true,
-            'message' => 'OTP generated successfully.',
-            'debug_otp' => $otp // Remove this line in production!
+            'message' => 'Reset code sent to your email. Please check your inbox.'
         ];
     }
 
