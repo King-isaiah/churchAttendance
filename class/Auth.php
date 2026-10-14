@@ -149,7 +149,7 @@ class Auth extends Database {
             $mail->SMTPAuth   = true;
             $mail->SMTPDebug = 2;
             $mail->Username   = 'eshiozemhea@gmail.com';        // Your Gmail address
-            $mail->Password   = 'kpfkhmtbwdrtqqou';
+            $mail->Password   = 'kpfk hmtb wdrt qqou';
             $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
 
