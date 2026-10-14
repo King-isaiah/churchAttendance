@@ -138,7 +138,7 @@ class Auth extends Database {
         ], 'id = ?', [$user['id']]);
 
         // ---------- SEND EMAIL VIA BREVO API ----------
-        require_once __DIR__ . '/config.php';
+        require_once __DIR__ . '/Config.php';
         $apiKey = BREVO_API_KEY;
         $payload = [
             'sender' => [
