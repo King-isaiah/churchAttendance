@@ -1033,7 +1033,7 @@ body.collapsed .expand-btn svg{
 /* =========================================
    SCROLLING FIX FOR TABLETS & MOBILE
    ========================================= */
-@media (max-width: 1024px) {
+@media (max-width: 1424px) {
     /* 1. Allow the browser window to scroll normally */
     html, body {
         height: auto !important;
@@ -1065,5 +1065,31 @@ body.collapsed .expand-btn svg{
         height: 95vh;
         position: sticky;
         top: 1em;
+    }
+}
+
+/* =========================================
+   RESPONSIVE QUERIES: MOBILE SIDEBAR
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. Shrink the sidebar so it's a thin icon bar */
+    .sidebar {
+        min-width: 4rem !important;
+        max-width: 4rem !important; /* Forces the sidebar to stay thin */
+        padding: 0.5rem !important;
+        margin: 0.5rem !important;
+    }
+    
+    /* 2. Hide the text labels in the sidebar */
+    .sidebar .hub-name, 
+    .sidebar .hub-workers, 
+    .sidebar .link { 
+        display: none !important; 
+    }
+    
+    /* 3. Ensure the main content takes up the remaining space */
+    .center-div {
+        padding: 0 0.5rem !important; 
+        width: calc(100% - 5rem) !important; 
     }
 }

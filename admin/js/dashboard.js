@@ -53,7 +53,7 @@ class DashboardManager {
         
         if (rewardsResponse.success) {
             console.log(rewardsResponse)
-            showSuccess('Failed to load rewardResponse data');
+            // showSuccess('Succesfully load rewardResponse data');
           this.rewards = rewardsResponse.data;
           this.renderRewards();
         }
