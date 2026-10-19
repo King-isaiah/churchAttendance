@@ -1,15 +1,31 @@
-.charts{
+/* =========================================
+   MAIN LAYOUT CONTAINERS
+   ========================================= */
+/* 1. REDUCING SPACE BELOW HEADER */
+.text-nav {
+    margin-bottom: 0.5rem !important; /* Added to pull the charts closer to the title */
+}
+
+.charts {
     display: flex;
     width: 100%;
-    height: 68vh;
+    /* 4. INCREASED HEIGHT: Uses the saved space to make the charts taller */
+    height: 70vh; 
+    /* 2. REDUCED GAP: Pulls green and red boxes closer together */
+    gap: 1rem; 
+    /* 3. REDUCED BOTTOM SPACE */
+    margin-bottom: 0.5rem; 
 }
+
 .stats-cards {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1.5rem;
-    margin-top: 1em;
+    margin-bottom: 1rem; 
+    margin-top: 0;
+    flex-wrap: wrap;
 }
-.graph-info{
+
+.graph-info {
     background-color: var(--transparent-overlay);
     width: 32%;
     height: 17vh;
@@ -19,15 +35,49 @@
     overflow: hidden;
     margin-top: 1em;
 }
-/* ---------- Slider wrapper ---------- */
+
+/* =========================================
+   GREEN CHART SECTION (Left Side)
+   ========================================= */
+.progress-chart {
+    flex: 2;
+    background-color: #8de44e;
+    border-radius: 16px;
+    /* Reduced padding slightly to give canvas every pixel possible */
+    padding: 0.8rem; 
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    justify-content: space-between; 
+}
+
+.progress-chart .btn,
+.progress-chart .chart-header {
+    flex-shrink: 0;
+}
+
+canvas {
+    border: 1px solid #333;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    /* This flex property ensures the chart takes all newly available space */
+    flex: 1; 
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Bottom Activities Slider (inside Green Box) ---------- */
 .depting {
     position: relative;
     overflow: hidden;
-    margin-top: 1rem;
-    padding-bottom: 2.25rem;      /* room for the dots underneath */
+    margin-top: 0.5rem;
+    padding-bottom: 1.2rem; 
+    flex-shrink: 0;
 }
 
-/* ---------- The sliding track ---------- */
 .depting-track {
     display: flex;
     gap: 1rem;
@@ -35,41 +85,40 @@
     will-change: transform;
 }
 
-/* ---------- Each slide / card ---------- */
 .sliding-go,
 .slide {
-    flex: 0 0 32%;                /* same width as your sample */
+    flex: 0 0 32%;
     background-color: rgba(255, 255, 255, 0.18);
     color: #fff;
-    height: 17vh;
-    min-height: 130px;
-    border-radius: 20px;          /* same radius as your sample */
-    padding: 1rem;
+    height: 9vh; 
+    min-height: 80px;
+    border-radius: 16px;
+    padding: 0.6rem;
     overflow: hidden;
     box-sizing: border-box;
 }
 
 .sliding-go h4 {
-    font-size: 1.05rem;
-    margin: 0 0 .6rem 0;
+    font-size: 0.9rem;
+    margin: 0 0 .3rem 0;
     font-weight: 600;
     line-height: 1.2;
 }
 
 .sliding-go h6 {
-    font-size: .8rem;
-    margin: .25rem 0;
+    font-size: .7rem;
+    margin: .2rem 0;
     font-weight: 400;
     opacity: .95;
 }
 
-/* ---------- Left / Right buttons ---------- */
+/* Left / Right buttons */
 .slider__btn {
     position: absolute;
-    top: 45%;
+    top: 40%;
     transform: translateY(-50%);
-    width: 2.4rem;
-    height: 2.4rem;
+    width: 1.8rem;
+    height: 1.8rem;
     border-radius: 50%;
     border: none;
     background: rgba(255, 255, 255, 0.9);
@@ -85,11 +134,11 @@
     transition: background .2s, transform .2s;
 }
 
-.slider__btn:hover      { background: #fff; transform: translateY(-50%) scale(1.05); }
-.slider__btn--left      { left: -0.75rem; }
-.slider__btn--right     { right: -0.75rem; }
+.slider__btn:hover { background: #fff; transform: translateY(-50%) scale(1.05); }
+.slider__btn--left { left: -0.5rem; }
+.slider__btn--right { right: -0.5rem; }
 
-/* ---------- Dots under the track ---------- */
+/* Dots under the track */
 .slider-dots {
     position: absolute;
     bottom: 0;
@@ -110,34 +159,25 @@
     transition: all .3s;
 }
 
-.dots__dot:hover {
-    background: rgba(255, 255, 255, 0.7);
-}
+.dots__dot:hover { background: rgba(255, 255, 255, 0.7); }
+.dots__dot--active { background: #fff; width: 24px; border-radius: 4px; }
 
-.dots__dot--active {
-    background: #fff;
-    width: 24px;
-    border-radius: 4px;
-}
-.sunschl{
-    width: 100%;
-    border-radius: 7%;
-    height: 28vh;
-    background-color: rgb(244, 102, 126);
-    margin-top: 1em;
-    padding: 1em;
-}
-/* ---------- Department viewport (clips the scroll) ---------- */
+/* =========================================
+   RED DEPARTMENT SLIDER (Right Side)
+   ========================================= */
 .slider-chart {
-    width: 50%;
-    height: 100%;                /* fill the .charts height (68vh) */
-    overflow: hidden;
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
     position: relative;
-    padding-right: 4px;          /* tiny gap so cards don't touch the edge */
     box-sizing: border-box;
+    padding-right: 4px;
 }
 
-/* ---------- The vertical track ---------- */
+/* Hide scrollbar for cleaner look */
+.slider-chart::-webkit-scrollbar { width: 4px; }
+.slider-chart::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+
 .dept-track {
     display: flex;
     flex-direction: column;
@@ -146,32 +186,30 @@
     will-change: transform;
 }
 
-/* ---------- Cards (keep your existing look, just tidy spacing) ---------- */
 .sunschl {
     width: 100%;
-    flex: 0 0 auto;              /* do NOT shrink — stack at natural height */
+    flex: 0 0 auto;
     border-radius: 16px;
-    height: 28vh;
+    height: 25vh; 
     min-height: 150px;
     background-color: rgb(244, 102, 126);
-    padding: 1em;
-    margin-top: 0;               /* gap handles spacing now */
+    padding: 1rem;
+    margin-top: 0;
     box-sizing: border-box;
 }
 
 .sunschl h4 {
     margin: 0 0 .5rem 0;
-    font-size: 1.05rem;
+    font-size: 1rem;
     line-height: 1.25;
 }
 
 .sunschl h6 {
     margin: .2rem 0;
-    font-size: .85rem;
+    font-size: .8rem;
     font-weight: 400;
 }
 
-/* ---------- Soft fade at the bottom so half-cards look intentional ---------- */
 .slider-chart::after {
     content: "";
     position: absolute;
@@ -180,468 +218,179 @@
     background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.35));
     pointer-events: none;
 }
+
+/* =========================================
+   WHITE STAT CARDS (Bottom)
+   ========================================= */
 .stat-card {
     display: flex;
     align-items: center;
     background: white;
     border-radius: 12px;
-    padding: 1rem;
+    padding: 0.6rem 1rem; 
     flex: 1;
+    min-width: 200px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+    width: 38px; 
+    height: 38px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 1rem;
+    margin-right: 0.8rem;
     color: white;
-    font-size: 1.2rem;
+    font-size: 0.95rem;
+    flex-shrink: 0;
 }
 
 .stat-info h4 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.2rem; 
     font-weight: bold;
 }
 
 .stat-info p {
     margin: 0;
     color: #718096;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
+/* =========================================
+   HEADERS & MISC ELEMENTS
+   ========================================= */
 .chart-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem; 
 }
 
 #chart-filter {
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    padding: 0.4rem 0.8rem;
+    padding: 0.3rem 0.6rem;
     background: white;
+    font-size: 0.85rem;
 }
 
-.activity-list {    
-    border-radius: 12px;
-    padding: 1rem;
-    margin-left: 1rem;
-    width: 75%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    margin-bottom: 1em;
-}
-
-.activity-header {
-    display: flex;
+.btn {
+    color: white;
+    display: flex; 
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
 }
 
-.activity-header h4 {
-    margin: 0;
+.btn h4 {
+    font-size: 1.2rem;
 }
 
-.activity-header a {
-    color: #8786E3;
-    text-decoration: none;
-    font-size: 0.9rem;
-}
-
-.activity-item {    
-    align-items: center;
-    border-bottom: 1px solid #f7fafc;
-    width: 20em;
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-}
-
-.activity-info h5 {
-    margin: 0 0 0.3rem 0;
-    font-size: 1rem;
-}
-
-.activity-info p {
-    margin: 0;
-    color: #718096;
-    font-size: 0.8rem;
-}
-
-.attendance-count {
-    background: #f7fafc;
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    color: #4a5568;
-}
-
-.btn-group {
-    display: flex;
-    background: #f7fafc;
-    border-radius: 30px;
-    padding: 0.3rem;
-    margin: 1rem 0;
-}
-
-.btn-group button {
-    flex: 1;
-    border: none;
-    padding: 0.5rem;
-    border-radius: 30px;
-    background: transparent;
-    cursor: pointer;
-}
-
-.btn-group .btn-active {
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.rewards-container {
-    display: flex;
-    justify-content: space-around;
-}
-
-.reward-item {
-    text-align: center;
-}
-
-.reward-badge {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 0.5rem;
-    color: white;
-    font-size: 1.5rem;
-}
-
-.reward-item p {
-    margin: 0;
-    font-size: 0.8rem;
-    color: #4a5568;
-}
-.activity-link-button{
+.activity-link-button {
     display: inline-block; 
     background-color: #a7a6ee;
     color: white;
-    padding: 10px 15px;
+    padding: 6px 12px;
     text-decoration: none; 
     border-radius: 5px;
-}
-.btn{
-    color:white;
-    display:flex; 
-    justify-content:space-between
+    font-size: 0.8rem;
 }
 
-.progress-chart{
-    width: 65%;
-    background-color: #8de44e;
-    border-radius: 5%;
-    margin-right: 1em;
-    padding: .5rem;
-}
+.activity-list { border-radius: 12px; padding: 1rem; margin-left: 1rem; width: 75%; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); margin-bottom: 1em; }
+.activity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+.activity-header h4 { margin: 0; }
+.activity-header a { color: #8786E3; text-decoration: none; font-size: 0.9rem; }
+.activity-item { align-items: center; border-bottom: 1px solid #f7fafc; width: 20em; }
+.activity-item:last-child { border-bottom: none; }
+.activity-info h5 { margin: 0 0 0.3rem 0; font-size: 1rem; }
+.activity-info p { margin: 0; color: #718096; font-size: 0.8rem; }
+.attendance-count { background: #f7fafc; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.9rem; color: #4a5568; }
+.btn-group { display: flex; background: #f7fafc; border-radius: 30px; padding: 0.3rem; margin: 1rem 0; }
+.btn-group button { flex: 1; border: none; padding: 0.5rem; border-radius: 30px; background: transparent; cursor: pointer; font-size: 0.9rem; }
+.btn-group .btn-active { background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+.rewards-container { display: flex; justify-content: space-around; }
+.reward-item { text-align: center; }
+.reward-badge { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; color: white; font-size: 1.2rem; }
+.reward-item p { margin: 0; font-size: 0.75rem; color: #4a5568; }
 
-canvas {
-    border: 1px solid #333;
-    /* border-radius: 5px; */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    max-height: 15em;
-    width: 40em;
-}
+/* ---------- Online members view ---------- */
+.online-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; color: #94a3b8; font-size: .95rem; text-align: center; gap: .5rem; }
+.online-wrapper { display: flex; flex-direction: column; gap: .5rem; }
+.online-header { display: flex; justify-content: space-between; align-items: center; padding: 0 .25rem .5rem .25rem; border-bottom: 1px solid #e2e8f0; }
+.online-header h4 { margin: 0; font-size: 1rem; color: #1e293b; }
+.online-count { background: #dcfce7; color: #16a34a; font-size: .8rem; font-weight: 600; padding: .15rem .55rem; border-radius: 999px; }
+.online-list { display: flex; flex-direction: column; gap: .35rem; max-height: 220px; overflow-y: auto; padding-right: 4px; }
+.online-member-item { display: flex; align-items: center; gap: .6rem; padding: .5rem .65rem; border-radius: 10px; background: #f8fafc; transition: background .15s; }
+.online-member-item:hover { background: #eef2ff; }
+.online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, .2); flex: 0 0 auto; }
+.online-member-info { display: flex; flex-direction: column; line-height: 1.15; }
+.online-member-name { margin: 0; font-size: .9rem; font-weight: 500; color: #0f172a; }
+.online-member-dept { color: #64748b; font-size: .75rem; }
 
-/* Responsive improvements */
-@media (max-width: 1000px) {
-    
-    
-    .activity-list {
+/* =========================================
+   RESPONSIVE QUERIES (Tablets & Mobile)
+   ========================================= */
+@media (max-width: 1024px) {
+    .charts {
+        flex-direction: column;
+        height: auto; 
+    }
+    .progress-chart {
         width: 100%;
-        margin-left: 0;
-        margin-top: 1rem;
+        height: 60vh; 
+        margin-bottom: 1rem;
+    }
+    .slider-chart {
+        width: 100%;
+        height: 40vh;
+    }
+    .stat-card {
+        min-width: 45%; 
     }
 }
+
+@media (max-width: 800px) {
+    canvas { max-height: 30vh; }
+    
+    .last { margin-left: 0; width: 20%; }
+    
+    .reward-badge {
+        width: 30px;
+        height: 30px;
+        font-size: .8rem;
+    }
+    .reward-item p { font-size: 0.6rem; }
+    
+    .btn-group { font-size: 10px; margin: .1rem 0; }
+    
+    .progress-chart { width: 100%; padding: 0.8rem; }
+    .slider-chart { width: 100%; height: 30vh; } 
+    
+    .text-nav { gap: 1rem; display: flex; flex-wrap: wrap; }
+    .text-nav h3 { font-size: 1rem; }
+    .text-nav input { width: 100%; max-width: 200px; }
+    
+    .header-controls { width: 100%; display: flex; justify-content: space-between; margin-top: 1rem; }
+    .user-profile { display: flex; align-items: center; gap: 0.5rem; }
+    
+    .chart-header { margin-bottom: 0.5rem; }
+    .chart-header h4 { font-size: 1rem; }
+}
+
 @media (max-width: 576px) {
+    .stat-card {
+        min-width: 100%; 
+    }
     .last-text {
         flex-direction: column;
         gap: 0.5rem;
         text-align: center;
     }
-    .reward-item {
-        flex: 0 0 100%;
-    }
-    
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-    
-    .stat-info h4 {
-        font-size: 1.3rem;
-    }
-    
-    .graph-info {
-        min-width: 240px;
-        padding: 1rem;
-    }
-    
-    .sunschl {
-        min-height: 120px;
-        padding: 1rem;
-    }
-    
-  
-    
-    /* canvas {
-        height: 200px !important;
-    } */
-}
-
-
-@media (max-width: 800px) { 
-    canvas {
-        max-height: 125em;
-        
-    }
-    
-    .last{
-        margin-left:0;
-        width: 20%;  
-    }
-    .reward-badge {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%; 
-        margin: 0 auto 0.5rem;      
-        font-size: .5rem;
-    }
-
-    .reward-item p {
-        margin: 0;
-        font-size: 0.5rem;
-        color: #4a5568;
-    }
-    .btn-group {
-        font-size: 10px;
-        margin: .1rem 0;
-    }
-
-    
-   .stat-card {    
-        border-radius: 12px;
-        padding: 5px;
-        width: 6em;            
-    }
-
-    .stat-icon {        
-        border-radius: 5px;
-        margin-right: 20px;    
-        /* font-size: 2px; */
-    }
-    .stat-icon .fas{
-      width: 5px;
-        height: 5px; 
-    }
-    .progress-chart{
-        width: 65%;
-        border-radius: 5%;
-        margin-right: .6em;
-        padding: .5rem;
-        
-    }
-    .slider-chart{
-        width: 20%;    
-    } 
-    /* .charts{
-        display: flex;
-        width: 100%;
-        height: 68vh;
-    } */
-    .sunschl{
-        border-radius: 7%;
-        height: 10vh;   
-        min-height: 120px;     
-        margin-top: 1em;
-        
-    }
-   
-    .stat-info h4{
-        font-size: 10px;
-    }
-    .stat-info p{
-        font-size: 10px;
-    }
-    .sunschl h4{
-        font-size: 10px;
-    }
-    .sunschl h6{
-        font-size: 6px;
-    }
-    .graph-info{  
-        height: 10vh;        
-        border-radius: 10px;
-        margin-right: 1px;        
-        margin-top: 1em;
-    }
-    .btn a{
-        display: none;
-    }
-    .btn h4{
-        font-size: 14px;
-    }
-    .last-text h5{
-        font-size: 10px;
-    }
-    .last-text a{
-        display: none;
-    }
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-   
-    .text-nav h3{
-        font-size: 1em;
-    }
-    .text-nav input{
-        width: 10em;      
-    }
-    .text-nav {
-        gap: 1rem;
-        display: flex;
-    }
-    
-    .header-controls {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-    }
-    
-    .user-profile {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .chart-header {
-        margin-bottom: 0;
-        font-size: 8px;
-    }
-    .chart-header h4{
-        font-size: 14px;
-    }
-    .activity-item h4{
-        font-size: 9px;
-    }
-    
-    .activity-item h6{
-        font-size: 6px;
-    }
-}
-
-
-
-/* ---------- Online members view ---------- */
-.online-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-    color: #94a3b8;
-    font-size: .95rem;
-    text-align: center;
-    gap: .5rem;
-}
-
-.online-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-}
-
-.online-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 .25rem .5rem .25rem;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.online-header h4 {
-    margin: 0;
-    font-size: 1rem;
-    color: #1e293b;
-}
-
-.online-count {
-    background: #dcfce7;
-    color: #16a34a;
-    font-size: .8rem;
-    font-weight: 600;
-    padding: .15rem .55rem;
-    border-radius: 999px;
-}
-
-.online-list {
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-    max-height: 220px;
-    overflow-y: auto;
-    padding-right: 4px;
-}
-
-.online-member-item {
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-    padding: .5rem .65rem;
-    border-radius: 10px;
-    background: #f8fafc;
-    transition: background .15s;
-}
-
-.online-member-item:hover {
-    background: #eef2ff;
-}
-
-.online-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 0 3px rgba(34, 197, 94, .2);
-    flex: 0 0 auto;
-}
-
-.online-member-info {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-}
-
-.online-member-name {
-    margin: 0;
-    font-size: .9rem;
-    font-weight: 500;
-    color: #0f172a;
-}
-
-.online-member-dept {
-    color: #64748b;
-    font-size: .75rem;
+    .reward-item { flex: 0 0 100%; }
+    .graph-info { min-width: 100%; padding: 1rem; margin-right: 0; }
+    .sunschl { min-height: 100px; padding: 0.8rem; height: auto; }
+    .stat-icon { width: 35px; height: 35px; font-size: 0.9rem; }
+    .stat-info h4 { font-size: 1.1rem; }
 }

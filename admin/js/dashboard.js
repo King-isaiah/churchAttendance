@@ -174,7 +174,7 @@ class DashboardManager {
           this.chart.destroy();
       }
 
-      const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const data = this.stats.weekly_data || Array(7).fill(0);
 
       this.chart = new Chart(ctx, {
@@ -200,10 +200,27 @@ class DashboardManager {
               scales: {
                   y: {
                       beginAtZero: true,
-                      grid: { drawBorder: false }
+                      grid: { 
+                          drawBorder: false,
+                          color: 'rgba(0, 0, 0, 0.1)'
+                      },
+                      ticks: {
+                          color: '#000000',
+                          font: {
+                              size: 14,
+                              weight: 'bold'
+                          }
+                      }
                   },
                   x: {
-                      grid: { display: false }
+                      grid: { display: false },
+                      ticks: {
+                          color: '#000000',
+                          font: {
+                              size: 14,
+                              weight: 'bold'
+                          }
+                      }
                   }
               }
           }
@@ -248,10 +265,27 @@ class DashboardManager {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { drawBorder: false }
+                        grid: { 
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
                     },
                     x: {
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: {
+                            color: '#000000',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
                     }
                 }
             }
@@ -353,10 +387,27 @@ class DashboardManager {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { drawBorder: false }
+                        grid: { 
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
                     },
                     x: {
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: {
+                            color: '#000000',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
                     }
                 }
             }
