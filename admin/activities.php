@@ -192,7 +192,8 @@ foreach ($activities as $activityItem) {
         <div class="sidebar-section">
             <h4>Categories Distribution</h4>
             
-            <canvas id="categoriesChart" width="300" height="200"> thestoig to see</canvas>
+            <!-- <canvas id="categoriesChart" width="300" height="200"> thestoig to see</canvas> -->
+            <canvas id="categoriesChart" ></canvas>
         </div>
     </div>
 </div>

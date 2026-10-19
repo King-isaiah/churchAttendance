@@ -89,11 +89,19 @@
 
 .center-div {    
     flex: 1;                 
-    height: 100vh;           /* match the parent height */
+    height: 100vh;           
     display: flex;
     flex-direction: column;
     overflow: hidden;        
-    padding: 0 1rem;         /* optional, adjust as needed */
+    padding: 0 1rem;         
+    
+    /* ADD THIS: Pushes content past the expanded sidebar */
+    margin-left: calc(18rem + 1em); 
+}
+
+/* ADD THIS: Pushes content past the collapsed sidebar */
+body.collapsed .center-div {
+    margin-left: calc(5rem + 1em);
 }
 
 /* .admin-card { */
@@ -198,11 +206,10 @@
 /*? sidebar */
 
 .sidebar{
-    position: sticky;
-    top: 0;
-    left: 0;   
+    position: fixed !important; /* Changed from sticky to fixed */
+    top: 1em !important;        /* Keeps the gap at the top */
+    left: 0 !important;   
     height: 95vh;
-    /* height: 100vh;  */
     flex-shrink: 0;  
     padding: 1rem;
     margin: 1em;
@@ -212,9 +219,10 @@
     display: flex;
     color: var(--white-color);
     flex-direction: column;
-    background: #111111; /* Replaced primary-purple with Black */
+    background: #111111; 
     box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
     transition: max-width 0.2s ease-in-out;
+    z-index: 1000;              /* Added to stay on top of content */
 }
 body.collapsed .sidebar{
     max-width: 5rem;
@@ -1071,13 +1079,22 @@ body.collapsed .expand-btn svg{
 /* =========================================
    RESPONSIVE QUERIES: MOBILE SIDEBAR
    ========================================= */
+/* =========================================
+   RESPONSIVE QUERIES: MOBILE SIDEBAR
+   ========================================= */
 @media (max-width: 768px) {
-    /* 1. Shrink the sidebar so it's a thin icon bar */
+    /* 1. Lock the sidebar to the screen */
     .sidebar {
+        position: fixed !important; /* Fixes it so it doesn't scroll up */
+        top: 0 !important;
+        left: 0 !important;
+        height: 100vh !important; /* Takes full height of the device */
+        margin: 0 !important; /* Removes the gap around it */
+        border-radius: 0 !important; /* Square edges for mobile */
         min-width: 4rem !important;
-        max-width: 4rem !important; /* Forces the sidebar to stay thin */
+        max-width: 4rem !important; 
         padding: 0.5rem !important;
-        margin: 0.5rem !important;
+        z-index: 1000; /* Ensures it stays on top of the content */
     }
     
     /* 2. Hide the text labels in the sidebar */
@@ -1087,9 +1104,10 @@ body.collapsed .expand-btn svg{
         display: none !important; 
     }
     
-    /* 3. Ensure the main content takes up the remaining space */
+    /* 3. Push the main content to the right so it doesn't hide under the sidebar */
     .center-div {
+        margin-left: 4rem !important; /* Matches the sidebar width */
         padding: 0 0.5rem !important; 
-        width: calc(100% - 5rem) !important; 
+        width: calc(100% - 4rem) !important; 
     }
 }
