@@ -330,67 +330,95 @@ canvas {
 .online-member-dept { color: #64748b; font-size: .75rem; }
 
 /* =========================================
-   RESPONSIVE QUERIES (Tablets & Mobile)
+   RESPONSIVE QUERIES: TABLETS (iPads)
    ========================================= */
 @media (max-width: 1024px) {
     .charts {
         flex-direction: column;
         height: auto; 
+        gap: 1.5rem;
     }
+    
     .progress-chart {
         width: 100%;
-        height: 60vh; 
-        margin-bottom: 1rem;
+        height: 60vh; /* Gives the chart a solid height on tablets */
+        margin-bottom: 0;
     }
+    
     .slider-chart {
         width: 100%;
-        height: 40vh;
+        height: 40vh; /* Red cards get their own scrolling area */
     }
+
     .stat-card {
-        min-width: 45%; 
+        min-width: 48%; /* Creates 2 columns for the white cards */
     }
 }
 
-@media (max-width: 800px) {
-    canvas { max-height: 30vh; }
-    
-    .last { margin-left: 0; width: 20%; }
-    
-    .reward-badge {
-        width: 30px;
-        height: 30px;
-        font-size: .8rem;
+/* =========================================
+   RESPONSIVE QUERIES: MOBILE (iPhones & Androids)
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. Stack the Top Navigation (Title and Search) */
+    .text-nav { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 1rem;
+        margin-bottom: 1rem !important;
     }
-    .reward-item p { font-size: 0.6rem; }
-    
-    .btn-group { font-size: 10px; margin: .1rem 0; }
-    
-    .progress-chart { width: 100%; padding: 0.8rem; }
-    .slider-chart { width: 100%; height: 30vh; } 
-    
-    .text-nav { gap: 1rem; display: flex; flex-wrap: wrap; }
-    .text-nav h3 { font-size: 1rem; }
-    .text-nav input { width: 100%; max-width: 200px; }
-    
-    .header-controls { width: 100%; display: flex; justify-content: space-between; margin-top: 1rem; }
-    .user-profile { display: flex; align-items: center; gap: 0.5rem; }
-    
-    .chart-header { margin-bottom: 0.5rem; }
-    .chart-header h4 { font-size: 1rem; }
-}
+    .text-nav div {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+    .text-nav input {
+        flex: 1;
+        max-width: none;
+    }
 
-@media (max-width: 576px) {
+    /* 2. Chart Area Height */
+    .progress-chart {
+        padding: 1rem;
+        height: 50vh; 
+    }
+    
+    .btn h4 { font-size: 1.2rem; }
+    .chart-header h4 { font-size: 1.1rem; }
+
+    /* 3. CRITICAL FIX: Green Activities Slider */
+    /* Show ONE card at a time instead of squishing 3 side-by-side */
+    .sliding-go, .slide {
+        flex: 0 0 100%; 
+        height: auto;
+        min-height: 100px;
+        padding: 1rem;
+    }
+    
+    .sliding-go h4 { font-size: 1.1rem; }
+    .sliding-go h6 { font-size: 0.9rem; }
+
+    /* 4. White Stats Cards stack 1 column */
+    .stats-cards {
+        flex-direction: column;
+    }
     .stat-card {
         min-width: 100%; 
     }
-    .last-text {
+
+    /* 5. Bottom Rewards Section stacks */
+    .rewards-container {
         flex-direction: column;
-        gap: 0.5rem;
-        text-align: center;
+        align-items: center;
+        gap: 1.5rem;
     }
-    .reward-item { flex: 0 0 100%; }
-    .graph-info { min-width: 100%; padding: 1rem; margin-right: 0; }
-    .sunschl { min-height: 100px; padding: 0.8rem; height: auto; }
-    .stat-icon { width: 35px; height: 35px; font-size: 0.9rem; }
-    .stat-info h4 { font-size: 1.1rem; }
+    .reward-item {
+        width: 100%;
+    }
+    
+    .last {
+        margin-left: 0;
+        width: 100%; /* Fixes the weird 20% width from your old code */
+    }
 }
