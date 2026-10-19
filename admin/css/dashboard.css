@@ -332,7 +332,7 @@ canvas {
 /* =========================================
    RESPONSIVE QUERIES: TABLETS (iPads)
    ========================================= */
-@media (max-width: 1424px) {
+@media (max-width: 1024px) {
     .charts {
         flex-direction: column;
         height: auto; 

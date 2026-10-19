@@ -1033,7 +1033,7 @@ body.collapsed .expand-btn svg{
 /* =========================================
    SCROLLING FIX FOR TABLETS & MOBILE
    ========================================= */
-@media (max-width: 1424px) {
+@media (max-width: 1024px) {
     /* 1. Allow the browser window to scroll normally */
     html, body {
         height: auto !important;
