@@ -1,11 +1,4 @@
-.page-header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem; 
-    margin-bottom: 1rem; /* Reduced from 1.5rem to save space */
-}
+
 
 .filters-bar {
     display: flex;

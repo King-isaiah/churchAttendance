@@ -1,24 +1,18 @@
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
 .search-bar {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem; /* Reduced from 1.5rem */
     flex-wrap: wrap;
 }
 
 .search-bar input,
 .search-bar select {
-    padding: 0.8rem;
+    padding: 0.6rem 1rem; /* Reduced vertical padding from 0.8rem */
     border: 1px solid #ddd;
     border-radius: 8px;
     flex: 1;
     min-width: 200px;
+    font-size: 0.95rem; /* Added smaller font size */
 }
 
 .table-container {
@@ -35,22 +29,25 @@
 
 .data-table th {
     background: #f8f9fa;
-    padding: 1rem;
+    padding: 0.8rem 1rem; /* Reduced vertical padding */
     text-align: left;
     font-weight: 600;
     color: #495057;
+    font-size: 0.95rem;
 }
 
 .data-table td {
-    padding: 1rem;
+    padding: 0.8rem 1rem; /* Reduced vertical padding */
     border-bottom: 1px solid #e9ecef;
+    font-size: 0.95rem;
 }
 
 .department-badge {
     background: #e9ecef;
-    padding: 0.3rem 0.8rem;
+    padding: 0.2rem 0.6rem; /* Reduced padding */
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 0.75rem; /* Reduced font size */
+    display: inline-block; /* Keeps it wrapping correctly */
 }
 
 .action-buttons {
@@ -59,11 +56,12 @@
 }
 
 .btn-icon {
-    padding: 0.5rem;
+    padding: 0.4rem; 
     border: none;
     border-radius: 6px;
     cursor: pointer;
     background: #f8f9fa;
+    font-size: 0.9rem; 
 }
 
 .btn-danger {
@@ -165,5 +163,25 @@
     .department-badge {
         font-size: 0.7rem;
         padding: 0.2rem 0.5rem;
+    }
+}
+/* =========================================
+   RESPONSIVE QUERIES: TABLETS (iPads)
+   ========================================= */
+@media (max-width: 1024px) {
+    /* 1. Allow the header to wrap so the button isn't cut off */
+    .page-header {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    /* 2. Allow the table container to scroll horizontally */
+    .table-container {
+        overflow-x: auto !important; /* Changes from hidden so Actions column is visible */
+    }
+
+    /* 3. Give the table a minimum width so columns don't squish */
+    .data-table {
+        min-width: 850px; /* Forces the table to be wide enough to read, allowing the container to scroll */
     }
 }

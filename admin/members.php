@@ -290,10 +290,7 @@ function renumberDepartmentFields() {
     });
 }
 
-// Initialize - hide remove button on first field
-// document.addEventListener('DOMContentLoaded', function() {
-   
-// });
+
 </script>
 <script src="js/main.js"></script>
 <script src="js/members.js"></script>

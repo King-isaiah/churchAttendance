@@ -1,13 +1,7 @@
 <?php
 include "include/header.php";
 
-// Initialize variables
-$attendanceData = [];
-$weeklyTrend = ['labels' => [], 'values' => []];
-$summary = ['total_present' => 0, 'total_absent' => 0, 'total_activities' => 0, 'avg_attendance_rate' => 0];
-$topDepartment = ['department' => 'N/A', 'attendance_rate' => 0];
-$departments = [];
-$activityTypes = [];
+
 
 ?>
 
