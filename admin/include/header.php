@@ -17,7 +17,7 @@
             <div class="sidebar-top-wrapper">
                 <div class="sidebar-top">
                     <a href="" class="logo__wrapper">
-                        <img src="images/test.jpg" alt="logo" class="logo-small">
+                        <img src="../images/hublogo.jpg" alt="logo" class="logo-small">
                         <div class="hide sidebar-top__company">
                             <span class="hub-name">
                                 Hub Church
@@ -28,23 +28,7 @@
                 </div>
                 <button class="expand-btn" type="button"></button>
             </div>
-            <!-- <div class="sidebar-links sidebar-links--top">
-                <ul>
-                    <li>
-                        <a href="#dashboard" title="Dashboard" class="tooltip">
-                            <span class="route__marker route__marker--green icon-square">🏠</span>
-                            <span class="tooltip__content">🏠Dashboard</span>
-                        </a>
-
-                        <a href="#activities.php" class="tooltip">
-                            <span class="route__marker route__marker--green icon-square">🏠</span>
-                            <span class="link hide">    <i class="fa fa-home"></i>Home</span>
-                            <span class="tooltip__content">🏠Activities</span>
-                        </a>
-                    </li>
-                    </li>
-                </ul>
-            </div> -->
+           
             <div> 
                 <div class="icon-square">
                     <a href="dashboard.php">

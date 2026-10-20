@@ -96,8 +96,13 @@
     overflow: hidden;        
     padding: 0 1rem;         
     
-    /* ADD THIS: Pushes content past the expanded sidebar */
-    margin-left: calc(18rem + 1em); 
+    /* CHANGED: Matches the new 15rem sidebar width */
+    margin-left: calc(15rem + 1em); 
+}
+
+/* This collapsed state is fine as is */
+body.collapsed .center-div {
+    margin-left: calc(5rem + 1em);
 }
 
 /* ADD THIS: Pushes content past the collapsed sidebar */
@@ -206,16 +211,19 @@ body.collapsed .center-div {
 
 /*? sidebar */
 
-.sidebar{
-    position: fixed !important; /* Changed from sticky to fixed */
-    top: 1em !important;        /* Keeps the gap at the top */
+.sidebar {
+    position: fixed !important; 
+    top: 1em !important;        
     left: 0 !important;   
     height: 95vh;
     flex-shrink: 0;  
     padding: 1rem;
-    margin: 1em;
+    margin: 1em; /* You can change this to 0.5em if you want it tighter to the screen edge */
     border-radius: 0.75rem;
-    max-width: 18rem;
+    
+    /* CHANGED: Reduced from 18rem to 15rem */
+    max-width: 15rem; 
+    
     min-width: 4rem;
     display: flex;
     color: var(--white-color);
@@ -223,7 +231,7 @@ body.collapsed .center-div {
     background: #111111; 
     box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
     transition: max-width 0.2s ease-in-out;
-    z-index: 1000;              /* Added to stay on top of content */
+    z-index: 1000;              
 }
 body.collapsed .sidebar{
     max-width: 5rem;
@@ -485,7 +493,14 @@ body.collapsed .expand-btn svg{
   opacity: 1;
 }
 
+/* Style for the active link */
+.icon-square.active {
+    background-color: #39FF14; /* Neon Green */
+}
 
+.icon-square.active a {
+    color: #000000; /* Black icon text */
+}
 
 @media (max-width: 1000px) {
     
