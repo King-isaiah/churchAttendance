@@ -4,7 +4,7 @@
 ?>
 
     <head>
-    <link rel="stylesheet" href="css/dashboard.css">
+        <link rel="stylesheet" href="css/dashboard.css">
      
     </head>
     
@@ -12,7 +12,7 @@
                 <h3>Attendance Dashboard</h3>
                 <div>
                     <input type="text" placeholder="🔍 Search activities"> 
-                    <img src="images/test.jpg" alt="">
+                    <img src="images/hublogo.jpg" alt="">
                 </div>
             </div>
             <div class="charts">
@@ -75,9 +75,7 @@
 
 <script src="js/dashboard.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    
-</script>
+
 
 
 

@@ -52,7 +52,7 @@ class DashboardManager {
         
         
         if (rewardsResponse.success) {
-            console.log(rewardsResponse)
+            // console.log("right here",rewardsResponse)
             // showSuccess('Succesfully load rewardResponse data');
           this.rewards = rewardsResponse.data;
           this.renderRewards();
@@ -61,7 +61,7 @@ class DashboardManager {
 
       } catch (error) {
           console.error('Error loading dashboard data:', error);
-          showError('Failed to load dashboard data');
+        //   showError('Failed to load dashboard data');
       }
     }
 
