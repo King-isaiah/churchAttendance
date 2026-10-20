@@ -17,7 +17,7 @@
             <div class="sidebar-top-wrapper">
                 <div class="sidebar-top">
                     <a href="" class="logo__wrapper">
-                        <img src="../images/hublogo.jpg" alt="logo" class="logo-small">
+                        <img src="images/hublogo.jpg" alt="logo" class="logo-small">
                         <div class="hide sidebar-top__company">
                             <span class="hub-name">
                                 Hub Church
