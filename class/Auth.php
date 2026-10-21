@@ -36,7 +36,6 @@ class Auth extends Database {
             $isValidPassword = true; // Hashed password
         } elseif ($password === $user['password']) {
             $isValidPassword = true; // Plain text (legacy)
-            
         }
 
         if (!$isValidPassword) {
@@ -48,8 +47,15 @@ class Auth extends Database {
             throw new Exception("Your account is deactivated. Please contact admin.", 403);
         }
 
+        // --- LEVEL 4 ADDED: Block Unverified Users ---
+        if (isset($user['is_verified']) && $user['is_verified'] == 0) {
+            throw new Exception("Your email is not verified. Please check your inbox for the verification code.", 403);
+        }
+        // ---------------------------------------------
+
         $updateData = ['status' => 'online'];
         $this->update('members', $updateData, 'id = ?', [$user['id']]);
+        
         // Set Session Variables (Global User Variable)
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['user_name'];
@@ -67,10 +73,7 @@ class Auth extends Database {
 
         // Determine redirect based on role
         $redirect = ($_SESSION['user_role'] === 'admin') ? 'admin/dashboard.php' : 'user/user_dashboard.php';
-        // $data = [
-
-        // ];
-        // $id =  $this->update('members', $data, 'id = ?', [$id]); 
+        
         return [
             'success' => true,
             'message' => 'Login successful',
@@ -220,6 +223,35 @@ class Auth extends Database {
         return [
             'success' => true,
             'message' => 'Password reset successfully. You can now login.'
+        ];
+    }
+        // 3. Verify Email Address (Level 4)
+    public function verifyEmail($data) {
+        $email = $data['email'] ?? '';
+        $otp = $data['otp'] ?? '';
+
+        if (empty($email) || empty($otp)) {
+            throw new Exception("Email and OTP code are required", 400);
+        }
+
+        // Check if the email and OTP match (no expiration check, as requested)
+        $sql = "SELECT id FROM members WHERE email = ? AND verification_token = ?";
+        $user = $this->fetchOne($sql, [$email, $otp]);
+
+        if (!$user) {
+            throw new Exception("Invalid OTP code or email address. Please try again.", 401);
+        }
+
+        // Update the user to verified, and clear the token
+        $updateData = [
+            'is_verified' => 1,
+            'verification_token' => null
+        ];
+        $this->update('members', $updateData, 'id = ?', [$user['id']]);
+
+        return [
+            'success' => true,
+            'message' => 'Email verified successfully! You can now log in.'
         ];
     }
 }

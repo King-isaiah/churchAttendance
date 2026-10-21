@@ -454,13 +454,15 @@
             $entity = new $entityClass();
 
             // ---------------------------------------------------------
-            // NEW: Handle specific Auth tasks (Password Reset)
+            // Handle specific Auth tasks (Password Reset & Email Verification)
             // ---------------------------------------------------------
             if ($this->entity === 'auth' && isset($this->input['task'])) {
                 if ($this->input['task'] === 'request_reset') {
                     $method = 'requestPasswordReset';
                 } elseif ($this->input['task'] === 'reset_password') {
                     $method = 'resetPassword';
+                } elseif ($this->input['task'] === 'verify_email') {  // <--- ADDED THIS
+                    $method = 'verifyEmail';                          // <--- ADDED THIS
                 } else {
                     $method = 'login'; // Fallback to normal login if task is unknown
                 }
