@@ -201,39 +201,82 @@ class Member extends Database {
         }
     }
     
+    // private function validateMemberData($data, $isUpdate = false) {
+    //     $required = ['first_name', 'last_name', 'email'];
+        
+    //     foreach ($required as $field) {
+    //         if (empty($data[$field])) {
+    //             throw new Exception("$field is required", 400);
+    //         }
+    //     }
+        
+    //     // Validate email format
+    //     if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+    //         throw new Exception("Invalid email format", 400);
+    //     }
+        
+    //     // Check for duplicate email
+    //     if (isset($data['email'])) {
+    //         $existingId = $isUpdate ? $data['id'] ?? null : null;
+    //         if ($this->valueExists('members', 'email', $data['email'], $existingId)) {
+    //             throw new Exception("A member with this email already exists", 409);
+    //         }
+    //     }
+        
+    //     // Validate string lengths
+    //     if (isset($data['first_name']) && strlen($data['first_name']) > 100) {
+    //         throw new Exception("First name is too long", 400);
+    //     }
+        
+    //     if (isset($data['last_name']) && strlen($data['last_name']) > 100) {
+    //         throw new Exception("Last name is too long", 400);
+    //     }
+        
+    //     if (isset($data['email']) && strlen($data['email']) > 255) {
+    //         throw new Exception("Email is too long", 400);
+    //     }
+    // }
     private function validateMemberData($data, $isUpdate = false) {
         $required = ['first_name', 'last_name', 'email'];
         
+        // 1. Check Required
         foreach ($required as $field) {
             if (empty($data[$field])) {
                 throw new Exception("$field is required", 400);
             }
         }
         
-        // Validate email format
-        if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Invalid email format", 400);
-        }
-        
-        // Check for duplicate email
         if (isset($data['email'])) {
-            $existingId = $isUpdate ? $data['id'] ?? null : null;
+            // 2. Check Format
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Invalid email format", 400);
+            }
+
+            // 3. Check Length (Moved UP to prevent long-string DNS lookups)
+            if (strlen($data['email']) > 255) {
+                throw new Exception("Email is too long", 400);
+            }
+            
+            // 4. Check for duplicate email
+            $existingId = $isUpdate ? ($data['id'] ?? null) : null;
             if ($this->valueExists('members', 'email', $data['email'], $existingId)) {
                 throw new Exception("A member with this email already exists", 409);
             }
+
+            // 5. Level 3: Check DNS Records
+            $domain = substr(strrchr($data['email'], "@"), 1);
+            if (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A')) {
+                throw new Exception("The email domain '$domain' does not exist or cannot receive emails.", 400);
+            }
         }
         
-        // Validate string lengths
+        // Validate string lengths for names
         if (isset($data['first_name']) && strlen($data['first_name']) > 100) {
             throw new Exception("First name is too long", 400);
         }
         
         if (isset($data['last_name']) && strlen($data['last_name']) > 100) {
             throw new Exception("Last name is too long", 400);
-        }
-        
-        if (isset($data['email']) && strlen($data['email']) > 255) {
-            throw new Exception("Email is too long", 400);
         }
     }
 }
