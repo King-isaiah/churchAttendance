@@ -64,8 +64,13 @@ class Member extends Database {
             $random_id = rand(time(), 10000000);
             $data['unique_id'] = $random_id;
             
-            // $fullname = $data['first_name'] . $data['last_name'];
-            // $randomLetters = substr(str_shuffle($fullname), 0, 2);
+            // --- LEVEL 4: GENERATE OTP FOR EMAIL VERIFICATION ---
+            $otp = rand(100000, 999999);
+            $data['is_verified'] = 0;
+            $data['verification_token'] = $otp;
+            $data['verification_expires_at'] = null; // No expiration as requested
+            // ----------------------------------------------------
+
             if (isset($data['department_id'])) {
                 if (is_array($data['department_id'])) {                    
                     $deptIds = array_filter($data['department_id'], function($val) {
@@ -76,7 +81,6 @@ class Member extends Database {
                         $data['department_id'] = null;
                         $deptIdsForNotification = null;
                     } else {
-                        // Store as JSON array string
                         $data['department_id'] = json_encode(array_values($deptIds));
                         $deptIdsForNotification = $deptIds; 
                     }
@@ -84,19 +88,17 @@ class Member extends Database {
                     $data['department_id'] = null;
                     $deptIdsForNotification = null;
                 } else {
-                    // Single department ID
                     $deptIdsForNotification = [$data['department_id']];
                 }
             } else {
                 $data['department_id'] = null;
                 $deptIdsForNotification = null;
             }
+
             try {
-                error_log("Department IDs for notification: " . print_r($deptIdsForNotification, true));               
                 $memberTitle = $data['first_name'] ?? '';
                 $eventDescription = $data['first_name'] . ' ' . 'has joined your department workforce.';                          
                 $notification = new Notification();
-                error_log("Creating notification for newMember: " . $memberTitle);
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
                 $defs = [
                     'title' => 'New Member',                
@@ -105,23 +107,63 @@ class Member extends Database {
                     'department_id'=> $data['department_id'],
                     'expires_at' =>  $expiresAt  
                 ];
-                $result = $notification->createNotification($defs);
-               
-                error_log("Notification result: " . print_r($result, true));
-                
+                $notification->createNotification($defs);
             } catch (Exception $e) {
                 error_log("Failed to create notification for event: " . $e->getMessage());
             }
             
-            // Set default values
             $data['created_at'] = date('Y-m-d H:i:s');
             
+            // Insert the member into the database
             $membersP = $this->insert('members', $data);
+
+            // --- LEVEL 4: SEND THE OTP EMAIL VIA BREVO ---
+            try {
+                require_once __DIR__ . '/Config.php';
+                $apiKey = BREVO_API_KEY;
+                
+                $payload = [
+                    'sender' => [
+                        'name'  => 'Hub Church',
+                        'email' => 'eshiozemheafuwape@gmail.com'
+                    ],
+                    'to' => [[
+                        'email' => $data['email'],
+                        'name'  => $data['first_name']
+                    ]],
+                    'subject' => 'Verify Your Email - Hub Church',
+                    'htmlContent' => "
+                        <h2>Welcome to Hub Church!</h2>
+                        <p>Hello " . htmlspecialchars($data['first_name']) . ",</p>
+                        <p>Your account has been created. Please use the code below to verify your email address:</p>
+                        <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
+                        <p>You will not be able to log in until this code is entered.</p>
+                    "
+                ];
+
+                $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => json_encode($payload),
+                    CURLOPT_HTTPHEADER     => [
+                        'accept: application/json',
+                        'api-key: ' . $apiKey,
+                        'content-type: application/json'
+                    ],
+                    CURLOPT_TIMEOUT        => 15
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+            } catch (Exception $e) {
+                error_log("Failed to send OTP email: " . $e->getMessage());
+            }
+            // ----------------------------------------------
+            
             return [
                 'members' => $membersP,
-                'notification_result' => $result
+                'notification_result' => true
             ];
-        
 
         } catch (Exception $e) {
             error_log("Member create error: " . $e->getMessage() . " | Data: " . json_encode($data));
