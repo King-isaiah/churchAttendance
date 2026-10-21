@@ -488,6 +488,10 @@
             <button type="submit" class="submit" id="submitBtn">Sign In</button>
         </form>
 
+        <p class="foot" style="margin-bottom: 0.5rem;">
+            Email not verified? <a href="verify.html" style="font-weight: bold; color: #FFD700;">Verify Now</a>
+        </p>
+
         <p class="foot">
             Don't have an account? <a href="register.html">Request access</a>
         </p>
@@ -795,15 +799,7 @@
             });
             const data = await res.json();
 
-            // if (data.success) {
-            //     showToast('Welcome back!', 'success', 1500);
-            //     const redirect = data.redirect || 'dashboard.php';
-            //     setTimeout(() => { window.location.href = redirect; }, 700);
-            // } else {
-            //     showToast(data.message || 'Invalid username or password');
-            //     submitBtn.classList.remove('loading');
-            //     submitBtn.disabled = false;
-            // }
+            
             if (data.success) {
                 showToast('Welcome back!', 'success', 1500);
     
@@ -823,10 +819,19 @@
                 // Redirect the user
                 setTimeout(() => { window.location.href = redirectUrl; }, 700);
                 
-            } else {
+            } 
+            else {
                 showToast(data.message || 'Invalid username or password');
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
+
+                // NEW: If the error is specifically because they aren't verified,
+                // automatically send them to verify.html after 2.5 seconds
+                if (data.message && data.message.includes('not verified')) {
+                    setTimeout(() => {
+                        window.location.href = 'verify.html';
+                    }, 2500);
+                }
             }
         } catch (err) {
             console.error('Login error:', err);
