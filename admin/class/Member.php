@@ -272,10 +272,10 @@ class Member extends Database {
                 throw new Exception("A member with this email already exists", 409);
             }
 
-            // 5. Level 3: Check DNS Records
+            // 5. Level 3: Check DNS Records (MX ONLY)
             $domain = substr(strrchr($data['email'], "@"), 1);
-            if (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A')) {
-                throw new Exception("The email domain '$domain' does not exist or cannot receive emails.", 400);
+            if (!checkdnsrr($domain, 'MX')) {
+                throw new Exception("The email domain '$domain' does not have a valid mail server (MX record).", 400);
             }
         }
         
