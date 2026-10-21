@@ -116,6 +116,82 @@ class Auth extends Database {
     }
     
     // 1. Request Password Reset (Generate OTP)
+    // public function requestPasswordReset($data) {
+    //     $email = $data['email'] ?? '';
+    //     if (empty($email)) {
+    //         throw new Exception("Email is required", 400);
+    //     }
+
+    //     // Check if user exists
+    //     $sql = "SELECT id, first_name FROM members WHERE email = ?";
+    //     $user = $this->fetchOne($sql, [$email]);
+
+    //     if (!$user) {
+    //         // TEMPORARY: show exactly what email was received
+    //         throw new Exception("No account found for email: [" . $email . "] (length: " . strlen($email) . ")", 404);
+    //     }
+
+    //     // Generate 5-digit OTP
+    //     $otp = rand(10000, 99999);
+    //     $expiresAt = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+    //     // Save OTP to database
+    //     $this->update('members', [
+    //         'reset_token' => $otp,
+    //         'reset_expires_at' => $expiresAt
+    //     ], 'id = ?', [$user['id']]);
+
+    //     // ---------- SEND EMAIL VIA BREVO API ----------
+    //     require_once __DIR__ . '/Config.php';
+    //     $apiKey = BREVO_API_KEY;
+    //     $payload = [
+    //         'sender' => [
+    //             'name'  => 'Hub Church',
+    //             'email' => 'eshiozemheafuwape@gmail.com'
+    //         ],
+    //         'to' => [[
+    //             'email' => $email,
+    //             'name'  => $user['first_name']
+    //         ]],
+    //         'subject' => 'Password Reset Code - Hub Church',
+    //         'htmlContent' => "
+    //             <h2>Password Reset Code</h2>
+    //             <p>Hello " . htmlspecialchars($user['first_name']) . ",</p>
+    //             <p>Your password reset code is:</p>
+    //             <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
+    //             <p>This code expires in <strong>15 minutes</strong>.</p>
+    //             <p>If you did not request this, please ignore this email.</p>
+    //         "
+    //     ];
+
+    //     $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    //     curl_setopt_array($ch, [
+    //         CURLOPT_RETURNTRANSFER => true,
+    //         CURLOPT_POST           => true,
+    //         CURLOPT_POSTFIELDS     => json_encode($payload),
+    //         CURLOPT_HTTPHEADER     => [
+    //             'accept: application/json',
+    //             'api-key: ' . $apiKey,
+    //             'content-type: application/json'
+    //         ],
+    //         CURLOPT_TIMEOUT        => 15
+    //     ]);
+
+    //     $response = curl_exec($ch);
+    //     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    //     $curlError = curl_error($ch);
+    //     curl_close($ch);
+
+    //     if ($httpCode !== 201) {
+    //         throw new Exception("Brevo says: HTTP $httpCode | Response: $response | cURL Error: $curlError", 500);
+    //     }
+    //     // --------------------------------------------------
+
+    //     return [
+    //         'success' => true,
+    //         'message' => 'Reset code sent to your email. Please check your inbox.'
+    //     ];
+    // }
     public function requestPasswordReset($data) {
         $email = $data['email'] ?? '';
         if (empty($email)) {
@@ -127,8 +203,7 @@ class Auth extends Database {
         $user = $this->fetchOne($sql, [$email]);
 
         if (!$user) {
-            // TEMPORARY: show exactly what email was received
-            throw new Exception("No account found for email: [" . $email . "] (length: " . strlen($email) . ")", 404);
+            throw new Exception("No account found with that email address", 404);
         }
 
         // Generate 5-digit OTP
@@ -141,50 +216,21 @@ class Auth extends Database {
             'reset_expires_at' => $expiresAt
         ], 'id = ?', [$user['id']]);
 
-        // ---------- SEND EMAIL VIA BREVO API ----------
-        require_once __DIR__ . '/Config.php';
-        $apiKey = BREVO_API_KEY;
-        $payload = [
-            'sender' => [
-                'name'  => 'Hub Church',
-                'email' => 'eshiozemheafuwape@gmail.com'
-            ],
-            'to' => [[
-                'email' => $email,
-                'name'  => $user['first_name']
-            ]],
-            'subject' => 'Password Reset Code - Hub Church',
-            'htmlContent' => "
-                <h2>Password Reset Code</h2>
-                <p>Hello " . htmlspecialchars($user['first_name']) . ",</p>
-                <p>Your password reset code is:</p>
-                <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
-                <p>This code expires in <strong>15 minutes</strong>.</p>
-                <p>If you did not request this, please ignore this email.</p>
-            "
-        ];
+        // ---------- SEND EMAIL VIA MAILER ----------
+        require_once __DIR__ . '/Mailer.php';
+        $mailer = new Mailer();
+        
+        $html = "
+            <h2>Password Reset Code</h2>
+            <p>Hello " . htmlspecialchars($user['first_name']) . ",</p>
+            <p>Your password reset code is:</p>
+            <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
+            <p>This code expires in <strong>15 minutes</strong>.</p>
+            <p>If you did not request this, please ignore this email.</p>
+        ";
 
-        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => json_encode($payload),
-            CURLOPT_HTTPHEADER     => [
-                'accept: application/json',
-                'api-key: ' . $apiKey,
-                'content-type: application/json'
-            ],
-            CURLOPT_TIMEOUT        => 15
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($httpCode !== 201) {
-            throw new Exception("Brevo says: HTTP $httpCode | Response: $response | cURL Error: $curlError", 500);
-        }
+        // This will throw a 429 exception if the daily limit is hit
+        $mailer->sendEmail($email, $user['first_name'], 'Password Reset Code - Hub Church', $html);
         // --------------------------------------------------
 
         return [
@@ -225,6 +271,7 @@ class Auth extends Database {
             'message' => 'Password reset successfully. You can now login.'
         ];
     }
+        
         // 3. Verify Email Address (Level 4)
     public function verifyEmail($data) {
         $email = $data['email'] ?? '';

@@ -55,121 +55,101 @@ class Member extends Database {
         }
     }
     
-        public function createMember($data) {
-        try {
-            // Validate required fields
-            $this->validateMemberData($data);
-            
-            // Generate unique_id
-            $random_id = rand(time(), 10000000);
-            $data['unique_id'] = $random_id;
-            
-            // --- LEVEL 4: GENERATE OTP FOR EMAIL VERIFICATION ---
-            $otp = rand(100000, 999999);
-            $data['is_verified'] = 0;
-            $data['verification_token'] = $otp;
-            $data['verification_expires_at'] = null; // No expiration as requested
-            // ----------------------------------------------------
+public function createMember($data) {
+    try {
+        // Validate required fields
+        $this->validateMemberData($data);
+        
+        // Generate unique_id
+        $random_id = rand(time(), 10000000);
+        $data['unique_id'] = $random_id;
+        
+        // --- LEVEL 4: GENERATE OTP FOR EMAIL VERIFICATION ---
+        $otp = rand(100000, 999999);
+        $data['is_verified'] = 0;
+        $data['verification_token'] = $otp;
+        $data['verification_expires_at'] = null; // No expiration as requested
+        // ----------------------------------------------------
 
-            if (isset($data['department_id'])) {
-                if (is_array($data['department_id'])) {                    
-                    $deptIds = array_filter($data['department_id'], function($val) {
-                        return $val !== ''  && $val !== 0;
-                    });
-                    
-                    if (empty($deptIds)) {
-                        $data['department_id'] = null;
-                        $deptIdsForNotification = null;
-                    } else {
-                        $data['department_id'] = json_encode(array_values($deptIds));
-                        $deptIdsForNotification = $deptIds; 
-                    }
-                } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
+        if (isset($data['department_id'])) {
+            if (is_array($data['department_id'])) {                    
+                $deptIds = array_filter($data['department_id'], function($val) {
+                    return $val !== ''  && $val !== 0;
+                });
+                
+                if (empty($deptIds)) {
                     $data['department_id'] = null;
                     $deptIdsForNotification = null;
                 } else {
-                    $deptIdsForNotification = [$data['department_id']];
+                    $data['department_id'] = json_encode(array_values($deptIds));
+                    $deptIdsForNotification = $deptIds; 
                 }
-            } else {
+            } else if ($data['department_id'] === '0' || $data['department_id'] === 0) {
                 $data['department_id'] = null;
                 $deptIdsForNotification = null;
+            } else {
+                $deptIdsForNotification = [$data['department_id']];
             }
-
-            try {
-                $memberTitle = $data['first_name'] ?? '';
-                $eventDescription = $data['first_name'] . ' ' . 'has joined your department workforce.';                          
-                $notification = new Notification();
-                $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
-                $defs = [
-                    'title' => 'New Member',                
-                    'message' => $eventDescription,
-                    'notification_type'=> 'member',
-                    'department_id'=> $data['department_id'],
-                    'expires_at' =>  $expiresAt  
-                ];
-                $notification->createNotification($defs);
-            } catch (Exception $e) {
-                error_log("Failed to create notification for event: " . $e->getMessage());
-            }
-            
-            $data['created_at'] = date('Y-m-d H:i:s');
-            
-            // Insert the member into the database
-            $membersP = $this->insert('members', $data);
-
-            // --- LEVEL 4: SEND THE OTP EMAIL VIA BREVO ---
-            try {
-                require_once __DIR__ . '/Config.php';
-                $apiKey = BREVO_API_KEY;
-                
-                $payload = [
-                    'sender' => [
-                        'name'  => 'Hub Church',
-                        'email' => 'eshiozemheafuwape@gmail.com'
-                    ],
-                    'to' => [[
-                        'email' => $data['email'],
-                        'name'  => $data['first_name']
-                    ]],
-                    'subject' => 'Verify Your Email - Hub Church',
-                    'htmlContent' => "
-                        <h2>Welcome to Hub Church!</h2>
-                        <p>Hello " . htmlspecialchars($data['first_name']) . ",</p>
-                        <p>Your account has been created. Please use the code below to verify your email address:</p>
-                        <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
-                        <p>You will not be able to log in until this code is entered.</p>
-                    "
-                ];
-
-                $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-                curl_setopt_array($ch, [
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_POST           => true,
-                    CURLOPT_POSTFIELDS     => json_encode($payload),
-                    CURLOPT_HTTPHEADER     => [
-                        'accept: application/json',
-                        'api-key: ' . $apiKey,
-                        'content-type: application/json'
-                    ],
-                    CURLOPT_TIMEOUT        => 15
-                ]);
-                curl_exec($ch);
-                curl_close($ch);
-            } catch (Exception $e) {
-                error_log("Failed to send OTP email: " . $e->getMessage());
-            }
-            // ----------------------------------------------
-            
-            return [
-                'members' => $membersP,
-                'notification_result' => true
-            ];
-
-        } catch (Exception $e) {
-            error_log("Member create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-            throw $e;
+        } else {
+            $data['department_id'] = null;
+            $deptIdsForNotification = null;
         }
+
+        try {
+            $memberTitle = $data['first_name'] ?? '';
+            $eventDescription = $data['first_name'] . ' ' . 'has joined your department workforce.';                          
+            $notification = new Notification();
+            $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
+            $defs = [
+                'title' => 'New Member',                
+                'message' => $eventDescription,
+                'notification_type'=> 'member',
+                'department_id'=> $data['department_id'],
+                'expires_at' =>  $expiresAt  
+            ];
+            $notification->createNotification($defs);
+        } catch (Exception $e) {
+            error_log("Failed to create notification for event: " . $e->getMessage());
+        }
+        
+        $data['created_at'] = date('Y-m-d H:i:s');
+        
+        // Insert the member into the database
+        $membersP = $this->insert('members', $data);
+
+        // --- LEVEL 4: SEND THE OTP EMAIL VIA MAILER ---
+        try {
+            require_once __DIR__ . '/Mailer.php';
+            $mailer = new Mailer();
+            
+            $html = "
+                <h2>Welcome to Hub Church!</h2>
+                <p>Hello " . htmlspecialchars($data['first_name']) . ",</p>
+                <p>Your account has been created. Please use the code below to verify your email address:</p>
+                <h1 style='letter-spacing: 8px; color: #28a745;'>" . $otp . "</h1>
+                <p>You will not be able to log in until this code is entered.</p>
+            ";
+            
+            // This will throw an exception if the 270 daily limit is hit
+            $mailer->sendEmail($data['email'], $data['first_name'], 'Verify Your Email - Hub Church', $html);
+            
+        } catch (Exception $e) {
+            // If the limit is reached, the user is still created, but they won't get the email.
+            // We log it so the admin knows they need to manually verify this user later.
+            error_log("Failed to send OTP email: " . $e->getMessage());
+        }
+        // ----------------------------------------------
+        
+        return [
+            'members' => $membersP,
+            'notification_result' => true
+        ];
+
+    } catch (Exception $e) {
+        error_log("Member create error: " . $e->getMessage() . " | Data: " . json_encode($data));
+        throw $e;
     }
+}
     
     public function updateMember($id, $data) {
         try {     
