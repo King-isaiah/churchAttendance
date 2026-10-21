@@ -5,8 +5,8 @@ require_once 'Config.php';
 class Mailer extends Database {
     
     // Set your daily limit here
-    private $dailyLimit = 2;
-    // private $dailyLimit = 270;
+    // private $dailyLimit = 2;
+    private $dailyLimit = 270;
 
     public function sendEmail($toEmail, $toName, $subject, $htmlContent) {
         try {
