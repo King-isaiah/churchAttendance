@@ -1,5 +1,19 @@
-<?php session_start() ?>
+<?php 
+    session_start();
 
+    // 1. Start the session if it hasn't been started yet
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // 2. Check if the user has a unique_id and it is not empty
+    if (!isset($_SESSION['unique_id']) || empty($_SESSION['unique_id'])) {
+        // Redirect to login.html with a query parameter.     
+        header('Location: ../login.html?login_required=1');
+        // header('Location: logout.php?login_required=1');
+        exit();
+    }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -16,7 +16,7 @@ $department = new Department();
 $attendanceMethod = new AttendanceMethod();
 
 $activities = $activity->getAllActivities();
-$day = $activity->getDaysOfTheWeek();
+
 $categories = $categorys->getAllCategory();
 $locations = $location->getAllLocations();
 $departments = $department->getAllDepartments();
@@ -375,7 +375,7 @@ foreach ($activities as $activityItem) {
 </div>
 <script>
     let departmentCounter = 1;
-const maxDepartments = 7;
+    const maxDepartments = 7;
 
 
 

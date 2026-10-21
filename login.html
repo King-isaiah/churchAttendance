@@ -837,6 +837,20 @@
     });
 
     document.getElementById('username').focus();
+
+
+    // ============================================================
+    //  6. Check for forced login redirect
+    // ============================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('login_required')) {
+        // Show the error message using your existing toast function
+        showToast('Please log in to access the system.', 'error', 5000);
+        
+        // Clean up the URL so the message doesn't show again if they refresh the page
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
 })();
 </script>
 </body>
