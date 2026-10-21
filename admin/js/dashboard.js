@@ -307,9 +307,18 @@ class DashboardManager {
             }
 
             const members = data.data || [];
-            const onlineMembers = members.filter(
-                m => (m.status || '').toString().toLowerCase() === 'online'
-            );
+            const now = new Date();
+
+            // NEW LOGIC: Check if they were active in the last 5 minutes
+            const onlineMembers = members.filter(m => {
+                if (!m.last_activity) return false;
+                
+                // Parse the MySQL datetime string safely
+                const lastActive = new Date(m.last_activity.replace(' ', 'T')); 
+                const diffInMinutes = (now - lastActive) / 1000 / 60;
+                
+                return diffInMinutes <= 5; 
+            });
 
             if (onlineMembers.length === 0) {
                 container.innerHTML = `

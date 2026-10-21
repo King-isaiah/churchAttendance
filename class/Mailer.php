@@ -17,7 +17,8 @@ class Mailer extends Database {
 
             // 2. If limit reached, stop
             if ($sentToday >= $this->dailyLimit) {
-                throw new Exception("Daily email limit of {$this->dailyLimit} reached. Please try again tomorrow.", 429);
+                throw new Exception("Daily email limit of {$this->dailyLimit} reached.", 429);
+                // throw new Exception("Daily email limit of {$this->dailyLimit} reached. Please try again tomorrow.", 429);
             }
 
             // 3. Prepare Brevo API Payload

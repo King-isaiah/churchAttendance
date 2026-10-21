@@ -1,6 +1,6 @@
 <?php
 include "include/header.php";
-include "class/Member.php";
+// include "class/Member.php";
 include "class/Department.php";
 
 // Create instances

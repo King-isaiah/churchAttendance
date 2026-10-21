@@ -198,7 +198,13 @@ public function createMember($data) {
             throw $e;
         }
     }
-    
+    public function updateHeartbeat($userId) {
+        try {
+            $this->update('members', ['last_activity' => date('Y-m-d H:i:s')], 'id = ?', [$userId]);
+        } catch (Exception $e) {
+            error_log("Heartbeat error: " . $e->getMessage());
+        }
+    }
     public function deleteMember($id) {
         try {
 
