@@ -136,6 +136,15 @@ class Member extends Database {
                 throw new Exception("Member not found", 404);
             }
 
+            // --- FIX: Prevent overwriting password with an empty string ---
+            if (isset($data['password'])) {
+                if (empty(trim($data['password']))) {
+                    // If the admin left the password blank, remove it so we don't update it
+                    unset($data['password']); 
+                }
+            }
+            // -------------------------------------------------------------
+
             if (isset($data['department_id'])) {
                 if (is_array($data['department_id'])) {
                     $deptIds = array_filter($data['department_id'], function($val) {
@@ -153,14 +162,14 @@ class Member extends Database {
             if ($id === false) {
                 return [
                     'success' => false,
-                    'message' => 'Failed to Update Member.Please try again or call dev.',
-                    'status' => 400 // optional, will be used as HTTP status
+                    'message' => 'Failed to Update Member. Please try again or call dev.',
+                    'status' => 400 
                 ];                
             }
             return [
                 'success' => true,
                 'id' => $id,
-                'message' => "Member '{$data['user_name']}' updated ."
+                'message' => "Member '{$data['user_name']}' updated."
             ];
         } catch (Exception $e) {
             error_log("Member update error [ID: $id]: " . $e->getMessage());
