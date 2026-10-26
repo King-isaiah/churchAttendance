@@ -32,7 +32,7 @@ class EmailLogManager {
             }
         } catch (error) {
             console.error("Error fetching logs", error);
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Network error</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No Record Found</td></tr>`;
         }
     }
 

@@ -42,8 +42,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Date & Time</th>
-                    <th>Sender</th>
+                    <th>Date & Time</th>                  
                     <th>Recipient Name</th>
                     <th>Recipient Email</th>
                     <th>Subject</th>
