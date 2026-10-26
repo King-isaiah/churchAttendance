@@ -93,13 +93,13 @@ class EmailLogManager {
     exportCSV() {
         if (this.filteredLogs.length === 0) return alert("No data to export");
 
-        let csv = "Date,Sender,Recipient Name,Recipient Email,Subject\n";
+        let csv = "Date,Recipient Name,Recipient Email,Subject\n";
         
         this.filteredLogs.forEach(log => {
             // Escape quotes inside strings to prevent breaking CSV
             const subject = `"${(log.subject || '').replace(/"/g, '""')}"`;
             const name = `"${(log.recipient_name || '').replace(/"/g, '""')}"`;
-            csv += `${new Date(log.sent_at).toLocaleString()},${log.sender_email},${name},${log.recipient_email},${subject}\n`;
+            csv += `${new Date(log.sent_at).toLocaleString()},${name},${log.recipient_email},${subject}\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
