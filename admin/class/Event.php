@@ -189,8 +189,7 @@ class Event extends Database {
             
             // ===== ADD NOTIFICATION FOR THE NEW EVENT =====
             try {
-                // require_once 'Notification.php';            
-                // $notification = new Notification();
+               
                 error_log("Creating notification for event: " . $eventTitle);
                 error_log("Department IDs for notification: " . print_r($deptIdsForNotification, true));
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
@@ -248,9 +247,7 @@ class Event extends Database {
             // ===== END VALIDATION =====
             
             // ===== ADD UPDATE NOTIFICATION =====
-            try {
-                require_once 'Notification.php';
-                
+            try {               
                 $notification = new Notification();
                 
                 // Get department IDs for notification

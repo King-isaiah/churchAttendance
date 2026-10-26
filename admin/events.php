@@ -1,9 +1,6 @@
 <?php
 include "include/header.php";
-require_once 'class/Event.php';
-require_once 'class/Department.php';
-require_once 'class/Location.php';
-require_once 'class/Category.php';
+
 
 ?>
 
@@ -22,5 +19,5 @@ require_once 'class/Category.php';
 </div>
 
 
-<script src="events.js"></script>
+<script src="js/events.js"></script>
 <?php include "include/footer.php"; ?>
