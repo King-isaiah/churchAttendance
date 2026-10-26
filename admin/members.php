@@ -1,14 +1,12 @@
 <?php
 include "include/header.php";
-// include "class/Member.php";
 include "class/Department.php";
 
 // Create instances
-// $member = new Member();
+
 $department = new Department();
 
 // Get data from database
-// $members = $member->getAllMembers();
 $departments = $department->getAllDepartments();
 ?>
 

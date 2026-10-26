@@ -76,6 +76,12 @@ if (isset($_SESSION['user_id'])) {
                     </a>                              
                 </div>
                 <div class="icon-square">
+                    <a href="events.php">                        
+                        <i class="fas fa-calendar-alt"></i> 
+                        <span class="hide">Events</span>
+                    </a>                              
+                </div>
+                <div class="icon-square">
                     <a href="members.php">                        
                         <i class="fas fa-user-plus"></i>
                         <span class="hide">Members</span>
@@ -87,11 +93,12 @@ if (isset($_SESSION['user_id'])) {
                         <span class="hide">Report</span>
                     </a>                              
                 </div>
+               
                 <div class="icon-square">
-                    <a href="events.php">                        
-                        <i class="fas fa-calendar-alt"></i> 
-                        <span class="hide">Events</span>
-                    </a>                              
+                    <a href="email_logs.php">
+                        <i class="fas fa-envelope-open-text"></i> 
+                        <span class="hide">Email Logs</span>
+                    </a>                     
                 </div>
                 <div class="icon-square">
                     <a href="logout.php">                        

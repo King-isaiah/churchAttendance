@@ -12,6 +12,7 @@
     require_once '../admin/class/Category.php';
     require_once '../admin/class/Speaker.php';
     require_once '../admin/class/Event.php';
+    require_once '../admin/class/EmailLog.php';
     require_once 'Member.php';
     require_once '../admin/class/Attendance.php';
     require_once '../admin/class/Activity.php';
@@ -481,6 +482,7 @@
                     'statuses' => 'createStatus',
                     'activity_qr_codes' => 'generateQRCode',
                     'reports' => 'creatAReport',
+                    'email_logs' => 'getFilteredLogs',
                     'auth' => 'login',
                 ];
                 $method = $methodMap[$this->entity] ?? 'special';
@@ -498,47 +500,7 @@
                 $this->sendResponse(['success' => false, 'message' => "Method $method not found", 'errorType' => 'server'], 500);
             }
         }
-        // private function special() {
-        //     if (empty($this->input)) {
-        //         $this->sendResponse(['success' => false, 'message' => 'Invalid data', 'errorType' => 'client'], 400);
-        //         return;
-        //     }
-
-        //     $entityClass = $this->getEntityClass();
-        //     if (!$entityClass) {
-        //         $this->sendResponse(['success' => false, 'message' => 'Invalid entity', 'errorType' => 'client'], 400);
-        //         return;
-        //     }
-
-        //     $entity = new $entityClass();
-        //     $methodMap = [
-        //         'locations' => 'createLocation',
-        //         'departments' => 'createDepartment',
-        //         'categories' => 'createCategory',
-        //         'speakers' => 'createSpeaker',
-        //         'events' => 'createEvent',
-        //         'members' => 'createMember',
-        //         'attendance' => 'createAttendance',
-        //         'activities' => 'createActivity',
-        //         'attendance_methods' => 'createAttendanceMethod',
-        //         'statuses' => 'createStatus',
-        //         'activity_qr_codes' => 'generateQRCode',
-        //         'reports' => 'creatAReport',
-        //         'auth' => 'login',
-        //     ];
-        //     $method = $methodMap[$this->entity] ?? 'special';
-
-        //     if (method_exists($entity, $method)) {
-        //         $result = $entity->$method($this->input);
-        //         if ($result !== false) {
-        //             $this->sendSuccessResponse($result, 200);
-        //         } else {
-        //             $this->sendResponse(['success' => false, 'message' => 'Operation failed', 'errorType' => 'server'], 500);
-        //         }
-        //     } else {
-        //         $this->sendResponse(['success' => false, 'message' => 'Method not found', 'errorType' => 'server'], 500);
-        //     }
-        // }
+        
 
         private function generateQR() {
             if (empty($this->input)) {
@@ -760,6 +722,7 @@
                 'activity_qr_codes' => 'QRGenerator',
                 'rsvp' => 'RSVP',
                 'notifications' => 'Notification',
+                'email_logs' => 'EmailLog',
                 'auth' => 'Auth' 
             ];
             return $entityMap[$this->entity] ?? null;
