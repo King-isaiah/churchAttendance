@@ -100,55 +100,51 @@
 .btn-primary { background: #8786E3; color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;}
 
 /* Print styles */
-/* Print styles */
 @media print {
-    /* 1. Unlock the height and overflow for the whole page */
-    html, body {
-        height: auto !important;
-        overflow: visible !important;
-        background: #fff !important;
-    }
-
-    .content {
+    /* 1. Nuke all height locks and overflows from style.css */
+    html, body, .content, .center-div, .main-content {
         display: block !important;
+        position: static !important;
         height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
         overflow: visible !important;
-    }
-
-    .center-div {
         margin: 0 !important;
         padding: 0 !important;
-        height: auto !important;
-        overflow: visible !important;
         width: 100% !important;
     }
 
-    /* 2. Hide the UI elements we don't want on paper */
+    /* 2. Hide all navigation and UI elements */
     .sidebar, 
     .top-nav, 
     .filters-bar, 
     .pagination, 
-    .header-actions {
+    .header-actions,
+    .toastify-container {
         display: none !important;
     }
 
-    /* 3. Format the header and container for print */
+    /* 3. Format the Header */
     .page-header {
-        box-shadow: none !important;
-        background: transparent !important;
+        display: flex !important;
+        justify-content: flex-start !important;
         border-bottom: 2px solid #000 !important;
-        margin: 0 0 20px 0 !important;
-        padding: 0 0 10px 0 !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 20px !important;
+        background: transparent !important;
+        box-shadow: none !important;
     }
 
+    /* 4. Format the Container */
     .email-log-container {
-        box-shadow: none !important;
+        display: block !important;
         margin: 0 !important;
         padding: 0 !important;
+        box-shadow: none !important;
         background: transparent !important;
     }
 
-    /* 4. Ensure the table expands and shows borders */
+    /* 5. Force the table to expand and show borders */
     .table-container {
         overflow: visible !important;
     }
