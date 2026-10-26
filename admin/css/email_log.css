@@ -100,8 +100,75 @@
 .btn-primary { background: #8786E3; color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;}
 
 /* Print styles */
+/* Print styles */
 @media print {
-    .sidebar, .top-nav, .filters-bar, .pagination { display: none !important; }
-    .email-log-container { box-shadow: none; margin: 0; padding: 0; }
-    .center-div { margin: 0 !important; padding: 0 !important; }
+    /* 1. Unlock the height and overflow for the whole page */
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+        background: #fff !important;
+    }
+
+    .content {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .center-div {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    /* 2. Hide the UI elements we don't want on paper */
+    .sidebar, 
+    .top-nav, 
+    .filters-bar, 
+    .pagination, 
+    .header-actions {
+        display: none !important;
+    }
+
+    /* 3. Format the header and container for print */
+    .page-header {
+        box-shadow: none !important;
+        background: transparent !important;
+        border-bottom: 2px solid #000 !important;
+        margin: 0 0 20px 0 !important;
+        padding: 0 0 10px 0 !important;
+    }
+
+    .email-log-container {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    /* 4. Ensure the table expands and shows borders */
+    .table-container {
+        overflow: visible !important;
+    }
+
+    .data-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .data-table th, 
+    .data-table td {
+        border: 1px solid #000 !important;
+        padding: 8px !important;
+        color: #000 !important;
+        font-size: 12px !important;
+    }
+
+    .data-table th {
+        background-color: #f0f0f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
 }

@@ -3,7 +3,7 @@ class EmailLogManager {
         this.allLogs = [];
         this.filteredLogs = [];
         this.currentPage = 1;
-        this.itemsPerPage = 15;
+        this.itemsPerPage = 10;
     }
 
     async loadLogs() {
@@ -93,7 +93,7 @@ class EmailLogManager {
     exportCSV() {
         if (this.filteredLogs.length === 0) return alert("No data to export");
 
-        let csv = "Date,Recipient Name,Recipient Email,Subject\n";
+        let csv = "No,Date,Recipient Name,Recipient Email,Subject\n";
         
         this.filteredLogs.forEach(log => {
             // Escape quotes inside strings to prevent breaking CSV
