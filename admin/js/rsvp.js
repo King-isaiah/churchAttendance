@@ -504,14 +504,15 @@ async function viewResponseDetails(id) {
             document.getElementById('viewModalTitle').textContent = `Response from ${r.first_name || 'User'}`;
             let status = r.attending == 1 ? 'Attending' : r.attending == 2 ? 'Not Attending' : r.attending == 3 ? 'Maybe' : 'Pending';
             
+            // FIXED: Changed r.uniqued to r.unique_id, r.comments to r.notes, and handled date properly
             document.getElementById('viewEventDetails').innerHTML = `
                 <div class="event-details">
                     <div class="detail-row"><label>Name:</label><span>${r.first_name || ''} ${r.last_name || ''}</span></div>
-                    <div class="detail-row"><label>Unique ID:</label><span>${r.uniqued || 'N/A'}</span></div>
+                    <div class="detail-row"><label>Unique ID:</label><span>${r.unique_id || 'N/A'}</span></div>
                     <div class="detail-row"><label>Status:</label><span>${status}</span></div>
                     <div class="detail-row"><label>Guests:</label><span>${r.guest_count || 0}</span></div>
-                    <div class="detail-row"><label>Comment:</label><span>${r.comments || 'No comment provided'}</span></div>
-                    <div class="detail-row"><label>Date:</label><span>${r.dated ? new Date(r.dated).toLocaleString() : 'N/A'}</span></div>
+                    <div class="detail-row"><label>Comment:</label><span>${r.notes || 'No comment provided'}</span></div>
+                    <div class="detail-row"><label>Date:</label><span>${(r.created_at || r.dated) ? new Date(r.created_at || r.dated).toLocaleString() : 'N/A'}</span></div>
                 </div>
             `;
             document.getElementById('viewMoreModal').style.display = 'block';

@@ -71,13 +71,12 @@
     }    
     public function getRSVPDetails($id) {
         try {
-            // FIXED: Changed 'WHERE e.id = ?' to 'WHERE rsvp.id = ?'
-            // FIXED: Changed the JOIN to match on unique_id
+            // FIXED: Removed 'm.name' (doesn't exist) and added 'm.user_name'
+            // FIXED: Removed the unused departments join to prevent errors
             $sql = "
-                SELECT r.*, m.first_name as first_name, m.last_name as last_name, m.name
+                SELECT r.*, m.first_name, m.last_name, m.user_name, m.email
                 FROM rsvp r 
                 LEFT JOIN members m ON r.unique_id = m.unique_id
-                LEFT JOIN departments d ON m.department_id = d.id
                 WHERE r.id = ?
             ";
             $result = $this->fetchOne($sql, [$id]);
@@ -88,6 +87,7 @@
             
             return $result;
         } catch (Exception $e) {
+            // This will log the actual error to your PHP error log if it happens again
             error_log("RSVP get error [ID: $id]: " . $e->getMessage());
             if ($e->getCode() === 404) {
                 throw $e;
