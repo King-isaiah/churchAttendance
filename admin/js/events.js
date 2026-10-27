@@ -321,7 +321,7 @@ async function evenRender() {
                         <div class="form-group">
                             <label for="eventDate">Date *</label>
                             <input type="date" id="eventDate" name="event_date" required>
-                        </div>
+                        </div>                        
                         <div class="department-selection">
                             <div class="form-group department-field" id="departmentField1">
                                 <div class="form-group">
@@ -331,8 +331,7 @@ async function evenRender() {
                                         ${departmentOptions}
                                     </select>
                                 </div>
-                                <button type="button" class="remove-department"
-                                        onclick="removeDepartmentField(this)" style="display: none;">−</button>
+                                <!-- Removed the delete button from here entirely -->
                             </div>
 
                             <div id="additionalDepartments"></div>
@@ -394,6 +393,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 1. Inject the HTML first — nothing else can query the DOM before this
     await evenRender();
 
+
+    const firstDeptSelect = document.getElementById('eventDepartment1');
+    if (firstDeptSelect) {
+        firstDeptSelect.addEventListener('change', handleFirstDepartmentChange);
+    }
     // 2. Colour map must be built BEFORE applying it
     await initializeDepartmentColors();
     applyDepartmentColors();
@@ -476,6 +480,198 @@ async function initializeSearchAndPagination() {
             eventsPagination.filterData(searchInput.value, this.value);
         });
     }
+}
+// --- ADD THIS NEW FUNCTION ---
+function handleFirstDepartmentChange() {
+    const firstSelect = document.getElementById('eventDepartment1');
+    const addBtn = document.getElementById('addDepartmentBtn');
+    const additionalContainer = document.getElementById('additionalDepartments');
+
+    if (!firstSelect || !addBtn || !additionalContainer) return;
+
+    if (firstSelect.value === '0') {
+        // "All Departments" is selected
+        addBtn.disabled = true;
+        addBtn.style.opacity = '0.5';
+        addBtn.style.cursor = 'not-allowed';
+        
+        // Hide and disable all additional selects so they don't submit
+        Array.from(additionalContainer.children).forEach(field => {
+            field.style.display = 'none';
+            const select = field.querySelector('select');
+            if (select) select.disabled = true;
+        });
+    } else {
+        // A specific department is selected
+        addBtn.disabled = false;
+        addBtn.style.opacity = '1';
+        addBtn.style.cursor = 'pointer';
+
+        // Show and enable all additional selects
+        Array.from(additionalContainer.children).forEach(field => {
+            field.style.display = 'block';
+            const select = field.querySelector('select');
+            if (select) select.disabled = false;
+        });
+    }
+}
+
+function removeDepartmentField(button) {
+    const field = button.closest('.department-field');
+    
+    // First field is protected, do nothing (it doesn't have a delete button anyway)
+    if (field.id === 'departmentField1') {
+        return;
+    }
+    
+    field.remove();
+    departmentCounter--;
+    
+    // Re-enable add button if not at max and not in "All Departments" mode
+    const firstSelect = document.getElementById('eventDepartment1');
+    if (firstSelect && firstSelect.value !== '0' && departmentCounter < maxDepartments) {
+        document.getElementById('addDepartmentBtn').disabled = false;
+    }
+    
+    refreshDepartmentSelects();
+    renumberDepartmentFields();
+}
+
+// --- UPDATE THIS FUNCTION ---
+async function refreshDepartmentSelects() {
+    const selectedDepartments = [];
+    document.querySelectorAll('.department-select').forEach(select => {
+        const value = parseInt(select.value);
+        if (value && value > 0) {
+            selectedDepartments.push(value);
+        }
+    });
+    
+    const deptResponse = await fetch('../class/ApiHandler.php?action=getAll&entity=departments');
+    const deptData = await deptResponse.json();
+    if (deptData.success) {
+        allDepartments = deptData.data;
+    }
+    
+    document.querySelectorAll('.department-select').forEach(select => {
+        const currentValue = select.value;
+        const isFirst = select.id === 'eventDepartment1';
+        
+        // Reset options
+        select.innerHTML = '<option value=""></option>';
+        
+        // Only add "All Departments" back to the first select
+        if (isFirst) {
+            select.innerHTML += '<option value="0">All Departments</option>';
+        }
+        
+        // Add available options
+        allDepartments.forEach(dept => {
+            if (parseInt(currentValue) === dept.id || !selectedDepartments.includes(dept.id)) {
+                select.innerHTML += `<option value="${dept.id}">${escapeHtml(dept.name)}</option>`;
+            }
+        });
+        
+        // Restore value
+        select.value = currentValue;
+    });
+}
+
+async function loadEventData(id) {
+    try {
+        const response = await fetch(`../class/ApiHandler.php?action=get&entity=events&id=${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const event = data.data;
+            
+            // Set basic fields
+            document.getElementById('eventId').value = event.id;
+            document.getElementById('eventTitle').value = event.title || '';
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventDate').value = event.event_date || '';
+            document.getElementById('eventTime').value = event.event_time || '';
+            document.getElementById('eventTimeExp').value = event.time_exp || '';
+            document.getElementById('eventAttendanceMethod').value = event.attendance_method_id || '';
+            document.getElementById('eventLocation').value = event.location_id || '';
+            document.getElementById('eventCategory').value = event.category_id || '';
+            document.getElementById('expectedAttendance').value = event.expected_attendance || '';
+            
+            // Reset departments
+            const additionalDepartments = document.getElementById('additionalDepartments');
+            additionalDepartments.innerHTML = '';
+            departmentCounter = 1;
+            
+            let departmentIds = [];
+            if (event.department_id) {
+                try {
+                    if (typeof event.department_id === 'string' && event.department_id.startsWith('[')) {
+                        departmentIds = JSON.parse(event.department_id);
+                    } else if (event.department_id !== 'null' && event.department_id !== '0') {
+                        departmentIds = [parseInt(event.department_id)];
+                    }
+                } catch (e) {
+                    if (event.department_id !== 'null' && event.department_id !== '0') {
+                        departmentIds = [parseInt(event.department_id)];
+                    }
+                }
+            }
+
+            // Filter out invalid values (0, null, etc.)
+            departmentIds = departmentIds.filter(dId => dId && dId !== '0');
+            
+            if (departmentIds.length === 0) {
+                document.getElementById('eventDepartment1').value = '0';
+            } else {
+                document.getElementById('eventDepartment1').value = departmentIds[0];
+                
+                for (let i = 1; i < departmentIds.length; i++) {
+                    await addDepartmentField();
+                    const newSelect = document.getElementById('eventDepartment' + (i + 1));
+                    if (newSelect) {
+                        newSelect.value = departmentIds[i];
+                    }
+                }
+            }
+            
+            // Trigger the UI logic for the first dropdown
+            handleFirstDepartmentChange();
+           
+        } else {
+            handleApiError(data, 'load event data');
+        }
+    } catch (error) {
+        showError('Error loading event: ' + error.message);
+    }
+}
+
+// --- UPDATE THIS FUNCTION ---
+function openEventModal(eventId = null) {
+    const modal = document.getElementById('eventModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const submitButton = document.getElementById('submitButton');
+    
+    document.getElementById('eventForm').reset();
+    document.getElementById('eventId').value = '';
+    
+    // Reset additional departments
+    document.getElementById('additionalDepartments').innerHTML = '';
+    departmentCounter = 1;
+    document.getElementById('eventDepartment1').value = '0'; // Default to All Departments
+    
+    if (eventId) {
+        modalTitle.textContent = 'Edit Event';
+        submitButton.textContent = 'Update Event';
+        loadEventData(eventId);
+    } else {
+        modalTitle.textContent = 'Add New Event';
+        submitButton.textContent = 'Add Event';
+        document.getElementById('eventDate').valueAsDate = new Date();
+        handleFirstDepartmentChange(); // Ensure UI state is correct
+    }
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
 }
 function renderEventsTable(events, startIndex) {
         const tbody = document.getElementById('eventTableBody');
@@ -619,29 +815,7 @@ function closeViewEventModal() {
 }
 
 // Modal functions
-function openEventModal(eventId = null) {
-    const modal = document.getElementById('eventModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const submitButton = document.getElementById('submitButton');
-    
-    // Reset form
-    document.getElementById('eventForm').reset();
-    document.getElementById('eventId').value = '';
-    
-    if (eventId) {
-        modalTitle.textContent = 'Edit Event';
-        submitButton.textContent = 'Update Event';
-        loadEventData(eventId);
-    } else {
-        modalTitle.textContent = 'Add New Event';
-        submitButton.textContent = 'Add Event';
-        // Set default date to today
-        document.getElementById('eventDate').valueAsDate = new Date();
-    }
-    
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
+
 
 function closeEventModal() {
     const modal = document.getElementById('eventModal');
@@ -650,82 +824,7 @@ function closeEventModal() {
     document.getElementById('eventId').value = '';
     document.body.style.overflow = 'auto';
 }
-async function loadEventData(id) {
-    try {
-        const response = await fetch(`../class/ApiHandler.php?action=get&entity=events&id=${id}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const event = data.data;
-            
-            // Set basic fields
-            document.getElementById('eventId').value = event.id;
-            document.getElementById('eventTitle').value = event.title || '';
-            document.getElementById('eventDescription').value = event.description || '';
-            document.getElementById('eventDate').value = event.event_date || '';
-            document.getElementById('eventTime').value = event.event_time || '';
-            document.getElementById('eventTimeExp').value = event.time_exp || '';
-            document.getElementById('eventAttendanceMethod').value = event.attendance_method_id || '';
-            document.getElementById('eventLocation').value = event.location_id || '';
-            document.getElementById('eventCategory').value = event.category_id || '';
-            document.getElementById('expectedAttendance').value = event.expected_attendance || '';
-            
-            // ========== IMPORTANT: Handle department IDs as array ==========
-            // Clear all existing department fields except the first one
-            const additionalDepartments = document.getElementById('additionalDepartments');
-            additionalDepartments.innerHTML = '';
-            departmentCounter = 1;
-            
-            // Get department_id from event data
-            let departmentIds = [];
-            
-            if (event.department_id) {
-                try {
-                    // Try to parse as JSON array first
-                    if (typeof event.department_id === 'string' && 
-                        (event.department_id.startsWith('[') || event.department_id.startsWith('"'))) {
-                        departmentIds = JSON.parse(event.department_id);
-                    } else {
-                        // If it's a single number, convert to array
-                        departmentIds = [parseInt(event.department_id)];
-                    }
-                } catch (e) {
-                    // If parsing fails, use as single value
-                    departmentIds = [parseInt(event.department_id)];
-                }
-            }
-            
-            // Set the first department field
-            if (departmentIds.length > 0) {
-                document.getElementById('eventDepartment1').value = departmentIds[0];
-                
-                // Show remove button on first field if there are multiple departments
-                if (departmentIds.length > 1) {
-                    document.querySelector('#departmentField1 .remove-department').style.display = 'block';
-                }
-                
-                // Add additional department fields for remaining IDs
-                for (let i = 1; i < departmentIds.length; i++) {
-                    addDepartmentField(); // Use existing function to add field
-                    const newSelect = document.getElementById('eventDepartment' + (i + 1));
-                    if (newSelect) {
-                        newSelect.value = departmentIds[i];
-                    }
-                }
-            } else {
-                // No departments selected
-                document.getElementById('eventDepartment1').value = '';
-                document.querySelector('#departmentField1 .remove-department').style.display = 'none';
-            }
-            // ========== END department handling ==========
-           
-        } else {
-            handleApiError(data, 'load event data');
-        }
-    } catch (error) {
-        showError('Error loading event: ' + error.message);
-    }
-}
+
 async function handleEventSubmit(event) {
     event.preventDefault();    
     const formData = new FormData(event.target);
@@ -927,8 +1026,7 @@ function removeDepartmentField(button) {
     
     // Update all department selects to show newly available options
     refreshDepartmentSelects();
-    
-    // Renumber remaining fields (optional, for clean IDs)
+
     renumberDepartmentFields();
 }
 
@@ -977,7 +1075,7 @@ async function refreshDepartmentSelects() {
 
 function renumberDepartmentFields() {
     const fields = document.querySelectorAll('.department-field');
-    let newCounter = 1;
+    let newCounter = 2;
     
     fields.forEach((field, index) => {
         if (index === 0) return; // Skip first field

@@ -71,25 +71,28 @@
     }    
     public function getRSVPDetails($id) {
         try {
+            // FIXED: Changed 'WHERE e.id = ?' to 'WHERE rsvp.id = ?'
+            // FIXED: Changed the JOIN to match on unique_id
             $sql = "
-                SELECT r.*, m.first_name as first_name, m.last_name as last_name, name
-                FROM rsvp r LEFT JOIN members m ON r.event_id = m.id
-                LEFT JOIN departments d ON m.department_id	 = d.id
-                WHERE e.id = ?
+                SELECT r.*, m.first_name as first_name, m.last_name as last_name, m.name
+                FROM rsvp r 
+                LEFT JOIN members m ON r.unique_id = m.unique_id
+                LEFT JOIN departments d ON m.department_id = d.id
+                WHERE r.id = ?
             ";
             $result = $this->fetchOne($sql, [$id]);
             
             if (!$result) {
-                throw new Exception("Event not found", 404);
+                throw new Exception("RSVP Record not found", 404);
             }
             
             return $result;
         } catch (Exception $e) {
-            error_log("Event get error [ID: $id]: " . $e->getMessage());
+            error_log("RSVP get error [ID: $id]: " . $e->getMessage());
             if ($e->getCode() === 404) {
                 throw $e;
             }
-            throw new Exception("Unable to retrieve event information");
+            throw new Exception("Unable to retrieve RSVP information");
         }
     }
         

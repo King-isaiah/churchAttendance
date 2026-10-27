@@ -11,9 +11,11 @@
     require_once '../admin/class/Dashboard.php';
     require_once '../admin/class/Category.php';
     require_once '../admin/class/Speaker.php';
-    require_once '../admin/class/Event.php';
+    // require_once '../admin/class/Event.php';
+    require_once 'Event.php';
     require_once '../admin/class/EmailLog.php';
     require_once 'Member.php';
+    require_once 'Mailer.php';
     require_once '../admin/class/Attendance.php';
     require_once '../admin/class/Activity.php';
     require_once '../admin/class/AttendanceMethod.php';
@@ -117,6 +119,7 @@
                 case 'create':     $this->create();     break;
                 case 'generateQR': $this->generateQR(); break;
                 case 'special':    $this->special();    break;
+                case 'sendEmail':  $this->sendCustomEmail(); break;
                 default:
                     $this->sendResponse(['success' => false, 'message' => 'Invalid action post request', 'errorType' => 'client'], 400);
             }
@@ -137,8 +140,7 @@
                     $this->sendResponse(['success' => false, 'message' => 'Invalid action delete request', 'errorType' => 'client'], 400);
             }
         }
-
-        private function getOthers() {
+                private function getOthers() {
             $entityClass = $this->getEntityClass();
             if (!$entityClass) {
                 $this->sendResponse([
@@ -156,12 +158,25 @@
                 'activities' => 'getLocationActivitiesWithLocationCoordinate',
                 'attendance' => 'getLocationActivitiesWithLocationCoordinate',
                 'categories' => 'getCategoriesInEvents',
+                'rsvp' => 'getRSVPByEvent',
+                'rsvp_trend' => 'getRSVPTrendByEvent',
             ];
             
             $method = $methodMap[$this->entity] ?? 'getOthers';
             
             if (method_exists($entity, $method)) {
-                $data = $entity->$method();
+                // Pass specific parameters based on the entity
+                if ($this->entity === 'rsvp') {
+                    $eventId = $_GET['event_id'] ?? 0;
+                    $data = $entity->$method($eventId);
+                } elseif ($this->entity === 'rsvp_trend') {
+                    $eventId = $_GET['event_id'] ?? 0;
+                    $days = $_GET['days'] ?? 7;
+                    $data = $entity->$method($eventId, $days);
+                } else {
+                    $data = $entity->$method();
+                }
+
                 $this->sendResponse([
                     'success' => true, 
                     'data' => $data
@@ -174,6 +189,42 @@
                 ], 500);
             }
         }
+        // private function getOthers() {
+        //     $entityClass = $this->getEntityClass();
+        //     if (!$entityClass) {
+        //         $this->sendResponse([
+        //             'success' => false, 
+        //             'message' => 'Invalid entity',
+        //             'errorType' => 'clientgetOthers'
+        //         ], 400);
+        //         return;
+        //     }
+            
+        //     $entity = new $entityClass();
+            
+        //     // Map entity to method name
+        //     $methodMap = [            
+        //         'activities' => 'getLocationActivitiesWithLocationCoordinate',
+        //         'attendance' => 'getLocationActivitiesWithLocationCoordinate',
+        //         'categories' => 'getCategoriesInEvents',
+        //     ];
+            
+        //     $method = $methodMap[$this->entity] ?? 'getOthers';
+            
+        //     if (method_exists($entity, $method)) {
+        //         $data = $entity->$method();
+        //         $this->sendResponse([
+        //             'success' => true, 
+        //             'data' => $data
+        //         ]);
+        //     } else {
+        //         $this->sendResponse([
+        //             'success' => false, 
+        //             'message' => "Method $method not found for {$this->entity}",
+        //             'errorType' => 'servergetOthers'
+        //         ], 500);
+        //     }
+        // }
         // -------------------- Core Actions --------------------
 
         private function getAll() {
@@ -334,7 +385,37 @@
         }
 
 
+                // Inside ApiHandler class
+        private function sendCustomEmail() {
+            if (empty($this->input) || !isset($this->input['to']) || !isset($this->input['subject']) || !isset($this->input['message'])) {
+                $this->sendResponse(['success' => false, 'message' => 'Missing required fields (to, subject, message)', 'errorType' => 'client'], 400);
+                return;
+            }
 
+            // Ensure the Mailer class is required. Add this at the top of ApiHandler.php if not there:
+            // require_once 'Mailer.php'; 
+
+            try {
+                $mailer = new Mailer();
+                // $toName can be fetched from the DB if needed, but we can just pass a generic name or the email
+                $toName = explode('@', $this->input['to'])[0]; 
+                
+                $result = $mailer->sendEmail(
+                    $this->input['to'],
+                    $toName,
+                    $this->input['subject'],
+                    nl2br($this->input['message']) // Convert newlines to <br> for HTML email
+                );
+
+                if ($result) {
+                    $this->sendSuccessResponse(['message' => 'Email sent successfully!'], 200);
+                } else {
+                    $this->sendResponse(['success' => false, 'message' => 'Failed to send email.'], 500);
+                }
+            } catch (Exception $e) {
+                $this->handleException($e);
+            }
+        }
         private function update() {
             if (!$this->id || empty($this->input)) {
                 $this->sendResponse(['success' => false, 'message' => 'ID and data required', 'errorType' => 'client'], 400);
@@ -721,6 +802,7 @@
                 'reports' => 'Report',
                 'activity_qr_codes' => 'QRGenerator',
                 'rsvp' => 'RSVP',
+                'rsvp_trend' => 'RSVP',
                 'notifications' => 'Notification',
                 'email_logs' => 'EmailLog',
                 'auth' => 'Auth' 
