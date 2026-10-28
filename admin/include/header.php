@@ -24,7 +24,6 @@ if (isset($_SESSION['user_id'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- ... rest of your header ... -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,6 +99,14 @@ if (isset($_SESSION['user_id'])) {
                         <span class="hide">Email Logs</span>
                     </a>                     
                 </div>
+
+               <div class="icon-square">
+                    <a href="dataManagement.php">
+                        <i class="fas fa-database"></i> 
+                        <span class="hide">Data Management</span>
+                    </a>                     
+                </div>
+                
                 <div class="icon-square">
                     <a href="logout.php">                        
                         <i class="fas fa-sign-out-alt"></i> 

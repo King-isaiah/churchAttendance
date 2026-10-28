@@ -1,9 +1,5 @@
 <?php
 include "include/header.php";
-
-
-
-
 ?>
 
 <head>

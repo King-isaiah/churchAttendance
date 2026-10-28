@@ -120,6 +120,7 @@
                 case 'generateQR': $this->generateQR(); break;
                 case 'special':    $this->special();    break;
                 case 'sendEmail':  $this->sendCustomEmail(); break;
+                case 'importMembers': $this->importMembers(); break;
                 default:
                     $this->sendResponse(['success' => false, 'message' => 'Invalid action post request', 'errorType' => 'client'], 400);
             }
@@ -385,7 +386,24 @@
         }
 
 
-                // Inside ApiHandler class
+        // Inside ApiHandler class
+        private function importMembers() {
+            if (empty($this->input) || !isset($this->input['members']) || !is_array($this->input['members'])) {
+                $this->sendResponse(['success' => false, 'message' => 'Invalid or empty data provided.', 'errorType' => 'client'], 400);
+                return;
+            }
+
+            try {
+                // Instantiate the Member class and let it handle the heavy lifting
+                $memberEntity = new Member();
+                $result = $memberEntity->bulkImportMembers($this->input['members']);
+                
+                $this->sendSuccessResponse($result, 200);
+
+            } catch (Exception $e) {
+                $this->handleException($e);
+            }
+        }
         private function sendCustomEmail() {
             if (empty($this->input) || !isset($this->input['to']) || !isset($this->input['subject']) || !isset($this->input['message'])) {
                 $this->sendResponse(['success' => false, 'message' => 'Missing required fields (to, subject, message)', 'errorType' => 'client'], 400);
