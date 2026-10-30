@@ -18,7 +18,7 @@
     require_once 'Attendance.php';
      require_once 'Activity.php';
     // require_once '../admin/class/Activity.php';
-    // require_once '../admin/class/AttendanceMethod.php';
+    require_once '../admin/class/AttendanceMethod.php';
     require_once '../admin/class/Status.php';
     require_once '../admin/class/LocationValidator.php';
     require_once '../admin/class/QRGenerator.php';
