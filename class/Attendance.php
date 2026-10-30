@@ -91,7 +91,8 @@ class Attendance extends Database {
     }
 
     // ADD THIS NEW METHOD right below createAttendance()
-    private function validateAttendanceLogic($data) {
+   
+    private function validateAttendanceLogic(&$data) {
         // Set the timezone to Africa/Lagos to ensure server time matches local time
         date_default_timezone_set('Africa/Lagos');
 
@@ -109,6 +110,14 @@ class Attendance extends Database {
             throw new Exception(ucfirst($category) . " not found", 404);
         }
 
+        // ==========================================
+        // FIX: FORCE THE CORRECT LOCATION ID
+        // ==========================================
+        if (isset($record['location_id'])) {
+            $data['location_id'] = $record['location_id'];
+        }
+        // ==========================================
+
         // 1. Check Day
         $today = date('l'); 
         if ($category === 'activity') {
@@ -123,7 +132,7 @@ class Attendance extends Database {
         }
 
         // 2. Check Time (Starts and Expires)
-        // FIXED: Use the time sent from the frontend. Fallback to server time if missing.
+        // Use the time sent from the frontend. Fallback to server time if missing.
         $currentTime = !empty($data['check_in_time']) ? $data['check_in_time'] : date('H:i:s');
         
         if ($currentTime < $record['time']) {
