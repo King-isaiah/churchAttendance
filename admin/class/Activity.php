@@ -21,6 +21,71 @@ class Activity extends Database {
             return [];
         }
     }
+    public function getLocationActivitiesWithLocationCoordinate() {
+        try {  
+            // 1. Ensure session is started to access the global variable
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
+            // 2. Get the primary department ID from the global session
+            $primaryDeptId = $_SESSION['primary_dept_id'] ?? null;
+
+            // If no department is assigned, return an empty array
+            if (!$primaryDeptId) {
+                return [];
+            }
+
+            function getToday() {
+                $today = new DateTime();
+                $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                return $days[$today->format('w')]; 
+            }   
+            function getCurrentTime() {
+                $now = new DateTime();
+                return [
+                    'hours' => (int)$now->format('G'),
+                    'minutes' => (int)$now->format('i'),
+                    'seconds' => (int)$now->format('s')
+                ];
+            }
+
+            $time = getCurrentTime();                
+            $day = getToday(); 
+            $timeString = sprintf('%02d:%02d:%02d', $time['hours'], $time['minutes'], $time['seconds']);          
+            
+            // 3. Prepare the department ID for JSON search. 
+            $deptJsonSearch = '"' . $primaryDeptId . '"';
+
+            // 4. Updated SQL: Check for user's dept OR check for "all"
+            $sql = "SELECT activities.*, locations.longitude AS longtitude, locations.latitude AS latitude 
+                    FROM activities LEFT JOIN locations ON activities.location_id = locations.id 
+                    WHERE status_id = 1 
+                    AND attendance_method_id = 3 
+                    AND time_exp > ? 
+                    AND dayofactivity = ?
+                    AND deleted IS NULL 
+                    AND (
+                        JSON_CONTAINS(activities.department_id, ?) 
+                        OR JSON_CONTAINS(activities.department_id, '\"all\"')
+                    )";
+                    
+            // 5. Execute with the new parameter
+            $result = $this->fetchAll($sql, [$timeString, $day, $deptJsonSearch]);
+            
+            if(count($result) > 0 ){
+                return $result;
+            }else{
+                return []; 
+            }
+        } catch (Exception $e) {
+            error_log("Activity to get error [department: $day]: " . $e->getMessage());
+            if ($e->getCode() === 404) {
+                throw $e; 
+            }
+            throw new Exception("Unable to retrieve activity information for checking for submition of attendance");
+        }
+    }
     public function getDaysOfTheWeek() {
         try {
             $sql = "SELECT DISTINCT dayofactivity FROM activities";
@@ -31,89 +96,89 @@ class Activity extends Database {
         }
     }
     
-  public function getActivity($id) {
-    try {
-        // Get activity with department names using JSON functions
-        $sql = "SELECT activities.*, 
-                    locations.name AS location, 
-                    attendance_methods.code AS attendance_method, 
-                    statuses.name AS status,
-                    categories.categories AS category,
-                   
-                    (
-                        SELECT GROUP_CONCAT(d.name SEPARATOR ', ')
-                        FROM departments d
-                        WHERE JSON_CONTAINS(
-                            activities.department_id, 
-                            CONCAT('\"', d.id, '\"')
-                        )
-                    ) AS department_names,
-                    -- Get department IDs as array
-                    activities.department_id AS department_ids_json
-                FROM activities 
-                LEFT JOIN statuses ON activities.status_id = statuses.id 
-                LEFT JOIN categories ON activities.category_id = categories.id 
-                LEFT JOIN locations ON activities.location_id = locations.id 
-                LEFT JOIN attendance_methods ON activities.attendance_method_id = attendance_methods.id 
-                WHERE activities.id = ?";
-        
-        
-        
-        
-        $result = $this->fetchOne($sql, [$id]);
-        
-        if (!$result) {
-            throw new Exception("Activity not found", 404);
-        }
-        
-        // Handle department_id which is stored as JSON array
-        if (!empty($result['department_ids_json'])) {
-            try {
-                // Decode the JSON array
-                $departmentIds = json_decode($result['department_ids_json'], true);
-                
-                if (json_last_error() === JSON_ERROR_NONE && is_array($departmentIds)) {
-                    // Add department IDs as array
-                    $result['department_id'] = $departmentIds;
+    public function getActivity($id) {
+        try {
+            // Get activity with department names using JSON functions
+            $sql = "SELECT activities.*, 
+                        locations.name AS location, 
+                        attendance_methods.code AS attendance_method, 
+                        statuses.name AS status,
+                        categories.categories AS category,
                     
-                    // Get full department details if needed
-                    if (!empty($departmentIds)) {
-                        $placeholders = implode(',', array_fill(0, count($departmentIds), '?'));
+                        (
+                            SELECT GROUP_CONCAT(d.name SEPARATOR ', ')
+                            FROM departments d
+                            WHERE JSON_CONTAINS(
+                                activities.department_id, 
+                                CONCAT('\"', d.id, '\"')
+                            )
+                        ) AS department_names,
+                        -- Get department IDs as array
+                        activities.department_id AS department_ids_json
+                    FROM activities 
+                    LEFT JOIN statuses ON activities.status_id = statuses.id 
+                    LEFT JOIN categories ON activities.category_id = categories.id 
+                    LEFT JOIN locations ON activities.location_id = locations.id 
+                    LEFT JOIN attendance_methods ON activities.attendance_method_id = attendance_methods.id 
+                    WHERE activities.id = ?";
+            
+            
+            
+            
+            $result = $this->fetchOne($sql, [$id]);
+            
+            if (!$result) {
+                throw new Exception("Activity not found", 404);
+            }
+            
+            // Handle department_id which is stored as JSON array
+            if (!empty($result['department_ids_json'])) {
+                try {
+                    // Decode the JSON array
+                    $departmentIds = json_decode($result['department_ids_json'], true);
+                    
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($departmentIds)) {
+                        // Add department IDs as array
+                        $result['department_id'] = $departmentIds;
                         
-                        $deptSql = "SELECT id, name FROM departments WHERE id IN ($placeholders)";
-                        $departments = $this->fetchAll($deptSql, $departmentIds);
-                        
-                        $result['departments'] = $departments;
+                        // Get full department details if needed
+                        if (!empty($departmentIds)) {
+                            $placeholders = implode(',', array_fill(0, count($departmentIds), '?'));
+                            
+                            $deptSql = "SELECT id, name FROM departments WHERE id IN ($placeholders)";
+                            $departments = $this->fetchAll($deptSql, $departmentIds);
+                            
+                            $result['departments'] = $departments;
+                        } else {
+                            $result['departments'] = [];
+                        }
                     } else {
+                        // If not valid JSON
+                        $result['department_id'] = [];
                         $result['departments'] = [];
                     }
-                } else {
-                    // If not valid JSON
+                } catch (Exception $e) {
+                    error_log("Error decoding department_id JSON for activity $id: " . $e->getMessage());
                     $result['department_id'] = [];
                     $result['departments'] = [];
                 }
-            } catch (Exception $e) {
-                error_log("Error decoding department_id JSON for activity $id: " . $e->getMessage());
+            } else {
                 $result['department_id'] = [];
                 $result['departments'] = [];
             }
-        } else {
-            $result['department_id'] = [];
-            $result['departments'] = [];
+            
+            // Remove the raw JSON field
+            unset($result['department_ids_json']);
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("Activity get error [ID: $id]: " . $e->getMessage());
+            if ($e->getCode() === 404) {
+                throw $e; 
+            }
+            throw new Exception("Unable to retrieve activity information");
         }
-        
-        // Remove the raw JSON field
-        unset($result['department_ids_json']);
-        
-        return $result;
-    } catch (Exception $e) {
-        error_log("Activity get error [ID: $id]: " . $e->getMessage());
-        if ($e->getCode() === 404) {
-            throw $e; 
-        }
-        throw new Exception("Unable to retrieve activity information");
     }
-}
     
     public function createActivity($data) {
         try {

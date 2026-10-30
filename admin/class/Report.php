@@ -65,6 +65,116 @@ class Report extends Database {
                 GROUP BY d.id, d.name";
         return $this->fetchAll($sql);
     }
+    public function getWeeklyAttendanceTrend($startDate = null, $endDate = null) {
+        try {
+            $params = [];
+            $dateFilter = '';
+            
+            if ($startDate && $endDate) {
+                $dateFilter = "WHERE a.date BETWEEN ? AND ?";
+                $params = [$startDate, $endDate];
+            }
+            
+            $sql = "
+                SELECT 
+                    DATE(a.date) as date,
+                    COUNT(CASE WHEN at.status = 'present' THEN 1 END) as attendance_count
+                FROM attendance at
+                INNER JOIN activities a ON at.activity_id = a.id
+                $dateFilter
+                GROUP BY DATE(a.date)
+                ORDER BY DATE(a.date)
+                LIMIT 7
+            ";
+            
+            $data = $this->fetchAll($sql, $params);
+            
+            // Format for chart.js
+            $labels = [];
+            $values = [];
+            
+            foreach ($data as $row) {
+                $labels[] = date('M j', strtotime($row['date']));
+                $values[] = (int)$row['attendance_count'];
+            }
+            
+            return [
+                'labels' => $labels,
+                'values' => $values
+            ];
+        } catch (Exception $e) {
+            error_log("Report getWeeklyAttendanceTrend error: " . $e->getMessage());
+            throw new Exception("Unable to generate weekly trend data");
+        }
+    }
+    public function getReportSummary($filters = []) {
+        try {
+            $whereConditions = [];
+            $params = [];
+            
+            if (!empty($filters['start_date'])) {
+                $whereConditions[] = "a.date >= ?";
+                $params[] = $filters['start_date'];
+            }
+            
+            if (!empty($filters['end_date'])) {
+                $whereConditions[] = "a.date <= ?";
+                $params[] = $filters['end_date'];
+            }
+            
+            if (!empty($filters['department'])) {
+                $whereConditions[] = "a.department = ?";
+                $params[] = $filters['department'];
+            }
+            
+            $whereClause = '';
+            if (!empty($whereConditions)) {
+                $whereClause = "WHERE " . implode(' AND ', $whereConditions);
+            }
+            
+            $sql = "
+                SELECT 
+                    COUNT(DISTINCT at.member_id) as total_members,
+                    COUNT(CASE WHEN at.status = 'present' THEN 1 END) as total_present,
+                    COUNT(CASE WHEN at.status = 'absent' THEN 1 END) as total_absent,
+                    COUNT(DISTINCT a.id) as total_activities,
+                    ROUND(
+                        AVG(
+                            (COUNT(CASE WHEN at.status = 'present' THEN 1 END) * 100.0 / 
+                            NULLIF(COUNT(CASE WHEN at.status IN ('present', 'absent') THEN 1 END), 0)
+                        )
+                    ), 2) as avg_attendance_rate
+                FROM attendance at
+                INNER JOIN activities a ON at.activity_id = a.id
+                $whereClause
+            ";
+            
+            return $this->fetchOne($sql, $params);
+        } catch (Exception $e) {
+            error_log("Report getReportSummary error: " . $e->getMessage());
+            throw new Exception("Unable to generate report summary");
+        }
+    }
+    public function getMemberReport($uniqueId) {
+        try {
+            $sql = "SELECT a.id, a.dayofactivity as date, a.status, a.check_in_time, 
+                           a.attendance_category, a.attendance_category_id,
+                           CASE 
+                               WHEN a.attendance_category = 'activity' THEN act.name
+                               WHEN a.attendance_category = 'event' THEN ev.title
+                               ELSE 'Unknown'
+                           END as activity_or_event_name
+                    FROM attendance a
+                    LEFT JOIN activities act ON a.attendance_category = 'activity' AND a.attendance_category_id = act.id
+                    LEFT JOIN events ev ON a.attendance_category = 'event' AND a.attendance_category_id = ev.id
+                    WHERE a.unique_id = ?
+                    ORDER BY a.created_at DESC";
+            return $this->fetchAll($sql, [$uniqueId]);
+        } catch (Exception $e) {
+            error_log("Report getMemberReport error: " . $e->getMessage());
+            return [];
+        }
+    }
     public function exportToCSV($filters = []) {
         try {
             $data = $this->getAttendanceReports($filters);

@@ -24,11 +24,41 @@ class Member extends Database {
         }
     }
    
-    public function getMember($id) {
+    // public function getMember($id) {
+    //     try {
+    //         $sql = "SELECT m.*, d.name as department_name FROM members m
+    //             LEFT JOIN departments d ON m.department_id = d.id
+    //             WHERE m.id = ?
+    //         ";
+    //         $result = $this->fetchOne($sql, [$id]);
+            
+    //         if (!$result) {
+    //             throw new Exception("Member not found", 404);
+    //         }
+            
+            
+    //         if (!empty($result['department_id'])) {
+    //             // Check if it's JSON array format
+    //             if (strpos($result['department_id'], '[') === 0) {                 
+    //                 $result['department_id'] = $result['department_id'];
+    //             }               
+    //         }
+        
+        
+    //         return $result;
+    //     } catch (Exception $e) {
+    //         error_log("Member get error [ID: $id]: " . $e->getMessage());
+    //         if ($e->getCode() === 404) {
+    //             throw $e;
+    //         }
+    //         throw new Exception("Unable to retrieve member information");
+    //     }
+    // }
+      public function getMember($id) {
         try {
             $sql = "SELECT m.*, d.name as department_name FROM members m
                 LEFT JOIN departments d ON m.department_id = d.id
-                WHERE m.id = ?
+                WHERE m.id = ? 
             ";
             $result = $this->fetchOne($sql, [$id]);
             
@@ -36,14 +66,11 @@ class Member extends Database {
                 throw new Exception("Member not found", 404);
             }
             
-            
             if (!empty($result['department_id'])) {
-                // Check if it's JSON array format
                 if (strpos($result['department_id'], '[') === 0) {                 
                     $result['department_id'] = $result['department_id'];
                 }               
             }
-        
         
             return $result;
         } catch (Exception $e) {
@@ -52,6 +79,30 @@ class Member extends Database {
                 throw $e;
             }
             throw new Exception("Unable to retrieve member information");
+        }
+    }
+    public function getMemberByUniqueId($uniqueId) {
+        try {
+            $sql = "SELECT m.*, d.name as department_name FROM members m
+                LEFT JOIN departments d ON m.department_id = d.id
+                WHERE m.unique_id = ?
+            ";
+            $result = $this->fetchOne($sql, [$uniqueId]);
+            
+            if (!$result) {
+                return false;
+            }
+            
+            if (!empty($result['department_id'])) {
+                if (strpos($result['department_id'], '[') === 0) {                 
+                    $result['department_id'] = $result['department_id'];
+                }               
+            }
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("Member get by unique_id error: " . $e->getMessage());
+            return false;
         }
     }
     
@@ -249,9 +300,43 @@ class Member extends Database {
     }
     public function updateHeartbeat($userId) {
         try {
-            $this->update('members', ['last_activity' => date('Y-m-d H:i:s')], 'id = ?', [$userId]);
+            // 1. Get the user's current last_activity and streak
+            $user = $this->fetchOne("SELECT last_activity, current_streak FROM members WHERE id = ?", [$userId]);
+            
+            if (!$user) return;
+
+            $today = new DateTime(date('Y-m-d'));
+            $currentStreak = (int)($user['current_streak'] ?? 0);
+            
+            // 2. Calculate the streak
+            if (!empty($user['last_activity'])) {
+                // Get just the date part of the last activity
+                $lastActivityDate = new DateTime(date('Y-m-d', strtotime($user['last_activity'])));
+                
+                // Difference in days
+                $diff = $today->diff($lastActivityDate)->days;
+                
+                if ($diff == 1) {
+                    // Logged in yesterday, increment streak
+                    $currentStreak++;
+                } elseif ($diff > 1) {
+                    // Last login was more than a day ago, reset streak
+                    $currentStreak = 1;
+                }
+                // If $diff == 0, they already logged in today, so we do nothing (streak remains the same)
+            } else {
+                // First time logging in
+                $currentStreak = 1;
+            }
+
+            // 3. Update the database with the new streak and current time
+            $this->update('members', [
+                'last_activity' => date('Y-m-d H:i:s'),
+                'current_streak' => $currentStreak
+            ], 'id = ?', [$userId]);
+
         } catch (Exception $e) {
-            error_log("Heartbeat error: " . $e->getMessage());
+            error_log("Heartbeat/Streak error: " . $e->getMessage());
         }
     }
     public function deleteMember($id) {
@@ -287,51 +372,7 @@ class Member extends Database {
         }
     }
     
-    // private function validateMemberData($data, $isUpdate = false) {
-    //     $required = ['first_name', 'last_name', 'email'];
-        
-    //     foreach ($required as $field) {
-    //         if (empty($data[$field])) {
-    //             throw new Exception("$field is required", 400);
-    //         }
-    //     }
-        
-    //     // Validate email format
-    //     if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-    //         throw new Exception("Invalid email format", 400);
-    //     }
-        
-    //     // Check for duplicate email
-    //     if (isset($data['email'])) {
-    //         $existingId = $isUpdate ? $data['id'] ?? null : null;
-    //         if ($this->valueExists('members', 'email', $data['email'], $existingId)) {
-    //             throw new Exception("A member with this email already exists", 409);
-    //         }
-    //     }
-    //     // Level 3: Check if the domain actually exists and can receive emails
-    //     if (isset($data['email'])) {
-    //         // Extract the domain from the email (e.g., "gmail.com")
-    //         $domain = substr(strrchr($data['email'], "@"), 1);
-            
-    //         // Check for MX records (Mail Exchanger) or A records (fallback)
-    //         if (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A')) {
-    //             throw new Exception("The email domain '$domain' does not exist or cannot receive emails.", 400);
-    //         }
-    //     }
-        
-    //     // Validate string lengths
-    //     if (isset($data['first_name']) && strlen($data['first_name']) > 100) {
-    //         throw new Exception("First name is too long", 400);
-    //     }
-        
-    //     if (isset($data['last_name']) && strlen($data['last_name']) > 100) {
-    //         throw new Exception("Last name is too long", 400);
-    //     }
-        
-    //     if (isset($data['email']) && strlen($data['email']) > 255) {
-    //         throw new Exception("Email is too long", 400);
-    //     }
-    // }
+    
 private function validateMemberData($data, $isUpdate = false) {
     $required = ['first_name', 'last_name', 'email'];
     

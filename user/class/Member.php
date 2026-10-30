@@ -122,30 +122,7 @@
                 }
         }
 
-        // for password hashing
-        // public function createMember($data) {
-        //     try {
-        //         // Validate required fields
-        //         $this->validateMemberData($data);
-                
-        //         // Hash password before storing
-        //         if (isset($data['password'])) {
-        //             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        //         }
-                
-        //         // Generate unique_id
-        //         $random_id = rand(time(), 10000000);
-        //         $data['unique_id'] = $random_id;
-                
-        //         // Set default values
-        //         $data['created_at'] = date('Y-m-d H:i:s');
-                
-        //         return $this->insert('members', $data);
-        //     } catch (Exception $e) {
-        //         error_log("Member create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-        //         throw $e;
-        //     }
-        // }
+     
         
         public function updateMember($id, $data) {
             try {
@@ -248,49 +225,7 @@
             }
         }
 
-        // for password hashing
-        // public function authenticate($email, $password) {
-        //     try {
-        //         // Validate input
-        //         if (empty($email) || empty($password)) {
-        //             throw new Exception("Email and password are required");
-        //         }
-
-        //         // Sanitize email
-        //         $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-        //         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        //             throw new Exception("Invalid email format");
-        //         }
-
-        //         // Find member by email using your existing fetchOne method
-        //         $sql = "
-        //             SELECT m.*, d.name as department_name
-        //             FROM members m
-        //             LEFT JOIN departments d ON m.department_id = d.id
-        //             WHERE m.email = ?
-        //         ";
-        //         $member = $this->fetchOne($sql, [$email]);
-                
-        //         if (!$member) {
-        //             error_log("Authentication failed: Member not found - " . $email);
-        //             return false;
-        //         }
-
-        //         // Verify password (assuming you're using password hashing)
-        //         if (password_verify($password, $member['password'])) {
-        //             // Password is correct, return member data (excluding password)
-        //             unset($member['password']);
-        //             return $member;
-        //         } else {
-        //             error_log("Authentication failed: Invalid password for - " . $email);
-        //             return false;
-        //         }
-
-        //     } catch (Exception $e) {
-        //         error_log("Authentication error: " . $e->getMessage() . " | Email: " . $email);
-        //         return false;
-        //     }
-        // }
+        
 
         // without password hashing
         public function authenticate($email, $password) {

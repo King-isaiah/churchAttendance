@@ -26,14 +26,23 @@ class Notification extends Database {
     
 public function getNotificationsForMember($memberId) {
     try {
-      
-        $memberDeptId = $memberId;
+        // Get member's department from members table
+        $memberSql = "SELECT department_id FROM members WHERE id = ? AND is_active = 1";
+        $member = $this->fetchOne($memberSql, [$memberId]);
+        
+        if (!$member) {
+            return $this->getGlobalNotifications(); // Return only global if member not found
+        }
+        
+        $memberDeptId = $member['department_id'];
         
         // Get notifications: 
-        // 1. Global (department_id IS NULL) that is notifcation for all users or workers
+        // 1. Global (department_id IS NULL) 
         // 2. For member's specific department (department_id = '123')
         // 3. For member's department in JSON arrays (department_id LIKE '%"123"%')
-        $sql = "SELECT n.* FROM notifications n WHERE n.is_active = 1 
+        $sql = "SELECT n.* 
+                FROM notifications n
+                WHERE n.is_active = 1 
                 AND (n.expires_at IS NULL OR n.expires_at > NOW())
                 AND (
                     n.department_id IS NULL 

@@ -5,19 +5,19 @@
 
     require_once 'Database.php';
 
-    require_once '../admin/class/Activity.php';
+   
     require_once '../admin/class/Location.php';
     require_once '../admin/class/Department.php';
     require_once '../admin/class/Dashboard.php';
     require_once '../admin/class/Category.php';
     require_once '../admin/class/Speaker.php';
-    // require_once '../admin/class/Event.php';
     require_once 'Event.php';
     require_once '../admin/class/EmailLog.php';
     require_once 'Member.php';
     require_once 'Mailer.php';
-    require_once '../admin/class/Attendance.php';
-    require_once '../admin/class/Activity.php';
+    require_once 'Attendance.php';
+     require_once 'Activity.php';
+    // require_once '../admin/class/Activity.php';
     require_once '../admin/class/AttendanceMethod.php';
     require_once '../admin/class/Status.php';
     require_once '../admin/class/LocationValidator.php';
@@ -26,20 +26,7 @@
     require_once '../admin/class/Report.php';
     require_once '../admin/class/Notification.php';
     require_once 'Auth.php';
-    // require_once 'Location.php';
-    // require_once 'Department.php';
-    // require_once 'Category.php';
-    // require_once 'Speaker.php';
-    // require_once 'Event.php';    
-    // require_once 'Attendance.php';
-    // require_once 'Activity.php';
-    // require_once 'AttendanceMethod.php';
-    // require_once 'Status.php';
-    // require_once 'LocationValidator.php';
-    // require_once 'QRGenerator.php';
-    // require_once 'RSVP.php';
-    // require_once 'Report.php';
-    // require_once 'Notification.php';
+    
 
     class ApiHandler {
         private $entity;
@@ -141,55 +128,6 @@
                     $this->sendResponse(['success' => false, 'message' => 'Invalid action delete request', 'errorType' => 'client'], 400);
             }
         }
-                private function getOthers() {
-            $entityClass = $this->getEntityClass();
-            if (!$entityClass) {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => 'Invalid entity',
-                    'errorType' => 'clientgetOthers'
-                ], 400);
-                return;
-            }
-            
-            $entity = new $entityClass();
-            
-            // Map entity to method name
-            $methodMap = [            
-                'activities' => 'getLocationActivitiesWithLocationCoordinate',
-                'attendance' => 'getLocationActivitiesWithLocationCoordinate',
-                'categories' => 'getCategoriesInEvents',
-                'rsvp' => 'getRSVPByEvent',
-                'rsvp_trend' => 'getRSVPTrendByEvent',
-            ];
-            
-            $method = $methodMap[$this->entity] ?? 'getOthers';
-            
-            if (method_exists($entity, $method)) {
-                // Pass specific parameters based on the entity
-                if ($this->entity === 'rsvp') {
-                    $eventId = $_GET['event_id'] ?? 0;
-                    $data = $entity->$method($eventId);
-                } elseif ($this->entity === 'rsvp_trend') {
-                    $eventId = $_GET['event_id'] ?? 0;
-                    $days = $_GET['days'] ?? 7;
-                    $data = $entity->$method($eventId, $days);
-                } else {
-                    $data = $entity->$method();
-                }
-
-                $this->sendResponse([
-                    'success' => true, 
-                    'data' => $data
-                ]);
-            } else {
-                $this->sendResponse([
-                    'success' => false, 
-                    'message' => "Method $method not found for {$this->entity}",
-                    'errorType' => 'servergetOthers'
-                ], 500);
-            }
-        }
         // private function getOthers() {
         //     $entityClass = $this->getEntityClass();
         //     if (!$entityClass) {
@@ -208,12 +146,25 @@
         //         'activities' => 'getLocationActivitiesWithLocationCoordinate',
         //         'attendance' => 'getLocationActivitiesWithLocationCoordinate',
         //         'categories' => 'getCategoriesInEvents',
+        //         'rsvp' => 'getRSVPByEvent',
+        //         'rsvp_trend' => 'getRSVPTrendByEvent',
         //     ];
             
         //     $method = $methodMap[$this->entity] ?? 'getOthers';
             
         //     if (method_exists($entity, $method)) {
-        //         $data = $entity->$method();
+        //         // Pass specific parameters based on the entity
+        //         if ($this->entity === 'rsvp') {
+        //             $eventId = $_GET['event_id'] ?? 0;
+        //             $data = $entity->$method($eventId);
+        //         } elseif ($this->entity === 'rsvp_trend') {
+        //             $eventId = $_GET['event_id'] ?? 0;
+        //             $days = $_GET['days'] ?? 7;
+        //             $data = $entity->$method($eventId, $days);
+        //         } else {
+        //             $data = $entity->$method();
+        //         }
+
         //         $this->sendResponse([
         //             'success' => true, 
         //             'data' => $data
@@ -226,6 +177,68 @@
         //         ], 500);
         //     }
         // }
+        private function getOthers() {
+            $entityClass = $this->getEntityClass();
+            if (!$entityClass) {
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Invalid entity',
+                    'errorType' => 'clientgetOthers'
+                ], 400);
+                return;
+            }
+            
+            try {
+                $entity = new $entityClass();
+                
+                // Map entity to method name
+                $methodMap = [            
+                    'activities' => 'getLocationActivitiesWithLocationCoordinate',
+                    'attendance' => 'getLocationActivitiesWithLocationCoordinate',
+                    'categories' => 'getCategoriesInEvents',
+                    'events' => 'getLocationEventsWithLocationCoordinate',
+                    'rsvp' => 'getRSVPByEvent',
+                    'rsvp_trend' => 'getRSVPTrendByEvent',
+                ];
+                
+                $method = $methodMap[$this->entity] ?? 'getOthers';
+                
+                if (method_exists($entity, $method)) {
+                    // Pass specific parameters based on the entity
+                    if ($this->entity === 'rsvp') {
+                        $eventId = $_GET['event_id'] ?? 0;
+                        $data = $entity->$method($eventId);
+                    } elseif ($this->entity === 'rsvp_trend') {
+                        $eventId = $_GET['event_id'] ?? 0;
+                        $days = $_GET['days'] ?? 7;
+                        $data = $entity->$method($eventId, $days);
+                    } else {
+                        $data = $entity->$method();
+                    }
+
+                    $this->sendResponse([
+                        'success' => true, 
+                        'data' => $data
+                    ]);
+                } else {
+                    $this->sendResponse([
+                        'success' => false, 
+                        'message' => "Method $method not found for {$this->entity}",
+                        'errorType' => 'servergetOthers'
+                    ], 500);
+                }
+                
+            } catch (Exception $e) {
+                // NEW: Catch any database errors and return them as valid JSON
+                error_log("getOthers Exception [Entity: {$this->entity}]: " . $e->getMessage());
+                
+                $this->sendResponse([
+                    'success' => false, 
+                    'message' => 'Database Error: ' . $e->getMessage(),
+                    'errorType' => 'server_exception'
+                ], 500);
+            }
+        }
         // -------------------- Core Actions --------------------
 
         private function getAll() {
@@ -265,6 +278,10 @@
 
         private function get() {
             if (!$this->id) {
+                if ($this->entity === 'members') {
+                    $this->getCurrentUser();
+                    return;
+                }
                 $this->sendResponse(['success' => false, 'message' => 'ID required', 'errorType' => 'client'], 400);
                 return;
             }
@@ -287,22 +304,76 @@
                 'activities' => 'getActivity',
                 'attendance_methods' => 'getAttendanceMethod',
                 'statuses' => 'getStatus',
-                'notifications' => 'getNotificationsForUser',
+                'notifications' => 'getNotificationsForDepartment',
                 'rsvp' => 'getRSVPDetails',
-                'reports' => 'getWeeklyAttendanceTrend',
+                'reports' => 'getMemberReport',
                 'auth' => 'getSessionUser',
             ];
             $method = $methodMap[$this->entity] ?? 'get';
 
             if (method_exists($entity, $method)) {
-                $data = $entity->$method($this->id);
-                if ($data) {
-                    $this->sendSuccessResponse(['data' => $data], 200);
-                } else {
-                    $this->sendResponse(['success' => false, 'message' => 'Item not found', 'errorType' => 'client'], 404);
+                
+                // 1. TRY ADMIN WAY: Search by Database ID
+                try {
+                    $data = $entity->$method($this->id);
+                    if ($data) {
+                        $this->sendSuccessResponse(['data' => $data], 200);
+                        return;
+                    }
+                } catch (Exception $e) {
+                    // FIXED: Allow both 'members' and 'attendance' to bypass the 404
+                    if (($this->entity !== 'members' && $this->entity !== 'attendance') || $e->getCode() !== 404) {
+                        throw $e; 
+                    }
                 }
+
+                // 2. TRY USER WAY (MEMBER): Search by Unique ID
+                if ($this->entity === 'members' && method_exists($entity, 'getMemberByUniqueId')) {
+                    $data = $entity->getMemberByUniqueId($this->id);
+                    if ($data) {
+                        $this->sendSuccessResponse(['data' => $data], 200);
+                        return;
+                    }
+                }
+
+                // 3. TRY USER WAY (ATTENDANCE): Search by Unique ID
+                // FIXED: Added fallback for attendance
+                if ($this->entity === 'attendance' && method_exists($entity, 'getAttendanceByUniqueId')) {
+                    $data = $entity->getAttendanceByUniqueId($this->id);
+                    if ($data) {
+                        $this->sendSuccessResponse(['data' => $data], 200);
+                        return;
+                    }
+                }
+
+                // 4. If both fail, send 404
+                $this->sendResponse(['success' => false, 'message' => 'Item not found', 'errorType' => 'client'], 404);
+                
             } else {
                 $this->sendResponse(['success' => false, 'message' => "Method $method not found", 'errorType' => 'server'], 500);
+            }
+        }
+       
+
+        // ADD THIS NEW METHOD FOR THE DASHBOARD
+        private function getCurrentUser() {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
+            if (!isset($_SESSION['unique_id'])) {
+                $this->sendResponse(['success' => false, 'message' => 'Not logged in'], 401);
+                return;
+            }
+            
+            $entityClass = $this->getEntityClass(); 
+            $entity = new $entityClass();
+            $data = $entity->getMemberByUniqueId($_SESSION['unique_id']);
+            
+            if ($data) {
+                $this->sendSuccessResponse(['data' => $data], 200);
+            } else {
+                $this->sendResponse(['success' => false, 'message' => 'User not found'], 404);
             }
         }
        

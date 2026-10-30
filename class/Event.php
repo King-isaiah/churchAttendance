@@ -1,5 +1,5 @@
 <?php
-require_once '../class/Database.php';
+require_once 'Database.php';
 
 class Event extends Database {
     
@@ -91,43 +91,85 @@ class Event extends Database {
             throw new Exception("Unable to retrieve event information");
         }
     }
-    // public function getEvent($id) {
-    //     try {
-    //         $sql = "SELECT e.*, d.name as department_name, l.name as location_name, c.categories AS categories
-    //             FROM events e
-    //             LEFT JOIN departments d ON e.department_id = d.id
-    //             LEFT JOIN locations l ON e.location_id = l.id
-    //             LEFT JOIN categories c ON e.category_id = c.id
-    //             WHERE e.id = ?
-    //         ";
-    //         $result = $this->fetchOne($sql, [$id]);
+    
+    
+    public function getLocationEventsWithLocationCoordinate() {
+        try {  
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
+            if (!isset($_SESSION['unique_id'])) {
+                return [];
+            }
+
+            // 1. Get the user's FULL department list from the database
+            $userSql = "SELECT department_id FROM members WHERE unique_id = ?";
+            $user = $this->fetchOne($userSql, [$_SESSION['unique_id']]);
+
+            if (!$user || empty($user['department_id'])) {
+                return [];
+            }
+
+            // 2. Parse the user's department IDs into an array
+            $userDeptIds = [];
+            if (strpos($user['department_id'], '[') === 0) {
+                $userDeptIds = json_decode($user['department_id'], true) ?: [];
+            } else {
+                $userDeptIds = [$user['department_id']];
+            }
+
+            // 3. Prepare the bulletproof dynamic OR conditions
+            $deptConditions = [];
+            $params = [];
+
+            foreach ($userDeptIds as $deptId) {
+                $deptConditions[] = "(
+                    events.department_id = ? 
+                    OR (JSON_VALID(events.department_id) AND JSON_CONTAINS(events.department_id, ?)) 
+                    OR (JSON_VALID(events.department_id) AND JSON_CONTAINS(events.department_id, ?))
+                )";
+                
+                $params[] = (string)$deptId;             
+                $params[] = (string)$deptId;             
+                $params[] = '"' . $deptId . '"';         
+            }
             
-    //         if (!$result) {
-    //             throw new Exception("Event not found", 404);
-    //         }
+            // 4. Add the "All" condition (Catching all variations, including the broken '[all]')
+            $deptConditions[] = "(
+                events.department_id = 'all' 
+                OR events.department_id = '[all]' 
+                OR events.department_id = '[\"all\"]' 
+                OR events.department_id = '\"all\"' 
+                OR (JSON_VALID(events.department_id) AND JSON_CONTAINS(events.department_id, '\"all\"'))
+            )";
             
-    //         // ========== FIX: Check if department_id is a JSON array ==========
-    //         if (!empty($result['department_id'])) {
-    //             // Check if it's JSON array format
-    //             if (strpos($result['department_id'], '[') === 0) {
-    //                 // Parse JSON but keep it as string for frontend
-    //                 // Frontend will parse it in JavaScript
-    //                 $result['department_id'] = $result['department_id'];
-    //             }
-    //             // If it's a regular number, leave it as is
-    //         }
-    //         // ========== END FIX ==========
-            
-    //         return $result;
-    //     } catch (Exception $e) {
-    //         error_log("Event get error [ID: $id]: " . $e->getMessage());
-    //         if ($e->getCode() === 404) {
-    //             throw $e;
-    //         }
-    //         throw new Exception("Unable to retrieve event information");
-    //     }
-    // }
-   
+            $deptSql = '(' . implode(' OR ', $deptConditions) . ')';
+
+            // 5. Get today's date and current time
+            $today = date('Y-m-d');        
+            $currentTime = date('H:i:s');  
+
+            // 6. Final SQL query
+            $sql = "SELECT events.*, locations.longitude AS longtitude, locations.latitude AS latitude 
+                    FROM events 
+                    LEFT JOIN locations ON events.location_id = locations.id 
+                    WHERE events.attendance_method_id = 3 
+                    AND events.event_date = ? 
+                    AND events.event_time <= ? 
+                    AND (events.time_exp >= ? OR events.time_exp = '00:00:00') 
+                    AND $deptSql";
+
+            // Prepend the time and date to the params array
+            array_unshift($params, $today, $currentTime, $currentTime);
+
+            return $this->fetchAll($sql, $params);
+
+        } catch (Exception $e) {
+            error_log("Event getLocation error: " . $e->getMessage());
+            return [];
+        }
+    }
 
 
     public function createNotification($data) {
@@ -189,7 +231,7 @@ class Event extends Database {
             
             // ===== ADD NOTIFICATION FOR THE NEW EVENT =====
             try {
-                // require_once 'Notification.php';            
+                           
                 // $notification = new Notification();
                 error_log("Creating notification for event: " . $eventTitle);
                 error_log("Department IDs for notification: " . print_r($deptIdsForNotification, true));
@@ -249,8 +291,7 @@ class Event extends Database {
             
             // ===== ADD UPDATE NOTIFICATION =====
             try {
-                require_once 'Notification.php';
-                
+              
                 $notification = new Notification();
                 
                 // Get department IDs for notification

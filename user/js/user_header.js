@@ -26,9 +26,8 @@ class UserHeader {
    
     async trackActivity() {        
         try {   
-            // Function to calculate distance in METERS
             function calculateDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371000; // Earth's radius in METERS (6371km = 6371000m)
+                const R = 6371000; 
                 const dLat = (lat2 - lat1) * Math.PI / 180;
                 const dLon = (lon2 - lon1) * Math.PI / 180;
                 const a = 
@@ -36,9 +35,7 @@ class UserHeader {
                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
                     Math.sin(dLon/2) * Math.sin(dLon/2);
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                const distanceMeters = R * c; // Distance in meters
-                
-                return distanceMeters;
+                return R * c; 
             }    
            
             function getCurrentTime() {
@@ -46,144 +43,159 @@ class UserHeader {
                 const hours = now.getHours().toString().padStart(2, '0');
                 const minutes = now.getMinutes().toString().padStart(2, '0');
                 const seconds = now.getSeconds().toString().padStart(2, '0');
-                
-                return `${hours}:${minutes}:${seconds}`; // Returns "14:30:45"
+                return `${hours}:${minutes}:${seconds}`; 
             }
 
             const time = getCurrentTime();
         
-            const response = await fetch(`class/ApiHandler.php?entity=activities&action=getOthers`);          
-            const data = await response.json();
-          
-            if (data.success) {                  
-                if (!data.data.length > 0){
-                    showError('it is not more than one')
-                    return false;
-                }else{
-                    // showSuccess('it is more than 1');
-                    // showSuccess(data.data.length );
-                    const userInfo = await this.trackUserInfo();
-                    data.data.forEach(activity => {
-                        let activityId = activity.id; 
-                        let activityName = activity.name; 
-                        let activityCategoryId = activity.category_id;
-                        let activityDayofactivity = activity.dayofactivity;
-                        let activityAttendance_method_id = activity.attendance_method_id;
-                        let activityTime = activity.time;
-                        let activityLocationId = activity.location_id;
-                        let activityTimeIn = activity.time;
-                        let activityLatitude = activity.latitude;
-                        let activityLongtitude = activity.longtitude;
-                        
-                        console.log('Activity:', activityName);
-                        console.log('Activity longtitude:', activityLongtitude);
-                        console.log('Activity latitude:', activityLatitude);
-                        console.log('Activity locationid:', activityLocationId);
-                        console.log('Activity methodid:', activityAttendance_method_id);
-                        // console.log('Activity latitude:', activityLatitude);
+            // 1. Fetch BOTH activities and events simultaneously
+            const [actResponse, evtResponse] = await Promise.all([
+                fetch(`../class/ApiHandler.php?entity=activities&action=getOthers`),
+                fetch(`../class/ApiHandler.php?entity=events&action=getOthers`)
+            ]);
 
-                        const distance = calculateDistance(                            
-                            userInfo.latitude, userInfo.longitude,
-                            activityLatitude, activityLongtitude
-                        );
-                        
-                        console.log(`Distance to "${activityName}": ${distance.toFixed(2)} meters`);
-                        
-                        
-                        if (distance <= 100) {
-                            showSuccess(`You are at "${activityName}" location! (${distance.toFixed(0)}m away)`); 
+            const actData = await actResponse.json();
+            const evtData = await evtResponse.json();
 
-                            const formData = {         
-                                department_id: document.getElementById('department_id').value,
-                                attendance_category: 'activity',
-                                attendance_category_id: activityId,
-                                unique_id: document.getElementById('unique_id').value,                                           
-                                dayofactivity: activityDayofactivity,
-                                check_in_time: time,                                
-                                location_id: activityLocationId,
-                                attendance_method_id: activityAttendance_method_id,                                
-                                status: 'present',
-                            };
-                            // Send to API
-                            fetch('class/ApiHandler.php?entity=attendance&action=create', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(formData)
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    showSuccess('Attendance successfully!', 'success');
-                                  
-                                } else {
-                                    showError('Error: ' + data.message, 'error');
-                                }
-                            })
-                            .catch(error => {
-                                showError('Network error: ' + error, 'error');
-                            });
-                            
-                        } else {
-                            showError(`You are not at "${activityName}" location (${distance.toFixed(0)}m away)`); 
-                        }
-                    });
-                    
-
-
-                    
-                
+            // 2. Combine both arrays into one master list
+            let allItems = [];
             
-                    console.log('User latitude:', userInfo.latitude);
-                    console.log('User longtitude:', userInfo.longitude);
-                    // console.log('Full userInfo:', userInfo);
-                }
-            } else {
-                showError('Something went wrong. Cnt dvlp');
+            if (actData.success && actData.data) {
+                allItems = [...allItems, ...actData.data.map(item => ({ ...item, type: 'activity', displayName: item.name }))];
+            }
+            if (evtData.success && evtData.data) {
+                // Events use 'title' instead of 'name', and 'event_date' instead of 'dayofactivity'
+                allItems = [...allItems, ...evtData.data.map(item => ({ ...item, type: 'event', displayName: item.title }))];
+            }
+
+            if (allItems.length === 0) {
+                console.log('No current activities or events found.');
+                return false;
+            }
+
+            // Ensure hidden inputs exist on the page
+            const uniqueIdElement = document.getElementById('unique_id');
+            const departmentIdElement = document.getElementById('department_id');
+
+            if (!uniqueIdElement || !departmentIdElement) {
+                console.warn('Hidden inputs not found.');
+                return;
+            }
+
+            const userUniqueId = uniqueIdElement.value;
+            const userDepartmentId = departmentIdElement.value;
+
+            // 3. Get user location
+            const userInfo = await this.trackUserInfo();
+            if (!userInfo || !userInfo.latitude) {
+                console.error('Could not retrieve user location.');
+                return;
+            }
+
+            // 4. Loop through combined items
+            for (const item of allItems) {
+                let itemId = item.id; 
+                let itemName = item.displayName; 
+                let itemType = item.type; // 'activity' or 'event'
                 
+                // Determine the day string
+                let itemDay = '';
+                if (itemType === 'activity') {
+                    itemDay = item.dayofactivity;
+                } else {
+                    // Convert event_date (YYYY-MM-DD) to Day Name (e.g., "Sunday")
+                    const dateObj = new Date(item.event_date);
+                    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    itemDay = days[dateObj.getDay()];
+                }
+
+                let itemAttendanceMethod = item.attendance_method_id;
+                let itemLocationId = item.location_id;
+                let itemLat = item.latitude;
+                let itemLng = item.longtitude;
+                
+                if (!itemLat || !itemLng) continue;
+
+                const distance = calculateDistance(                            
+                    userInfo.latitude, userInfo.longitude,
+                    itemLat, itemLng
+                );
+                
+                console.log(`Distance to ${itemType} "${itemName}": ${distance.toFixed(2)}m`);
+                
+                if (distance <= 100) {
+                    showSuccess(`You are at "${itemName}" location! (${distance.toFixed(0)}m away)`); 
+
+                    try {
+                        const attResponse = await fetch('../class/ApiHandler.php?entity=attendance&action=create', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                department_id: userDepartmentId,
+                                attendance_category: itemType, // 'activity' or 'event'
+                                attendance_category_id: itemId,
+                                unique_id: userUniqueId,                                           
+                                dayofactivity: itemDay, // Now correctly provides the day name for both
+                                check_in_time: time,                                
+                                location_id: itemLocationId,
+                                attendance_method_id: itemAttendanceMethod,                                
+                                status: 'present',
+                            })
+                        });
+                        
+                        const attData = await attResponse.json();
+                        
+                        if (attData.success) {
+                            showSuccess(`Attendance marked for ${itemType} "${itemName}"!`, 'success');
+                        } else {
+                            showWarning(`Attendance already recorded for "${itemName}"`);
+                        }
+                    } catch (err) {
+                        console.error(`Network error marking ${itemType} "${itemName}":`, err);
+                    }
+                } else {
+                    console.log(`Not at ${itemType} "${itemName}" location (${distance.toFixed(0)}m away)`); 
+                }
             }
             
         } catch (error) {
-            console.error('Error fetching activities:', error);
-            throw new Error('Failed to fetch activities: ' + error.message);
+            console.error('Error in trackActivity:', error);
         }
-        
     }
     
 
-async trackUserInfo() {
-    try {
-        // First try to get high-accuracy GPS coordinates
-        const position = await this.getCurrentPosition();
-        
-        const userInfo = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy, // Important: check this!
-            altitude: position.coords.altitude,
-            altitudeAccuracy: position.coords.altitudeAccuracy,
-            heading: position.coords.heading,
-            speed: position.coords.speed,
-            timestamp: new Date(position.timestamp).toISOString(),
-            source: 'gps', // Mark that this is GPS data
-            userAgent: navigator.userAgent
-        };
-        
-        console.log('GPS User Information:', userInfo);
-        
-        // Check if accuracy is good enough (in meters)
-        if (userInfo.accuracy > 100) {
-            console.warn(`GPS accuracy is ${userInfo.accuracy}m, may not be precise enough for 100m check`);
+    async trackUserInfo() {
+        try {
+            // First try to get high-accuracy GPS coordinates
+            const position = await this.getCurrentPosition();
+            
+            const userInfo = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy, // Important: check this!
+                altitude: position.coords.altitude,
+                altitudeAccuracy: position.coords.altitudeAccuracy,
+                heading: position.coords.heading,
+                speed: position.coords.speed,
+                timestamp: new Date(position.timestamp).toISOString(),
+                source: 'gps', // Mark that this is GPS data
+                userAgent: navigator.userAgent
+            };
+            
+            console.log('GPS User Information:', userInfo);
+            
+            // Check if accuracy is good enough (in meters)
+            if (userInfo.accuracy > 100) {
+                console.warn(`GPS accuracy is ${userInfo.accuracy}m, may not be precise enough for 100m check`);
+            }
+            
+            return userInfo;
+        } catch (gpsError) {
+            console.error('GPS Error:', gpsError);
+            // Fallback to IP geolocation (less accurate)
+            return this.getIPLocation();
         }
-        
-        return userInfo;
-    } catch (gpsError) {
-        console.error('GPS Error:', gpsError);
-        // Fallback to IP geolocation (less accurate)
-        return this.getIPLocation();
     }
-}
 
 getCurrentPosition() {
     return new Promise((resolve, reject) => {
@@ -324,7 +336,7 @@ async getIPLocation() {
            
         try {
             // showSuccess('fetchUserData try');
-            const response = await fetch('class/ApiHandler.php?action=getCurrentUser&entity=members', {
+            const response = await fetch('../class/ApiHandler.php?action=getCurrentUser&entity=members', {
                 method: 'GET',
                 credentials: 'include'                
             });            

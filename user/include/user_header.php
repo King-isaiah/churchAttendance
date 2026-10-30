@@ -57,9 +57,13 @@ if (isset($_SESSION['user_id'])) {
                             </span>
                         </div>
                         <div class="user-stats">
-                            <div class="stat-badge">
+                            <!-- <div class="stat-badge">
                                 <i class="fas fa-fire"></i>
                                 <span>3 day streak</span>
+                            </div> -->
+                            <div class="stat-badge">
+                                <i class="fas fa-fire"></i>
+                                <span><?php echo $_SESSION['current_streak'] ?? 1; ?> day streak</span>
                             </div>
                             <div class="stat-badge">
                                 <i class="fas fa-check-circle"></i>

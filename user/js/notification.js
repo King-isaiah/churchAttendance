@@ -98,20 +98,33 @@ class NotificationSystem {
                 return;
             }
             
-            const memberResponse = await fetch(`class/ApiHandler.php?action=get&entity=members&id=${this.userId}`);
+            const memberResponse = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${this.userId}`);
             const memberResult = await memberResponse.json();
           
             if (memberResult.success && memberResult.data) {
                 const userData = memberResult.data;
-                console.log('User data fetched:', userData);
-                this.userDepartmentId = userData.department_id || this.userDepartmentId;
+                console.log('User data fetched successfully:', userData);
+                
+                // Determine the best department ID to use for fetching notifications
+                let deptId = this.userDepartmentId; // Default to whatever is in the hidden input
+                
+                // 1. Prefer primary_dept_id if it exists
+                if (userData.primary_dept_id) {
+                    deptId = userData.primary_dept_id;
+                } 
+                // 2. If no primary, check if department_id is a single ID (not a JSON array string)
+                else if (userData.department_id && !String(userData.department_id).startsWith('[')) {
+                    deptId = userData.department_id;
+                }
+                
+                this.userDepartmentId = deptId;
 
                 // Store in session for quick access
                 sessionStorage.setItem('userDeptId', this.userDepartmentId);    
-                console.log('Updated department ID:', this.userDepartmentId);         
+                console.log('Updated active department ID:', this.userDepartmentId);         
                 sessionStorage.setItem('userId', this.userId);
                 
-                // Update user-specific storage key
+                // Update user-specific storage key for local notifications
                 this.userSpecificStorageKey = `${this.localReadStorageKey}_${this.userId}`;
             }
         } catch (error) {
@@ -173,18 +186,20 @@ class NotificationSystem {
         try {
             let url = '';            
             if (this.userDepartmentId) {
-                url = `class/ApiHandler.php?entity=notifications&action=get&id=${this.userDepartmentId}`;
-                console.log('Fetching notifications for users ID:', this.userDepartmentId);
+                // Fetch notifications specific to the user's department
+                url = `../class/ApiHandler.php?entity=notifications&action=get&id=${this.userDepartmentId}`;
+                console.log('Fetching notifications for department ID:', this.userDepartmentId);
             } else {
-                // url = `class/ApiHandler.php?entity=notifications&action=getAll`;                
-                showWarning('User does not have a deprtment')
+                // Fallback: Fetch global notifications if no department is found
+                url = `../class/ApiHandler.php?entity=notifications&action=getAll`;
+                console.log('No department found, fetching global notifications');
             }
             
             const response = await fetch(url);
             const data = await response.json();
             
             if (data.success) {
-                console.log('successfully fetched')                
+                console.log('Successfully fetched notifications');                
                 this.rawNotifications = data.data || [];
                 
                 // Apply client-side filtering for read status
@@ -432,7 +447,7 @@ class NotificationSystem {
             if (locallyReadIds.length > 0) {
                 console.log('Syncing', locallyReadIds.length, 'locally read IDs with server');
                 
-                await fetch(`class/ApiHandler.php?entity=notifications&action=special`, {
+                await fetch(`../class/ApiHandler.php?entity=notifications&action=special`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -452,7 +467,7 @@ class NotificationSystem {
     
     async viewNotificationDetails(notificationId) {
         try {
-            const response = await fetch(`class/ApiHandler.php?entity=notifications&action=get&id=${notificationId}`);
+            const response = await fetch(`../class/ApiHandler.php?entity=notifications&action=get&id=${notificationId}`);
             const data = await response.json();
             
             if (data.success) {
@@ -537,7 +552,7 @@ class NotificationSystem {
         if (!confirm('Are you sure you want to delete this notification?')) return;
         
         try {
-            const response = await fetch(`class/ApiHandler.php?entity=notifications&action=delete&id=${notificationId}`, {
+            const response = await fetch(`../class/ApiHandler.php?entity=notifications&action=delete&id=${notificationId}`, {
                 method: 'DELETE'
             });
             

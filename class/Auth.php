@@ -72,6 +72,7 @@ public function login($data) {
     $_SESSION['user_role'] = $user['role'] ?? 'worker';       
     $_SESSION['first_name'] = $user['first_name'];
     $_SESSION['last_name'] = $user['last_name'];
+    $_SESSION['current_streak'] = $user['current_streak'];
 
     // Remove password from returned data
     unset($user['password']);
@@ -98,6 +99,7 @@ public function login($data) {
                 'first_name' => $_SESSION['first_name'],
                 'unique_id' => $_SESSION['unique_id'],
                 'last_name' => $_SESSION['last_name'],
+                'current_streak' => $_SESSION['current_streak'] ,
                
             ];
         }

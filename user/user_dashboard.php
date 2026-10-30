@@ -17,12 +17,17 @@ include_once "include/user_header.php";
 <div class="center-div" id="center-div"></div>
 
 
+<div class="center-div" id="center-div"></div>
 
+<!-- 1. Load external libraries FIRST -->
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
 
-<script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
-<script src="js/user_dashboard.js"></script>
+<!-- 2. Load custom scripts AFTER -->
+<script src="js/user_header.js"></script>
+<script src="js/notification.js"></script>     
 <script src="../js/main.js"></script>
+<script src="js/qrcode.js"></script>
+<script src="js/user_dashboard.js"></script>
 
-<?php include_once "include/footer.php"; ?>
 </body>
 </html>
