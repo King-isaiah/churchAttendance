@@ -18,7 +18,7 @@
     require_once 'Attendance.php';
      require_once 'Activity.php';
     // require_once '../admin/class/Activity.php';
-    require_once '../admin/class/AttendanceMethod.php';
+    // require_once '../admin/class/AttendanceMethod.php';
     require_once '../admin/class/Status.php';
     require_once '../admin/class/LocationValidator.php';
     require_once '../admin/class/QRGenerator.php';
@@ -700,27 +700,45 @@
             }
         }
 
+        // private function getQR() {
+        //     $activityId = $_GET['id'] ?? null;
+        //     if (!$activityId) {
+        //         $this->sendResponse(['success' => false, 'message' => 'Activity ID required', 'errorType' => 'client'], 400);
+        //         return;
+        //     }
+
+        //     try {
+        //         $qrGenerator = new QRGenerator();
+        //         $qrCode = $qrGenerator->getQRCode($activityId);
+        //         $this->sendSuccessResponse([
+        //             'qr_data' => $qrCode ? $qrCode['qr_code'] : null,
+        //             'expires_at' => $qrCode ? $qrCode['expires_at'] : null,
+        //             'uses' => $qrCode ? $qrCode['uses'] : 0,
+        //             'max_uses' => $qrCode ? $qrCode['max_uses'] : 0
+        //         ], 200);
+        //     } catch (Exception $e) {
+        //         $this->handleException($e);
+        //     }
+        // }
         private function getQR() {
-            $activityId = $_GET['id'] ?? null;
-            if (!$activityId) {
-                $this->sendResponse(['success' => false, 'message' => 'Activity ID required', 'errorType' => 'client'], 400);
+            $qrCodeString = $_GET['qr_code'] ?? null;
+            
+            if (!$qrCodeString) {
+                $this->sendResponse(['success' => false, 'message' => 'QR Code string required', 'errorType' => 'client'], 400);
                 return;
             }
 
             try {
                 $qrGenerator = new QRGenerator();
-                $qrCode = $qrGenerator->getQRCode($activityId);
-                $this->sendSuccessResponse([
-                    'qr_data' => $qrCode ? $qrCode['qr_code'] : null,
-                    'expires_at' => $qrCode ? $qrCode['expires_at'] : null,
-                    'uses' => $qrCode ? $qrCode['uses'] : 0,
-                    'max_uses' => $qrCode ? $qrCode['max_uses'] : 0
-                ], 200);
+                // Call the new validation method
+                $qrCode = $qrGenerator->validateAndGetQRCode($qrCodeString);
+                
+                $this->sendSuccessResponse(['data' => $qrCode], 200);
+                
             } catch (Exception $e) {
                 $this->handleException($e);
             }
         }
-
         // -------------------- Response Helpers --------------------
 
         /**

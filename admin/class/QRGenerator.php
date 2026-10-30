@@ -175,5 +175,28 @@ class QRGenerator extends Database {
             $options['max_uses'] ?? 100
         ]);
     }
+        public function validateAndGetQRCode($qrCodeString) {
+        try {
+            // 1. Find the exact QR code string in the database
+            $sql = "SELECT * FROM activity_qr_codes WHERE qr_code = ?";
+            $qr = $this->fetchOne($sql, [$qrCodeString]);
+
+            if (!$qr) {
+                throw new Exception("Invalid QR Code. This code does not exist in our system.", 404);
+            }
+
+            // 2. Check if it has expired (Ignoring is_active and max_uses)
+            if (strtotime($qr['expires_at']) < time()) {
+                throw new Exception("This QR Code has expired. Please ask the admin for a new one.", 400);
+            }
+
+            // 3. Return the data (which includes the true activity_id)
+            return $qr;
+
+        } catch (Exception $e) {
+            error_log("QR Validation error: " . $e->getMessage());
+            throw $e;
+        }
+    }
 }
 ?>

@@ -63,28 +63,104 @@ class Attendance extends Database {
         }
     }
     
-    public function createAttendance($data) {
-    try {
-        // 1. First, validate required fields
-        $this->validateAttendanceData($data);
-        
-        // 2. Check if attendance already exists
-        $existingAttendance = $this->checkAttendanceExists($data);
-        
-        if ($existingAttendance) {
-            // Attendance already exists - return a special result or throw an exception
-            throw new Exception("Attendance already recorded for this activity", 409);
-        }
-        
-        // 3. If no duplicate found, proceed with insertion
-        return $this->insert('attendance', $data);
-        
-    } catch (Exception $e) {
-        error_log("Attendance create error: " . $e->getMessage() . " | Data: " . json_encode($data));
-        throw $e; 
-    }
-}
 
+
+    public function createAttendance($data) {
+        try {
+            // 1. First, validate required fields
+            $this->validateAttendanceData($data);
+            
+            // 2. NEW: Validate the Day, Time, and Department!
+            $this->validateAttendanceLogic($data);
+            
+            // 3. Check if attendance already exists
+            $existingAttendance = $this->checkAttendanceExists($data);
+            
+            if ($existingAttendance) {
+                $categoryName = isset($data['attendance_category']) && $data['attendance_category'] === 'event' ? 'event' : 'activity';
+                throw new Exception("Attendance already recorded today for this $categoryName", 409);
+            }
+            
+            // 4. If everything is valid, proceed with insertion
+            return $this->insert('attendance', $data);
+            
+        } catch (Exception $e) {
+            error_log("Attendance create error: " . $e->getMessage() . " | Data: " . json_encode($data));
+            throw $e; 
+        }
+    }
+
+    // ADD THIS NEW METHOD right below createAttendance()
+    private function validateAttendanceLogic($data) {
+        $category = $data['attendance_category'] ?? '';
+        $categoryId = $data['attendance_category_id'] ?? 0;
+        $uniqueId = $data['unique_id'] ?? '';
+
+        if (empty($category) || empty($categoryId)) return;
+
+        $table = ($category === 'activity') ? 'activities' : 'events';
+        
+        // Fetch the record
+        $record = $this->fetchOne("SELECT * FROM $table WHERE id = ?", [$categoryId]);
+        if (!$record) {
+            throw new Exception(ucfirst($category) . " not found", 404);
+        }
+
+        // 1. Check Day
+        $today = date('l'); 
+        if ($category === 'activity') {
+            if (strtolower($record['dayofactivity']) !== strtolower($today)) {
+                throw new Exception("This activity is for {$record['dayofactivity']}, but today is {$today}.", 400);
+            }
+        } else {
+            $todayDate = date('Y-m-d');
+            if ($record['event_date'] !== $todayDate) {
+                throw new Exception("This event is for {$record['event_date']}, but today is {$todayDate}.", 400);
+            }
+        }
+
+        // 2. Check Time (Starts and Expires)
+        $currentTime = date('H:i:s');
+        if ($currentTime < $record['time']) {
+            throw new Exception("Attendance has not started yet. It starts at {$record['time']}.", 400);
+        }
+
+        $timeExp = $record['time_exp'];
+        if ($timeExp === '00:00:00') $timeExp = '23:59:59'; // Treat midnight as all-day
+        if ($currentTime > $timeExp) {
+            throw new Exception("Attendance is closed. It expired at {$record['time_exp']}.", 400);
+        }
+
+        // 3. Check Department
+        $member = $this->fetchOne("SELECT department_id FROM members WHERE unique_id = ?", [$uniqueId]);
+        if ($member && !empty($member['department_id'])) {
+            $userDeptIds = (strpos($member['department_id'], '[') === 0) ? json_decode($member['department_id'], true) : [$member['department_id']];
+            $recordDeptIds = (strpos($record['department_id'], '[') === 0) ? json_decode($record['department_id'], true) : [$record['department_id']];
+
+            $isAll = false;
+            foreach ($recordDeptIds as $d) {
+                if (strtolower(trim((string)$d, '"')) === 'all') {
+                    $isAll = true;
+                    break;
+                }
+            }
+
+            if (!$isAll) {
+                $match = false;
+                foreach ($userDeptIds as $ud) {
+                    foreach ($recordDeptIds as $rd) {
+                        if ((string)$ud === (string)$rd) {
+                            $match = true;
+                            break 2;
+                        }
+                    }
+                }
+                if (!$match) {
+                    throw new Exception("Sorry this attendance does not apply to your department {$category} (Department mismatch).", 403);
+                }
+            }
+        }
+    }
 private function validateAttendanceData($data) {
     $required = ['unique_id', 'dayofactivity', 'check_in_time', 'status'];
     
@@ -97,30 +173,27 @@ private function validateAttendanceData($data) {
 
 private function checkAttendanceExists($data) {
     try {
-        // Check based on multiple criteria to avoid duplicates
+        // We check if the user already submitted attendance for THIS activity/event TODAY.
+        // DATE(created_at) = CURDATE() ensures it resets every day.
         $sql = "SELECT id FROM attendance WHERE 
                 unique_id = ? AND 
                 attendance_category = ? AND 
                 attendance_category_id = ? AND 
-                dayofactivity = ? AND 
-                status = ?";
+                DATE(created_at) = CURDATE()";
         
         $params = [
             $data['unique_id'],
             $data['attendance_category'], 
-            $data['attendance_category_id'],
-            $data['dayofactivity'],
-            $data['status']
+            $data['attendance_category_id']
         ];
         
         $result = $this->fetchOne($sql, $params);
         
-        // Return true if attendance already exists
+        // Return true if attendance already exists for today
         return !empty($result);
         
     } catch (Exception $e) {
         error_log("Attendance check exists error: " . $e->getMessage());
-        
         return false;
     }
 }

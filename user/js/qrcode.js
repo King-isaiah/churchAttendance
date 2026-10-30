@@ -1,4 +1,4 @@
-// QR Scanner — Real camera control using Html5Qrcode (not the pre-built scanner)
+// QR Scanner — Real camera control using Html5Qrcode
 class QRCodeScanner {
     constructor() {
         this.html5QrCode = null;       // The Html5Qrcode instance
@@ -11,6 +11,7 @@ class QRCodeScanner {
         this.currentZoom  = 1;
         this.zoomSupported = false;
         this.originalZoom = 1;
+        this.currentImagePreview = null; // <--- NEW: For storing the uploaded image
         this.init();
     }
 
@@ -193,6 +194,7 @@ class QRCodeScanner {
         if (this.isScanning) return;
         this.currentActivityId = activityId;
         this.lastScannedCode = null;
+        this.currentImagePreview = null; // Reset preview
 
         // Reset UI
         document.getElementById('cameraOff').style.display = 'flex';
@@ -221,11 +223,10 @@ class QRCodeScanner {
     // ---------- ENUMERATE CAMERAS ----------
     async loadCameras() {
         try {
-            // Request permission first (needed on iOS/Safari to get labels)
             try {
                 const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
                 tmp.getTracks().forEach(t => t.stop());
-            } catch (e) { /* permission may still be granted later */ }
+            } catch (e) { }
 
             const cams = await Html5Qrcode.getCameras();
             this.cameras = cams || [];
@@ -245,7 +246,6 @@ class QRCodeScanner {
                 select.appendChild(opt);
             });
 
-            // Prefer back camera
             const backCam = this.cameras.find(c => /back|rear|environment/i.test(c.label));
             this.currentCameraId = backCam ? backCam.id : this.cameras[0].id;
             select.value = this.currentCameraId;
@@ -259,13 +259,11 @@ class QRCodeScanner {
 
     // ---------- START CAMERA ----------
     async startCamera() {
-        // Show ON state
         document.getElementById('cameraOff').style.display = 'none';
         document.getElementById('cameraOn').style.display = 'block';
         document.getElementById('scan-status').style.display = 'flex';
         this.updateStatus('camera', 'Requesting camera permission...', 'scanning');
 
-        // Load cameras if we haven't yet
         if (this.cameras.length === 0) {
             const ok = await this.loadCameras();
             if (!ok) {
@@ -292,13 +290,10 @@ class QRCodeScanner {
                 this.currentCameraId,
                 config,
                 (decodedText) => this.onScanSuccess(decodedText),
-                () => { /* silence scan errors */ }
+                () => { }
             );
 
-            // Detect capabilities: zoom, torch
             this.detectCapabilities();
-
-            // Show laser + start status
             document.getElementById('scan-laser').classList.add('running');
             this.updateStatus('camera', 'Scanning for QR codes...', 'scanning');
             this.clearResult('camera');
@@ -313,7 +308,7 @@ class QRCodeScanner {
     async stopCamera() {
         document.getElementById('scan-laser').classList.remove('running');
         if (this.html5QrCode) {
-            try { await this.html5QrCode.stop(); } catch (e) { /* silent */ }
+            try { await this.html5QrCode.stop(); } catch (e) { }
         }
         document.getElementById('cameraOff').style.display = 'flex';
         document.getElementById('cameraOn').style.display = 'none';
@@ -343,7 +338,6 @@ class QRCodeScanner {
         const track = stream.getVideoTracks()[0];
         if (!track) return;
 
-        // Zoom
         const caps = track.getCapabilities ? track.getCapabilities() : {};
         if (caps.zoom) {
             this.zoomSupported = true;
@@ -358,7 +352,6 @@ class QRCodeScanner {
             this.zoomSupported = false;
         }
 
-        // Torch
         const torchBtn = document.getElementById('torch-btn');
         if (caps.torch === true) {
             torchBtn.style.opacity = '1';
@@ -398,35 +391,37 @@ class QRCodeScanner {
 
     // ---------- SCAN SUCCESS ----------
     async onScanSuccess(decodedText) {
-        // Prevent duplicate scans
         const now = Date.now();
         if (this.lastScannedCode && now - this.lastScannedCode.time < this.scanCooldown && this.lastScannedCode.data === decodedText) {
             return;
         }
         this.lastScannedCode = { data: decodedText, time: now };
 
-        // Stop camera and laser
         document.getElementById('scan-laser').classList.remove('running');
         if (this.html5QrCode) { try { await this.html5QrCode.pause(true); } catch(e){} }
 
         this.updateStatus('camera', 'QR code detected! Processing...', 'scanning');
-
-        // Process — reuse your existing pipeline
         this.processScannedData(decodedText);
     }
 
-    // ---------- PROCESS (keeps your existing API flow) ----------
-    async processScannedData(data) {
+    // ---------- PROCESS DATA ----------
+    async processScannedData(data, panel = 'camera') {
         try {
-            const res = await fetch(`class/ApiHandler.php?action=get&entity=activity_qr_codes&id=${data}`);
+            // Send the ENTIRE scanned string to the API to validate the exact QR code
+            const res = await fetch(`../class/ApiHandler.php?action=getQR&qr_code=${encodeURIComponent(data)}`);
             const qrResponse = await res.json();
-            this.processAttendanceFromQR(qrResponse, 'camera');
-        } catch (error) {
-            if (data && !isNaN(data)) {
-                this.processAttendanceFromQR({ data: { activity_id: data, id: data } }, 'camera');
+            
+            if (qrResponse.success && qrResponse.data) {
+                // If valid and not expired, process the attendance using the true activity_id
+                this.processAttendanceFromQR(qrResponse, panel);
             } else {
-                this.showResult('camera', 'Data: ' + data.substring(0, 30) + '...', 'info');
+                // Show the exact error message (e.g., "This QR Code has expired")
+                this.showResult(panel, qrResponse.message || 'Invalid QR code', 'error');
             }
+            
+        } catch (error) {
+            console.error("Process scanned data error:", error);
+            this.showResult(panel, 'Unrecognized QR code format', 'error');
         }
     }
 
@@ -460,7 +455,7 @@ class QRCodeScanner {
                 location_id: data.data.location_id || 0
             };
 
-            const res = await fetch('class/ApiHandler.php?entity=attendance&action=create', {
+            const res = await fetch('../class/ApiHandler.php?entity=attendance&action=create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -469,9 +464,8 @@ class QRCodeScanner {
             const result = await res.json();
 
             if (result.success) {
-                // Increment QR uses
                 if (data.data.id) {
-                    await fetch(`class/ApiHandler.php?entity=activity_qr_codes&action=update&id=${data.data.id}`, {
+                    await fetch(`../class/ApiHandler.php?entity=activity_qr_codes&action=update&id=${data.data.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
@@ -488,17 +482,23 @@ class QRCodeScanner {
         }
     }
 
-    // ---------- FILE UPLOAD SCAN ----------
+    // ---------- FILE UPLOAD SCAN ----------    
     async handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
+
+        // Save the image URL for the preview
+        this.currentImagePreview = URL.createObjectURL(file);
 
         this.showResult('image', 'Processing image...', 'loading');
 
         try {
             const tempScanner = new Html5Qrcode("qr-reader", { verbose: false });
             const decodedText = await tempScanner.scanFile(file, true);
-            this.processScannedData(decodedText);
+            
+            // Pass 'image' so it updates the correct panel
+            this.processScannedData(decodedText, 'image'); 
+            
         } catch (err) {
             console.error('File scan failed:', err);
             this.showResult('image', 'No QR code found in this image', 'error');
@@ -524,8 +524,27 @@ class QRCodeScanner {
         const againBtn = document.getElementById('scan-again-btn' + idSuffix);
         if (!box) return;
 
+        // Reset content
+        box.innerHTML = '';
         box.className = 'scan-result-box ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'loading' ? 'loading' : '');
-        box.textContent = message;
+
+        // If it's the image panel and we have a preview, prepend the image
+        if (panel === 'image' && this.currentImagePreview && type !== 'loading') {
+            const img = document.createElement('img');
+            img.src = this.currentImagePreview;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '150px';
+            img.style.borderRadius = '8px';
+            img.style.marginBottom = '10px';
+            img.style.objectFit = 'contain';
+            box.appendChild(img);
+            
+            const textNode = document.createElement('div');
+            textNode.textContent = message;
+            box.appendChild(textNode);
+        } else {
+            box.textContent = message;
+        }
 
         const stateMap = { success: 'success', error: 'error', loading: 'scanning', info: 'idle' };
         this.updateStatus(panel, message, stateMap[type] || 'scanning');
@@ -539,11 +558,17 @@ class QRCodeScanner {
         const idSuffix = panel === 'camera' ? '' : '-img';
         const box = document.getElementById('scan-result-box' + idSuffix);
         const againBtn = document.getElementById('scan-again-btn' + idSuffix);
+        
         if (box) {
             box.className = 'scan-result-box';
-            box.textContent = 'Scan a QR code to see results here...';
+            box.innerHTML = 'Scan a QR code to see results here...'; // Reset innerHTML
         }
         if (againBtn) againBtn.style.display = 'none';
+        
+        // Clear the image memory if clearing the image panel
+        if (panel === 'image') {
+            this.currentImagePreview = null;
+        }
     }
 
     // ---------- CLOSE ----------
@@ -559,6 +584,7 @@ class QRCodeScanner {
         this.lastScannedCode = null;
         this.cameras = [];
         this.currentCameraId = null;
+        this.currentImagePreview = null; // Reset preview on close
     }
 }
 
