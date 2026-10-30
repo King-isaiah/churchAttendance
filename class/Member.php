@@ -305,10 +305,11 @@ class Member extends Database {
             
             if (!$user) return;
 
-            // Compare dates without the time to avoid issues
             $today = new DateTime(date('Y-m-d'));
             $currentStreak = (int)($user['current_streak'] ?? 0);
-            $newStreak = $currentStreak;
+            
+            // Default new streak is 1 (for first login or reset)
+            $newStreak = 1;
             
             // 2. Calculate the streak
             if (!empty($user['last_activity'])) {
@@ -322,16 +323,14 @@ class Member extends Database {
                     // Logged in yesterday, increment streak
                     $newStreak = $currentStreak + 1;
                 } elseif ($diff > 1) {
-                    // Last login was more than a day ago, reset streak
+                    // Last login was more than a day ago, reset streak to 1
                     $newStreak = 1;
                 } elseif ($diff == 0) {
-                    // Already logged in today, do nothing to streak
-                    $newStreak = $currentStreak;
+                    // Already logged in today. Keep the streak, BUT if it's 0, force it to 1.
+                    $newStreak = ($currentStreak > 0) ? $currentStreak : 1;
                 }
-            } else {
-                // First time logging in
-                $newStreak = 1;
-            }
+            } 
+            // If last_activity is empty, $newStreak remains 1 (first time ever)
 
             // 3. Update the database with the new streak and current time
             $this->update('members', [
@@ -339,7 +338,7 @@ class Member extends Database {
                 'current_streak' => $newStreak
             ], 'id = ?', [$userId]);
 
-            // 4. NEW: Update the session so the header reflects the new streak immediately!
+            // 4. Update the session so the header reflects the new streak immediately!
             if (session_status() === PHP_SESSION_ACTIVE) {
                 $_SESSION['current_streak'] = $newStreak;
             }
