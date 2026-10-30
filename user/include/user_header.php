@@ -156,6 +156,10 @@ if (isset($_SESSION['user_id'])) {
                                     <i class="fas fa-calendar"></i>
                                     <span>Events</span>
                                 </a>
+                                <a href="testimonies.php" class="user-link">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>Testimonies</span>
+                                </a>
                                 <a href="attendance_history.php" class="user-link">
                                     <i class="fas fa-history"></i>
                                     <span>Attendance History</span>

@@ -16,7 +16,8 @@
     require_once 'Member.php';
     require_once 'Mailer.php';
     require_once 'Attendance.php';
-     require_once 'Activity.php';
+    require_once 'Activity.php';
+    require_once 'Testimony.php';
     // require_once '../admin/class/Activity.php';
     require_once '../admin/class/AttendanceMethod.php';
     require_once '../admin/class/Status.php';
@@ -128,6 +129,7 @@
                     $this->sendResponse(['success' => false, 'message' => 'Invalid action delete request', 'errorType' => 'client'], 400);
             }
         }
+       
         // private function getOthers() {
         //     $entityClass = $this->getEntityClass();
         //     if (!$entityClass) {
@@ -139,45 +141,58 @@
         //         return;
         //     }
             
-        //     $entity = new $entityClass();
-            
-        //     // Map entity to method name
-        //     $methodMap = [            
-        //         'activities' => 'getLocationActivitiesWithLocationCoordinate',
-        //         'attendance' => 'getLocationActivitiesWithLocationCoordinate',
-        //         'categories' => 'getCategoriesInEvents',
-        //         'rsvp' => 'getRSVPByEvent',
-        //         'rsvp_trend' => 'getRSVPTrendByEvent',
-        //     ];
-            
-        //     $method = $methodMap[$this->entity] ?? 'getOthers';
-            
-        //     if (method_exists($entity, $method)) {
-        //         // Pass specific parameters based on the entity
-        //         if ($this->entity === 'rsvp') {
-        //             $eventId = $_GET['event_id'] ?? 0;
-        //             $data = $entity->$method($eventId);
-        //         } elseif ($this->entity === 'rsvp_trend') {
-        //             $eventId = $_GET['event_id'] ?? 0;
-        //             $days = $_GET['days'] ?? 7;
-        //             $data = $entity->$method($eventId, $days);
-        //         } else {
-        //             $data = $entity->$method();
-        //         }
+        //     try {
+        //         $entity = new $entityClass();
+                
+        //         // Map entity to method name
+        //         $methodMap = [            
+        //             'activities' => 'getLocationActivitiesWithLocationCoordinate',
+        //             'attendance' => 'getLocationActivitiesWithLocationCoordinate',
+        //             'categories' => 'getCategoriesInEvents',
+        //             'events' => 'getLocationEventsWithLocationCoordinate',
+        //             'rsvp' => 'getRSVPByEvent',
+        //             'rsvp_trend' => 'getRSVPTrendByEvent',
+        //         ];
+                
+        //         $method = $methodMap[$this->entity] ?? 'getOthers';
+                
+        //         if (method_exists($entity, $method)) {
+        //             // Pass specific parameters based on the entity
+        //             if ($this->entity === 'rsvp') {
+        //                 $eventId = $_GET['event_id'] ?? 0;
+        //                 $data = $entity->$method($eventId);
+        //             } elseif ($this->entity === 'rsvp_trend') {
+        //                 $eventId = $_GET['event_id'] ?? 0;
+        //                 $days = $_GET['days'] ?? 7;
+        //                 $data = $entity->$method($eventId, $days);
+        //             } else {
+        //                 $data = $entity->$method();
+        //             }
 
-        //         $this->sendResponse([
-        //             'success' => true, 
-        //             'data' => $data
-        //         ]);
-        //     } else {
+        //             $this->sendResponse([
+        //                 'success' => true, 
+        //                 'data' => $data
+        //             ]);
+        //         } else {
+        //             $this->sendResponse([
+        //                 'success' => false, 
+        //                 'message' => "Method $method not found for {$this->entity}",
+        //                 'errorType' => 'servergetOthers'
+        //             ], 500);
+        //         }
+                
+        //     } catch (Exception $e) {
+        //         // NEW: Catch any database errors and return them as valid JSON
+        //         error_log("getOthers Exception [Entity: {$this->entity}]: " . $e->getMessage());
+                
         //         $this->sendResponse([
         //             'success' => false, 
-        //             'message' => "Method $method not found for {$this->entity}",
-        //             'errorType' => 'servergetOthers'
+        //             'message' => 'Database Error: ' . $e->getMessage(),
+        //             'errorType' => 'server_exception'
         //         ], 500);
         //     }
         // }
-        private function getOthers() {
+                private function getOthers() {
             $entityClass = $this->getEntityClass();
             if (!$entityClass) {
                 $this->sendResponse([
@@ -199,6 +214,9 @@
                     'events' => 'getLocationEventsWithLocationCoordinate',
                     'rsvp' => 'getRSVPByEvent',
                     'rsvp_trend' => 'getRSVPTrendByEvent',
+                    // ADD THESE TWO LINES:
+                    'testimonies_user' => 'getUserTestimonies',
+                    'testimonies_stats' => 'getTestimonyStats',
                 ];
                 
                 $method = $methodMap[$this->entity] ?? 'getOthers';
@@ -212,6 +230,9 @@
                         $eventId = $_GET['event_id'] ?? 0;
                         $days = $_GET['days'] ?? 7;
                         $data = $entity->$method($eventId, $days);
+                    } elseif ($this->entity === 'testimonies_user') { // <--- ADD THIS BLOCK
+                        $uniqueId = $_GET['unique_id'] ?? 0;
+                        $data = $entity->$method($uniqueId);
                     } else {
                         $data = $entity->$method();
                     }
@@ -229,9 +250,7 @@
                 }
                 
             } catch (Exception $e) {
-                // NEW: Catch any database errors and return them as valid JSON
                 error_log("getOthers Exception [Entity: {$this->entity}]: " . $e->getMessage());
-                
                 $this->sendResponse([
                     'success' => false, 
                     'message' => 'Database Error: ' . $e->getMessage(),
@@ -262,6 +281,7 @@
                 'activities' => 'getAllActivities',
                 'attendance_methods' => 'getAllAttendanceMethods',
                 'statuses' => 'getAllStatuses',
+                'testimonies' => 'getAllTestimonies',
                 'reports' => 'getAttendanceReports',
                 'notifications' => 'getAllNotifications',
                 // 'auth' => 'Auth'
@@ -402,6 +422,7 @@
                 'activities' => 'createActivity',
                 'attendance_methods' => 'createAttendanceMethod',
                 'statuses' => 'createStatus',
+                'testimonies' => 'createTestimony',
                 'activity_qr_codes' => 'generateQRCode',
                 'reports' => 'exportToCSV',
                 'notifications' => 'createNotification',
@@ -527,6 +548,7 @@
                 'members' => 'updateMember',
                 'attendance' => 'updateAttendance',
                 'activities' => 'updateActivity',
+                'testimonies' => 'updateStatus',
                 'attendance_methods' => 'updateAttendanceMethod',
                 'statuses' => 'updateStatus',
                 'activity_qr_codes' => 'updateStatus'
@@ -580,6 +602,7 @@
                 'attendance' => 'deleteAttendance',
                 'activities' => 'deleteActivity',
                 'statuses' => 'deleteStatus',
+                'testimonies' => 'deleteTestimony',
                 'attendance_methods' => 'deleteAttendanceMethod',
                 'activity_qr_codes' => 'deleteAttendanceMethod',
                 'notifications' => 'deleteNotification',
@@ -901,6 +924,9 @@
                 'categories' => 'Category',
                 'speakers' => 'Speaker',
                 'events' => 'Event',
+                'testimonies' => 'Testimony',
+                 'testimonies_user' => 'Testimony',
+                'testimonies_stats' => 'Testimony',
                 'members' => 'Member',
                 'attendance' => 'Attendance',
                 'activities' => 'Activity',

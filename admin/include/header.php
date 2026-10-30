@@ -99,8 +99,14 @@ if (isset($_SESSION['user_id'])) {
                         <span class="hide">Email Logs</span>
                     </a>                     
                 </div>
+                <div class="icon-square">
+                    <a href="testimonies.php">
+                        <i class="fas fa-envelope-open-text"></i> 
+                        <span class="hide">Testimonies</span>
+                    </a>                     
+                </div>
 
-               <div class="icon-square">
+                <div class="icon-square">
                     <a href="dataManagement.php">
                         <i class="fas fa-database"></i> 
                         <span class="hide">Data Management</span>
