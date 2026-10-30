@@ -56,7 +56,7 @@ public function login($data) {
     // --- HEARTBEAT UPDATE ---
     $updateData = [
         'status' => 'online',
-        'last_activity' => date('Y-m-d H:i:s')
+        // 'last_activity' => date('Y-m-d H:i:s')
     ];
     $this->update('members', $updateData, 'id = ?', [$user['id']]);
     // ------------------------

@@ -54,7 +54,7 @@ class Member extends Database {
     //         throw new Exception("Unable to retrieve member information");
     //     }
     // }
-      public function getMember($id) {
+    public function getMember($id) {
         try {
             $sql = "SELECT m.*, d.name as department_name FROM members m
                 LEFT JOIN departments d ON m.department_id = d.id
@@ -305,8 +305,10 @@ class Member extends Database {
             
             if (!$user) return;
 
+            // Compare dates without the time to avoid issues
             $today = new DateTime(date('Y-m-d'));
             $currentStreak = (int)($user['current_streak'] ?? 0);
+            $newStreak = $currentStreak;
             
             // 2. Calculate the streak
             if (!empty($user['last_activity'])) {
@@ -318,22 +320,29 @@ class Member extends Database {
                 
                 if ($diff == 1) {
                     // Logged in yesterday, increment streak
-                    $currentStreak++;
+                    $newStreak = $currentStreak + 1;
                 } elseif ($diff > 1) {
                     // Last login was more than a day ago, reset streak
-                    $currentStreak = 1;
+                    $newStreak = 1;
+                } elseif ($diff == 0) {
+                    // Already logged in today, do nothing to streak
+                    $newStreak = $currentStreak;
                 }
-                // If $diff == 0, they already logged in today, so we do nothing (streak remains the same)
             } else {
                 // First time logging in
-                $currentStreak = 1;
+                $newStreak = 1;
             }
 
             // 3. Update the database with the new streak and current time
             $this->update('members', [
                 'last_activity' => date('Y-m-d H:i:s'),
-                'current_streak' => $currentStreak
+                'current_streak' => $newStreak
             ], 'id = ?', [$userId]);
+
+            // 4. NEW: Update the session so the header reflects the new streak immediately!
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                $_SESSION['current_streak'] = $newStreak;
+            }
 
         } catch (Exception $e) {
             error_log("Heartbeat/Streak error: " . $e->getMessage());
