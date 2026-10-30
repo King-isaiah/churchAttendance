@@ -72,7 +72,7 @@ class UserEvents {
 
     async fetchEvents() {       
         try {
-            const response = await fetch('class/ApiHandler.php?entity=events&action=getAll');
+            const response = await fetch('../class/ApiHandler.php?entity=events&action=getAll');
         
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -121,7 +121,7 @@ class UserEvents {
     }
     async fetchCategory() {       
         try {
-            const response = await fetch('class/ApiHandler.php?entity=categories&action=getAll');
+            const response = await fetch('../class/ApiHandler.php?entity=categories&action=getAll');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -524,7 +524,7 @@ class UserEvents {
                 jsonData.unique_id = unique_id;
             }
             
-            const url = `class/ApiHandler.php?action=create&entity=rsvp`;
+            const url = `../class/ApiHandler.php?action=create&entity=rsvp`;
             
             const response = await fetch(url, {
                 method: 'POST',
@@ -551,7 +551,7 @@ class UserEvents {
     }
 
     async sendRSVP(eventId, data) {
-        const response = await fetch('class/ApiHandler.php?entity=categories&action=getAll');
+        const response = await fetch('../class/ApiHandler.php?entity=categories&action=getAll');
         // Simulate API call - replace with actual API endpoint
         return new Promise((resolve) => {
             setTimeout(() => {

@@ -223,7 +223,7 @@ class UserAttendanceHistory {
             
             console.log('Fetching attendance data:', jsonData);
     
-            const url = 'class/ApiHandler.php?action=special&entity=reports';
+            const url = '../class/ApiHandler.php?action=special&entity=reports';
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
