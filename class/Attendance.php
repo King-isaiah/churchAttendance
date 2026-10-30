@@ -92,6 +92,9 @@ class Attendance extends Database {
 
     // ADD THIS NEW METHOD right below createAttendance()
     private function validateAttendanceLogic($data) {
+        // Set the timezone to Africa/Lagos to ensure server time matches local time
+        date_default_timezone_set('Africa/Lagos');
+
         $category = $data['attendance_category'] ?? '';
         $categoryId = $data['attendance_category_id'] ?? 0;
         $uniqueId = $data['unique_id'] ?? '';
@@ -120,13 +123,16 @@ class Attendance extends Database {
         }
 
         // 2. Check Time (Starts and Expires)
-        $currentTime = date('H:i:s');
+        // FIXED: Use the time sent from the frontend. Fallback to server time if missing.
+        $currentTime = !empty($data['check_in_time']) ? $data['check_in_time'] : date('H:i:s');
+        
         if ($currentTime < $record['time']) {
             throw new Exception("Attendance has not started yet. It starts at {$record['time']}.", 400);
         }
 
         $timeExp = $record['time_exp'];
         if ($timeExp === '00:00:00') $timeExp = '23:59:59'; // Treat midnight as all-day
+        
         if ($currentTime > $timeExp) {
             throw new Exception("Attendance is closed. It expired at {$record['time_exp']}.", 400);
         }
@@ -161,42 +167,42 @@ class Attendance extends Database {
             }
         }
     }
-private function validateAttendanceData($data) {
-    $required = ['unique_id', 'dayofactivity', 'check_in_time', 'status'];
-    
-    foreach ($required as $field) {
-        if (empty($data[$field])) {
-            throw new Exception("$field is this you here is required", 400);
+    private function validateAttendanceData($data) {
+        $required = ['unique_id', 'dayofactivity', 'check_in_time', 'status'];
+        
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                throw new Exception("$field is this you here is required", 400);
+            }
         }
     }
-}
 
-private function checkAttendanceExists($data) {
-    try {
-        // We check if the user already submitted attendance for THIS activity/event TODAY.
-        // DATE(created_at) = CURDATE() ensures it resets every day.
-        $sql = "SELECT id FROM attendance WHERE 
-                unique_id = ? AND 
-                attendance_category = ? AND 
-                attendance_category_id = ? AND 
-                DATE(created_at) = CURDATE()";
-        
-        $params = [
-            $data['unique_id'],
-            $data['attendance_category'], 
-            $data['attendance_category_id']
-        ];
-        
-        $result = $this->fetchOne($sql, $params);
-        
-        // Return true if attendance already exists for today
-        return !empty($result);
-        
-    } catch (Exception $e) {
-        error_log("Attendance check exists error: " . $e->getMessage());
-        return false;
+    private function checkAttendanceExists($data) {
+        try {
+            // We check if the user already submitted attendance for THIS activity/event TODAY.
+            // DATE(created_at) = CURDATE() ensures it resets every day.
+            $sql = "SELECT id FROM attendance WHERE 
+                    unique_id = ? AND 
+                    attendance_category = ? AND 
+                    attendance_category_id = ? AND 
+                    DATE(created_at) = CURDATE()";
+            
+            $params = [
+                $data['unique_id'],
+                $data['attendance_category'], 
+                $data['attendance_category_id']
+            ];
+            
+            $result = $this->fetchOne($sql, $params);
+            
+            // Return true if attendance already exists for today
+            return !empty($result);
+            
+        } catch (Exception $e) {
+            error_log("Attendance check exists error: " . $e->getMessage());
+            return false;
+        }
     }
-}
     
     public function updateAttendance($id, $data) {
         try {

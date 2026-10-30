@@ -1,5 +1,7 @@
 <?php
+    date_default_timezone_set('Africa/Lagos');
     class Database {
+        
         protected $db;        
         // Error type constants
         const ERROR_USER_FACING = 'user_facing';
