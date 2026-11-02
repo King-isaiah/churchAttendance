@@ -222,7 +222,7 @@ async function loadAttendanceData() {
         const result = await response.json();
 
         if (result.success) {
-            allData = result.data;
+            allData = result.data || [];
             filterData();
             updateSummary();
             loadWeeklyTrend();

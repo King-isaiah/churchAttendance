@@ -3,12 +3,31 @@ require_once 'Database.php';
 
 class Attendance extends Database {
     
+    // public function getAllAttendance() {
+    //     try {
+    //         $sql = "
+    //             SELECT a.*, 
+    //             m.first_name, m.last_name,
+    //             e.name as event_name, e.event_date,
+    //             d.name as department_name
+    //             FROM attendance a
+    //             JOIN members m ON a.member_id = m.id
+    //             JOIN events e ON a.event_id = e.id
+    //             LEFT JOIN departments d ON m.department_id = d.id
+    //             ORDER BY e.event_date DESC, a.attendance_time DESC
+    //         ";
+    //         return $this->fetchAll($sql);
+    //     } catch (Exception $e) {
+    //         error_log("Attendance getAll error: " . $e->getMessage());
+    //         return [];
+    //     }
+    // }
     public function getAllAttendance() {
         try {
             $sql = "
                 SELECT a.*, 
                 m.first_name, m.last_name,
-                e.name as event_name, e.event_date,
+                e.title as event_name, e.event_date,  -- FIXED: Changed e.name to e.title
                 d.name as department_name
                 FROM attendance a
                 JOIN members m ON a.member_id = m.id
@@ -22,35 +41,15 @@ class Attendance extends Database {
             return [];
         }
     }
-        // ADD THIS NEW METHOD TO Attendance.php
-    public function getAttendanceByUniqueId($uniqueId) {
-        try {
-            $sql = "
-                SELECT a.id, a.dayofactivity, a.created_at, a.status, a.check_in_time, 
-                       a.attendance_category, a.attendance_category_id,
-                       CASE 
-                           WHEN a.attendance_category = 'activity' THEN act.name
-                           WHEN a.attendance_category = 'event' THEN ev.title
-                           ELSE 'Unknown'
-                       END as activity_or_event_name
-                FROM attendance a
-                LEFT JOIN activities act ON a.attendance_category = 'activity' AND a.attendance_category_id = act.id
-                LEFT JOIN events ev ON a.attendance_category = 'event' AND a.attendance_category_id = ev.id
-                WHERE a.unique_id = ?
-                ORDER BY a.created_at DESC
-            ";
-            return $this->fetchAll($sql, [$uniqueId]);
-        } catch (Exception $e) {
-            error_log("Attendance getByUniqueId error: " . $e->getMessage());
-            return [];
-        }
-    }
+    
+       
+    
     public function getAttendance($id) {
         try {
             $sql = "
                 SELECT a.*, 
                 m.first_name, m.last_name,
-                e.name as event_name, e.event_date
+                e.title as event_name, e.event_date -- FIXED: Changed e.name to e.title
                 FROM attendance a
                 JOIN members m ON a.member_id = m.id
                 JOIN events e ON a.event_id = e.id
@@ -62,6 +61,10 @@ class Attendance extends Database {
             return false;
         }
     }
+    
+
+    
+
     
 
 
@@ -212,7 +215,30 @@ class Attendance extends Database {
             return false;
         }
     }
-    
+    public function getAttendanceByUniqueId($uniqueId) {
+        try {
+            $sql = "
+                SELECT a.id, a.dayofactivity, a.created_at, a.status, a.check_in_time, 
+                       a.attendance_category, a.attendance_category_id,
+                       l.name as location_name, -- ADDED: Join locations
+                       CASE 
+                           WHEN a.attendance_category = 'activity' THEN act.name
+                           WHEN a.attendance_category = 'event' THEN ev.title
+                           ELSE 'Unknown'
+                       END as activity_or_event_name
+                FROM attendance a
+                LEFT JOIN activities act ON a.attendance_category = 'activity' AND a.attendance_category_id = act.id
+                LEFT JOIN events ev ON a.attendance_category = 'event' AND a.attendance_category_id = ev.id
+                LEFT JOIN locations l ON a.location_id = l.id -- ADDED: Join locations
+                WHERE a.unique_id = ?
+                ORDER BY a.created_at DESC
+            ";
+            return $this->fetchAll($sql, [$uniqueId]);
+        } catch (Exception $e) {
+            error_log("Attendance getByUniqueId error: " . $e->getMessage());
+            return [];
+        }
+    }
     public function updateAttendance($id, $data) {
         try {
             return $this->update('attendance', $data, 'id = ?', [$id]);

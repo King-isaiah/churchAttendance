@@ -214,81 +214,68 @@ class UserAttendanceHistory {
             const status = document.getElementById('statusFilter')?.value || 'all';
             const unique_id = this.getCurrentUserId();
 
-            const jsonData = {
-                year: year,
-                month: month,
-                status: status,               
-                unique_id: unique_id,               
-            };
+            // Changed endpoint to use the Attendance class instead of the broken Report class
+            const url = `../class/ApiHandler.php?action=getOthers&entity=attendance_history&unique_id=${unique_id}`;
             
-            console.log('Fetching attendance data:', jsonData);
+            console.log('Fetching attendance data from:', url);
     
-            const url = '../class/ApiHandler.php?action=special&entity=reports';
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonData)
-            });
+            const response = await fetch(url, { method: 'GET' });
             
-            const result = await response.json();
+            // Read as text first to prevent JSON parse crash if PHP outputs HTML
+            const text = await response.text();
+            let result;
+
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                console.error('PHP Error Output (HTML detected instead of JSON):', text);
+                throw new Error('API returned HTML. Check console for PHP errors.');
+            }
             
             if (result.success && Array.isArray(result.data)) {
-                return this.transformApiData(result.data);
+                return this.transformApiData(result.data, month, year, status);
             } else {
                 console.error('API returned error:', result.message);
-                
+                return []; // Return empty array to prevent "not iterable" error
             }
         } 
         catch (error) {
             console.error('Error loading attendance data:', error);
-           
+            return []; // Return empty array to prevent "not iterable" error
         }
     }
 
-    transformApiData(apiData) {
-    const individualRecords = [];
-    
-    apiData.forEach((group, index) => {
-        const baseDate    = group.date || group.created_at;
-        const activityName = group.activity_or_event_name || 'Unknown';
-        const location     = group.location_name || 'Unknown';
-        const category     = group.attendance_category || 'activity';
-        const rate         = group.attendance_rate || 0;
-        const checkIn      = group.check_in_time || '';
+    transformApiData(apiData, filterMonth, filterYear, filterStatus) {
+        // Map flat records from the database directly
+        let records = apiData.map(record => {
+            return {
+                id: record.id,
+                date: record.created_at,
+                activity_name: record.activity_or_event_name || 'Unknown',
+                location: record.location_name || 'Unknown',
+                category: record.attendance_category || 'activity',
+                status: record.status ? record.status.toLowerCase() : 'present',
+                check_in_time: record.check_in_time || '',
+                // Assign arbitrary rates based on status since we are dealing with raw records now
+                attendance_rate: record.status === 'present' ? 100 : (record.status === 'late' ? 50 : 0)
+            };
+        });
 
-        // -------- PRESENT rows --------
-        for (let i = 0; i < (group.present_count || 0); i++) {
-            individualRecords.push({
-                id: `${baseDate}_${activityName}_present_${index}_${i}`,
-                date: baseDate,
-                activity_name: activityName,
-                location: location,
-                category: category,
-                status: 'present',
-                check_in_time: checkIn,
-                attendance_rate: rate
-            });
-        }
+        // Apply filters on the frontend
+        return records.filter(record => {
+            const recordDate = new Date(record.date);
+            const recordMonth = recordDate.toLocaleString('en-US', { month: 'long' });
+            const recordYear = recordDate.getFullYear().toString();
 
-        // -------- LATE rows --------
-        for (let i = 0; i < (group.late_count || 0); i++) {
-            individualRecords.push({
-                id: `${baseDate}_${activityName}_late_${index}_${i}`,
-                date: baseDate,
-                activity_name: activityName,
-                location: location,
-                category: category,
-                status: 'late',
-                check_in_time: checkIn,
-                attendance_rate: rate
-            });
-        }
-    });
-    
-    return individualRecords;
-}
+            const matchesMonth = filterMonth === 'all' || recordMonth === filterMonth;
+            const matchesYear = filterYear === 'all' || recordYear === filterYear;
+            const matchesStatus = filterStatus === 'all' || record.status === filterStatus;
+
+            return matchesMonth && matchesYear && matchesStatus;
+        });
+    }
+
+   
 
     getCurrentUserId() {
         // Try different methods to get the user's unique_id
