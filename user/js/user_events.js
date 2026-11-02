@@ -72,7 +72,8 @@ class UserEvents {
 
     async fetchEvents() {       
         try {
-            const response = await fetch('../class/ApiHandler.php?entity=events&action=getAll');
+            // FIXED: Pointing to the new user-specific endpoint
+            const response = await fetch('../class/ApiHandler.php?entity=events_user&action=getAll');
         
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -81,44 +82,39 @@ class UserEvents {
             const data = await response.json();
     
             if (!data.success) {
-                showError('something is wrong here ')
-                throw new Error('API request failed');                
+                throw new Error(data.message || 'API request failed');                
             }
+            
             if (data.success) {
-                // showSuccess('in succesfully ')
                 const rawEvents = data.data || [];
                
                 const filteredEvents = rawEvents.filter(events => 
                     events.status !== 'Cancelled'
                 );
                 
-              
                 const transformedEvents = filteredEvents.map(events => ({
                     id: events.id || 0,
                     title: events.title || 'Unnamed Activity',
                     description: events.description || 'No description available',                    
-                    type: events.category || 'general',                  
+                    type: events.category || 'general',   
+                    type_id: events.category_id || 0, // Used for filtering
                     date: events.event_date || 'No date given',
                     time: events.event_time || '00:00',
-                    location: events.location || 'Unknown Location',
-                    color: events.color || 'green',
-                    // attendance_method: events.code || 'manual',
-                    // status: events.status || 'active',               
-                                   
+                    location: events.location_name || 'Unknown Location', // FIXED: Now maps location_name
+                    image: events.image || '', 
+                    color: events.color || 'green',            
                 }));
-                this.fetchCategory()
+                
+                this.fetchCategory();
                 return transformedEvents;
             }
-            
-           
-          
             
         } catch (error) {
             console.error('Error fetching activities:', error);
             throw new Error('Failed to fetch activities: ' + error.message);
         }
-
     }
+
     async fetchCategory() {       
         try {
             const response = await fetch('../class/ApiHandler.php?entity=categories&action=getAll');
@@ -134,49 +130,38 @@ class UserEvents {
             let categories = [];
             
             if (Array.isArray(data)) {
-                // Format 1: Direct array
                 categories = data;
-                // showSuccess(`format1 Found ${categories.length} categories`);
             } else if (data.success && Array.isArray(data.categories)) {
-                // Format 2: Wrapped object
                 categories = data.categories;
-                // showSuccess(`format2 Found ${categories.length} categories`);
             } else if (data.success && data.data) {
-                // Format 3: Alternative wrapper
                 categories = Array.isArray(data.data) ? data.data : [];
-                // showSuccess(`format3 Found ${categories.length} categories`);
             } else {
-                showError('Unexpected API response format');
                 console.error('Unexpected format:', data);
                 categories = [];
             }
             
-            // Create select with categories
-            const filterSelectContainer = document.getElementById('selectEventCategory');
-            if (!filterSelectContainer) {
-                showError('Container not found');
+            // FIXED: Grab the existing select element instead of replacing it
+            const selectElement = document.getElementById('eventTypeFilter');
+            if (!selectElement) {
+                console.error('Container not found');
                 return;
             }
             
-            const selectHTML = `
-                
-                <select id="eventTypeFilter">
-                    <option value="all">All Categories</option>
-                    ${categories.map(category => `
-                        <option value="${category.id}">
-                            ${category.categories}
-                        </option>
-                    `).join('')}
-                </select>
+            // FIXED: Only update the innerHTML to keep the 'change' event listener alive
+            selectElement.innerHTML = `
+                <option value="all">All Categories</option>
+                ${categories.map(category => `
+                    <option value="${category.id}">
+                        ${category.categories}
+                    </option>
+                `).join('')}
             `;
-            
-            filterSelectContainer.innerHTML = selectHTML;
             
         } catch (error) {
             console.error('Error fetching categories:', error);
-            showError('Failed to load categories: ' + error.message);
         }
     }
+
     showEventDetails(event) {
         const modal = document.getElementById('eventDetailsModal');
         const content = document.getElementById('eventDetailsContent');
@@ -268,25 +253,28 @@ class UserEvents {
     filterEvents() {
         const typeFilter = document.getElementById('eventTypeFilter').value;
         const timeFrameFilter = document.getElementById('timeFrameFilter').value;
-        const currentDate = new Date();
+        
+        // Normalize today's date to midnight for accurate comparison
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         this.filteredEvents = this.events.filter(event => {
-            const eventDate = new Date(event.date);
-            const matchesType = typeFilter === 'all' || event.type === typeFilter;
+            // Normalize event date to midnight
+            const eventDate = new Date(event.date + 'T00:00:00'); 
+            
+            // Use type_id to match the select dropdown (which uses category ID as value)
+            const matchesType = typeFilter === 'all' || String(event.type_id) === String(typeFilter);
             
             let matchesTimeFrame = true;
             switch (timeFrameFilter) {
-                case 'upcoming':
-                    matchesTimeFrame = eventDate >= currentDate;
-                    break;
                 case 'this-month':
-                    matchesTimeFrame = eventDate.getMonth() === currentDate.getMonth() && 
-                                      eventDate.getFullYear() === currentDate.getFullYear();
+                    matchesTimeFrame = eventDate.getMonth() === today.getMonth() && 
+                                      eventDate.getFullYear() === today.getFullYear();
                     break;
                 case 'next-month':
-                    const nextMonth = currentDate.getMonth() + 1;
-                    const nextMonthYear = nextMonth > 11 ? currentDate.getFullYear() + 1 : currentDate.getFullYear();
-                    matchesTimeFrame = eventDate.getMonth() === nextMonth % 12 && 
+                    const nextMonth = today.getMonth() + 1;
+                    const nextMonthYear = nextMonth > 11 ? today.getFullYear() + 1 : today.getFullYear();
+                    matchesTimeFrame = eventDate.getMonth() === (nextMonth % 12) && 
                                       eventDate.getFullYear() === nextMonthYear;
                     break;
                 case 'all':
@@ -591,8 +579,6 @@ class UserEvents {
             }, 500);
         });
     }
-
-    
 
     closeModal(modal) {
         modal.style.display = 'none';

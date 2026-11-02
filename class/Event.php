@@ -91,7 +91,76 @@ class Event extends Database {
             throw new Exception("Unable to retrieve event information");
         }
     }
-    
+    public function getUserEvents() {
+        try {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            // If no user is logged in, return empty
+            if (!isset($_SESSION['unique_id'])) {
+                return [];
+            }
+
+            // 1. Get the user's department(s)
+            $userSql = "SELECT department_id FROM members WHERE unique_id = ?";
+            $user = $this->fetchOne($userSql, [$_SESSION['unique_id']]);
+            if (!$user || empty($user['department_id'])) {
+                return [];
+            }
+
+            // 2. Parse departments
+            $userDeptIds = [];
+            if (strpos($user['department_id'], '[') === 0) {
+                $userDeptIds = json_decode($user['department_id'], true) ?: [];
+            } else {
+                $userDeptIds = [$user['department_id']];
+            }
+
+            // 3. Build the department conditions (matches user's depts OR "all")
+            $deptConditions = [];
+            $params = [];
+            
+            foreach ($userDeptIds as $deptId) {
+                $deptConditions[] = "(
+                    e.department_id = ? 
+                    OR (JSON_VALID(e.department_id) AND JSON_CONTAINS(e.department_id, ?)) 
+                    OR (JSON_VALID(e.department_id) AND JSON_CONTAINS(e.department_id, ?))
+                )";
+                $params[] = (string)$deptId;             
+                $params[] = (string)$deptId;             
+                $params[] = '"' . $deptId . '"';         
+            }
+            
+            // Add "All" conditions (catching all variations including 0 and [all])
+            $deptConditions[] = "(
+                e.department_id = 'all' 
+                OR e.department_id = '[all]' 
+                OR e.department_id = '[\"all\"]' 
+                OR e.department_id = '\"all\"' 
+                OR e.department_id = '0'
+                OR (JSON_VALID(e.department_id) AND JSON_CONTAINS(e.department_id, '\"all\"'))
+            )";
+            
+            $deptSql = '(' . implode(' OR ', $deptConditions) . ')';
+
+            // 4. Fetch events, join locations for the name, and join categories for the filter
+            $sql = "SELECT e.*, 
+                           l.name AS location_name, 
+                           c.categories AS category, 
+                           c.id AS category_id
+                    FROM events e 
+                    LEFT JOIN locations l ON e.location_id = l.id 
+                    LEFT JOIN categories c ON e.category_id = c.id
+                    WHERE $deptSql
+                    ORDER BY e.event_date DESC, e.event_time DESC";
+
+            return $this->fetchAll($sql, $params);
+
+        } catch (Exception $e) {
+            error_log("Event getUserEvents error: " . $e->getMessage());
+            return [];
+        }
+    }
     
     public function getLocationEventsWithLocationCoordinate() {
         try {  

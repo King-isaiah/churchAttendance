@@ -10,10 +10,6 @@
 </head>
 <body>
     <?php include_once "include/user_header.php"; ?>
-    
-    <?php
-    
-    ?>
 
     <div class="center-div">           
         <div class="events-page">
@@ -29,72 +25,23 @@
             <div class="event-filters">
                 <div class="filter-group" id="selectEventCategory">
                     <select id="eventTypeFilter">
-                        
+                        <!-- Options populated by JavaScript -->
+                        <option value="all">Loading categories...</option>
                     </select>
                 </div>
                 
                 <div class="filter-group">
                     <select id="timeFrameFilter">
-                        <option value="upcoming">Upcoming Events</option>
+                        <option value="all" selected>All Events</option>
                         <option value="this-month">This Month</option>
                         <option value="next-month">Next Month</option>
-                        <option value="all">All Events</option>
                     </select>
                 </div>
             </div>
 
             <!-- Events Grid -->
             <div class="events-grid">
-                <?php if (!empty($events)): ?>
-                    <?php foreach ($events as $event): ?>
-                        <div class="event-card" data-type="<?php echo $event['type']; ?>">
-                            <div class="event-image">
-                                <img src="images/events/<?php echo $event['image']; ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
-                                <div class="event-date">
-                                    <span class="month"><?php echo date('M', strtotime($event['date'])); ?></span>
-                                    <span class="day"><?php echo date('j', strtotime($event['date'])); ?></span>
-                                </div>
-                            </div>
-                            
-                            <div class="event-content">
-                                <div class="event-header">
-                                    <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                    <span class="event-type type-<?php echo $event['type']; ?>">
-                                        <?php echo ucfirst($event['type']); ?>
-                                    </span>
-                                </div>
-                                
-                                <p class="event-description"><?php echo htmlspecialchars($event['description']); ?></p>
-                                
-                                <div class="event-details">
-                                    <div class="detail-item">
-                                        <i class="fas fa-clock"></i>
-                                        <span><?php echo $event['time']; ?></span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span><?php echo htmlspecialchars($event['location']); ?></span>
-                                    </div>
-                                </div>
-                                
-                                <div class="event-actions">
-                                    <button class="btn-primary" onclick="userEvents.rsvpToEvent(<?php echo $event['id']; ?>)">
-                                        <i class="fas fa-calendar-plus"></i> RSVP
-                                    </button>
-                                    <button class="btn-outline" onclick="userEvents.viewEventDetails(<?php echo $event['id']; ?>)">
-                                        <i class="fas fa-info-circle"></i> Details
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="no-events">
-                        <i class="fas fa-calendar-times"></i>
-                        <h3>No Upcoming Events</h3>
-                        <p>Check back later for new events!</p>
-                    </div>
-                <?php endif; ?>
+                
             </div>
 
             <!-- Calendar View Toggle -->
@@ -150,7 +97,8 @@
                     
                     <div class="form-group">
                         <input type="hidden" id="event_id">
-                        <input type="hidden" id="unique_id" value="<?php echo $_SESSION['unique_id'] ?>">
+                        <!-- Added isset check to prevent PHP warnings if session is not set -->
+                        <input type="hidden" id="unique_id" value="<?php echo isset($_SESSION['unique_id']) ? $_SESSION['unique_id'] : ''; ?>">
                         <label>Will you be attending?</label>
                         <div class="rsvp-options">
                             <label class="rsvp-option">

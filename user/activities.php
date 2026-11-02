@@ -2,7 +2,7 @@
     include_once "include/user_header.php";
    
 
-    $categories = ['All', 'Worship', 'Education', 'Social', 'Spiritual'];
+    
 ?>
 
 
