@@ -192,7 +192,7 @@
         //         ], 500);
         //     }
         // }
-                private function getOthers() {
+        private function getOthers() {
             $entityClass = $this->getEntityClass();
             if (!$entityClass) {
                 $this->sendResponse([
@@ -214,7 +214,7 @@
                     'events' => 'getLocationEventsWithLocationCoordinate',
                     'rsvp' => 'getRSVPByEvent',
                     'rsvp_trend' => 'getRSVPTrendByEvent',
-                    // ADD THESE TWO LINES:
+                    'activities_user' => 'getUserActivities',
                     'testimonies_user' => 'getUserTestimonies',
                     'testimonies_stats' => 'getTestimonyStats',
                 ];
@@ -425,6 +425,7 @@
                 'testimonies' => 'createTestimony',
                 'activity_qr_codes' => 'generateQRCode',
                 'reports' => 'exportToCSV',
+                'rsvp'=>'saveRSVP',
                 'notifications' => 'createNotification',
             ];
             $method = $methodMap[$this->entity] ?? 'create';
@@ -925,11 +926,12 @@
                 'speakers' => 'Speaker',
                 'events' => 'Event',
                 'testimonies' => 'Testimony',
-                 'testimonies_user' => 'Testimony',
+                'testimonies_user' => 'Testimony',
                 'testimonies_stats' => 'Testimony',
                 'members' => 'Member',
                 'attendance' => 'Attendance',
                 'activities' => 'Activity',
+                'activities_user' => 'Activity',
                 'attendance_methods' => 'AttendanceMethod',
                 'statuses' => 'Status',
                 'reports' => 'Report',

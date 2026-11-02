@@ -16,58 +16,6 @@
     </head>
 
 
-    <!-- <div class="activities-page">
-        <div class="page-header">
-            <h2>Church Activities</h2>
-            <p>Find and join upcoming activities</p>
-        </div>
-
-        <div class="filters-bar">
-            <div class="search-box">
-                <input type="text" placeholder="Search activities..." id="activitySearch">
-            </div>
-            
-            <div class="filter-group">
-                <select id="categoryFilter">
-                    <option value="all">All Categories</option>
-                    <?php foreach($categories as $category): ?>
-                        <?php if($category != 'All'): ?>
-                        <option value="<?php echo strtolower($category); ?>"><?php echo $category; ?></option>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <select id="statusFilter">
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="upcoming">Upcoming</option>
-                </select>
-            </div>
-        </div>
-        
-       
-        <div class="activities-grid">
-            
-            <div id="loading-activities" class="loading-state">
-                <div class="spinner"></div>
-                <p>Loading activities...</p>
-            </div>
-
-           
-            <div id="activities-container">
-               
-            </div>
-
-         
-            <div id="no-activities" class="no-activities" style="display: none;">
-                <i class="fas fa-calendar-times"></i>
-                <h3>No Activities Found</h3>
-                <p>There are no activities scheduled at the moment.</p>
-            </div>
-        </div>
-    </div> -->
      
 
     <div class="activities-page">

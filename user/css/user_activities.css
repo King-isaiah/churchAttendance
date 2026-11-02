@@ -331,3 +331,111 @@
         margin-left: 0;
     }
 }
+/* --- Modern Modal Beautification --- */
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    padding: 20px 25px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modern-activity-details .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modern-activity-details h4 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #0d6efd;
+    font-weight: 700;
+}
+
+.modern-activity-details .status-badge {
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.modern-activity-details .detail-desc {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #0d6efd;
+}
+
+.details-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.detail-item-modern {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.detail-item-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.detail-item-modern i {
+    color: #0d6efd;
+    font-size: 1.2rem;
+    margin-top: 3px;
+}
+
+.detail-item-modern div {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item-modern small {
+    color: #888;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+}
+
+.detail-item-modern span {
+    color: #333;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 500px) {
+    .details-grid-modern {
+        grid-template-columns: 1fr;
+    }
+}

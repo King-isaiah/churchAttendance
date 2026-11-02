@@ -13,8 +13,6 @@
     
     <?php
     
-
-    $eventTypes = ['all', 'worship', 'social', 'educational', 'outreach'];
     ?>
 
     <div class="center-div">           
@@ -31,11 +29,7 @@
             <div class="event-filters">
                 <div class="filter-group" id="selectEventCategory">
                     <select id="eventTypeFilter">
-                        <!-- <option value="all">All Event Types</option>
-                        <option value="worship">Worship</option>
-                        <option value="social">Social</option>
-                        <option value="educational">Educational</option>
-                        <option value="outreach">Outreach</option> -->
+                        
                     </select>
                 </div>
                 

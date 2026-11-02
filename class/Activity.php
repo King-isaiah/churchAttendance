@@ -97,6 +97,68 @@ class Activity extends Database {
         }
     }
     
+        // USER-SPECIFIC: Fetch activities for logged-in user based on their departments
+    public function getUserActivities() {
+        try {  
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
+            if (!isset($_SESSION['unique_id'])) {
+                return [];
+            }
+
+            // 1. Get the user's FULL department list from the database
+            $userSql = "SELECT department_id FROM members WHERE unique_id = ?";
+            $user = $this->fetchOne($userSql, [$_SESSION['unique_id']]);
+
+            if (!$user || empty($user['department_id'])) {
+                return [];
+            }
+
+            // 2. Parse the user's department IDs into an array
+            $userDeptIds = [];
+            if (strpos($user['department_id'], '[') === 0) {
+                $userDeptIds = json_decode($user['department_id'], true) ?: [];
+            } else {
+                $userDeptIds = [$user['department_id']];
+            }
+
+            // 3. Prepare the dynamic OR conditions for JSON_CONTAINS
+            $deptConditions = [];
+            $params = [];
+
+            foreach ($userDeptIds as $deptId) {
+                $deptConditions[] = "JSON_CONTAINS(activities.department_id, ?)";
+                $params[] = '"' . $deptId . '"';
+            }
+            // Also check if the activity is for "all"
+            $deptConditions[] = "JSON_CONTAINS(activities.department_id, '\"all\"')";
+            $deptSql = '(' . implode(' OR ', $deptConditions) . ')';
+
+            // 4. Final SQL query (Only Status 1 and 2)
+            $sql = "SELECT activities.*, 
+                           locations.name AS location, 
+                           attendance_methods.code AS code, 
+                           statuses.name AS status,
+                           categories.categories AS category 
+                    FROM activities 
+                    LEFT JOIN attendance_methods ON activities.attendance_method_id = attendance_methods.id 
+                    LEFT JOIN statuses ON activities.status_id = statuses.id 
+                    LEFT JOIN locations ON activities.location_id = locations.id 
+                    LEFT JOIN categories ON activities.category_id = categories.id
+                    WHERE activities.deleted IS NULL 
+                    AND activities.status_id IN (1, 2)
+                    AND $deptSql
+                    ORDER BY activities.dayofactivity DESC, activities.time DESC";
+
+            return $this->fetchAll($sql, $params);
+
+        } catch (Exception $e) {
+            error_log("Activity getUserActivities error: " . $e->getMessage());
+            return [];
+        }
+    }
     public function getActivity($id) {
         try {
             // Get activity with department names using JSON functions

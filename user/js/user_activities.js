@@ -120,62 +120,12 @@ class UserActivities {
             this.showLoading(false);
         }
     }
-
-
-    async fetchActivities() {       
-        try {
-            const response = await fetch('../class/ApiHandler.php?entity=activities&action=getAll');
-        
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-    
-            if (!data.success) {
-                throw new Error('API request failed');
-            }
-            if (data.success) {
-                const rawActivities = data.data || [];
-               
-                const filteredActivities = rawActivities.filter(activity => 
-                    activity.status !== 'Cancelled'
-                );
-                
-              
-                const transformedActivities = filteredActivities.map(activity => ({
-                    id: activity.id || 0,
-                    name: activity.activity || 'Unnamed Activity',
-                    description: activity.description || 'No description available',                    
-                    category: activity.category || 'general',                  
-                    dayofactivity: activity.dayofactivity || 'No date given',
-                    time: activity.time || '00:00',
-                    location: activity.location || 'Unknown Location',
-                    attendance_method: activity.code || 'manual',
-                    status: activity.status || 'active',               
-                    color: activity.color || 'green',               
-                }));
-                
-                return transformedActivities;
-            }
-            
-           
-          
-            
-        } catch (error) {
-            console.error('Error fetching activities:', error);
-            throw new Error('Failed to fetch activities: ' + error.message);
-        }
-    }
-    
-    
-    
     
 
     filterActivities() {
         const searchTerm = document.getElementById('activitySearch').value.toLowerCase();
-        const categoryFilter = document.getElementById('categoryFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
+        const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
 
         this.filteredActivities = this.activities.filter(activity => {
             const matchesSearch = !searchTerm || 
@@ -183,11 +133,13 @@ class UserActivities {
                 activity.description.toLowerCase().includes(searchTerm) ||
                 activity.location.toLowerCase().includes(searchTerm);
 
+            // FIXED: Convert to lowercase for a case-insensitive match
             const matchesCategory = categoryFilter === 'all' || 
-                activity.category === categoryFilter;
+                activity.category.toLowerCase() === categoryFilter;
 
+            // FIXED: Convert to lowercase for a case-insensitive match
             const matchesStatus = statusFilter === 'all' || 
-                activity.status === statusFilter;
+                activity.status.toLowerCase() === statusFilter;
 
             return matchesSearch && matchesCategory && matchesStatus;
         });
@@ -373,43 +325,103 @@ class UserActivities {
         
     }
 
+    async fetchActivities() {       
+        try {
+            // FIXED: Points to the new user-specific endpoint
+            const response = await fetch('../class/ApiHandler.php?entity=activities_user&action=getOthers');
+        
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+    
+            if (!data.success) {
+                throw new Error('API request failed');
+            }
+            
+            const rawActivities = data.data || [];
+            
+            // FIXED: Removed 'Cancelled' check since backend already filters for 1 and 2
+            const transformedActivities = rawActivities.map(activity => ({
+                id: activity.id || 0,
+                name: activity.name || 'Unnamed Activity', 
+                description: activity.description || 'No description available',                    
+                category: activity.category || 'general',                  
+                dayofactivity: activity.dayofactivity || 'No day given',
+                time: activity.time || '00:00',
+                location: activity.location || 'Unknown Location',
+                attendance_method: activity.code || 'manual',
+                status: activity.status || 'Active',               
+                color: activity.status === 'Active' ? 'green' : 'orange',               
+            }));
+            
+            return transformedActivities;
+            
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            throw new Error('Failed to fetch activities: ' + error.message);
+        }
+    }
+
     showActivityDetails(activity) {
         const modal = document.getElementById('activityDetailsModal');
         const content = document.getElementById('activityDetailsContent');
         
+        // FIXED: Removed 'Invalid Date' formatting and used dayofactivity
         content.innerHTML = `
-            <div class="activity-details-content">
-                <h4>${this.escapeHtml(activity.name)}</h4>
-                <p class="activity-description">${this.escapeHtml(activity.description)}</p>
+            <div class="modern-activity-details">
+                <div class="detail-header">
+                    <h4>${this.escapeHtml(activity.name)}</h4>
+                    <span class="status-badge" style="background: ${activity.status === 'Active' ? '#28a745' : '#ffc107'}; color: white;">
+                        ${this.capitalizeFirst(activity.status)}
+                    </span>
+                </div>
                 
-                <div class="details-grid">
-                    <div class="detail-row">
-                        <strong>Category:</strong>
-                        <span>${this.escapeHtml(activity.category)}</span>
+                <p class="detail-desc">${this.escapeHtml(activity.description)}</p>
+                
+                <div class="details-grid-modern">
+                    <div class="detail-item-modern">
+                        <i class="fas fa-tag"></i>
+                        <div>
+                            <small>Category</small>
+                            <span>${this.escapeHtml(activity.category)}</span>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <strong>Date:</strong>
-                        <span>${this.formatDate(activity.date, 'D, M j, Y')}</span>
+                    <div class="detail-item-modern">
+                        <i class="fas fa-calendar-day"></i>
+                        <div>
+                            <small>Day</small>
+                            <span>${this.escapeHtml(activity.dayofactivity)}</span>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <strong>Time:</strong>
-                        <span>${activity.time}</span>
+                    <div class="detail-item-modern">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <small>Time</small>
+                            <span>${activity.time}</span>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <strong>Location:</strong>
-                        <span>${this.escapeHtml(activity.location)}</span>
+                    <div class="detail-item-modern">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <small>Location</small>
+                            <span>${this.escapeHtml(activity.location)}</span>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <strong>Expected Attendance:</strong>
-                        <span>${activity.expected_count} people</span>
+                    <div class="detail-item-modern">
+                        <i class="fas fa-users"></i>
+                        <div>
+                            <small>Expected Attendance</small>
+                            <span>${activity.expected_count || 'N/A'} people</span>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <strong>Target Audience:</strong>
-                        <span>${this.escapeHtml(activity.target_audience)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Attendance Method:</strong>
-                        <span>${this.escapeHtml(activity.attendance_method)}</span>
+                    <div class="detail-item-modern">
+                        <i class="fas fa-qrcode"></i>
+                        <div>
+                            <small>Attendance Method</small>
+                            <span>${this.capitalizeFirst(activity.attendance_method.replace('_', ' '))}</span>
+                        </div>
                     </div>
                 </div>
             </div>
