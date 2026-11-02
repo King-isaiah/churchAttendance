@@ -17,6 +17,7 @@
     padding: 0;    
     box-sizing: border-box;
 }
+
 :root{
     --primary:#e6ffde;
     --light-primary:#03403f;

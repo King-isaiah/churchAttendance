@@ -284,3 +284,66 @@
     font-size: 0.85rem;
     display: inline-block;
 }
+
+/* --- Professional Pagination Styles --- */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4b5563; /* Dark gray text */
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb; /* Light gray border */
+    border-radius: 8px; /* Rounded corners */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.pagination-btn:hover:not(.active):not(.disabled) {
+    background-color: #f3f4f6; /* Light gray on hover */
+    border-color: #d1d5db;
+    color: #111827; /* Darker text on hover */
+}
+
+.pagination-btn.active {
+    background-color: #8786e3; /* Use your theme color (purple/blue) */
+    border-color: #8786e3;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(135, 134, 227, 0.4);
+    cursor: default;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f9fafb;
+    box-shadow: none;
+}
+
+/* Adjust spacing for Previous/Next text and icons */
+.pagination-btn i {
+    font-size: 0.8rem;
+}
+
+.pagination-btn i.fa-chevron-left {
+    margin-right: 0.5rem;
+}
+
+.pagination-btn i.fa-chevron-right {
+    margin-left: 0.5rem;
+}
