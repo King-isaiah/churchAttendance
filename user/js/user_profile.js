@@ -12,33 +12,7 @@ class UserProfile {
         this.loadDepartments();
     }
 
-async loadDepartments() {
-    try {
-        const url = `../class/ApiHandler.php?action=getAll&entity=departments`;
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            this.populateDepartmentDropdown(result.data);
-        } else {
-            console.error('Failed to load departments:', result.message);
-            this.showMessage(result.message || 'Failed to load departments', 'error');
-        }
-    } catch (error) {
-        console.error('Error loading departments:', error);
-        this.showMessage('Error loading departments. Please try again.', 'error');
-    }
-}
+
 
 populateDepartmentDropdown(departments) {
     const departmentSelect = document.querySelector('select[name="department_id"]');
@@ -119,6 +93,39 @@ populateDepartmentDropdown(departments) {
         
     }
 
+   
+
+    async loadDepartments() {
+        try {
+            const url = `../class/ApiHandler.php?action=getAll&entity=departments`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            // Read as text first to prevent JSON crash
+            const text = await response.text();
+            let result;
+
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                console.error('🚨 PHP Error Output (HTML detected instead of JSON):', text);
+                throw new Error('API returned HTML. Check console for PHP errors.');
+            }
+            
+            if (result.success && result.data) {
+                this.populateDepartmentDropdown(result.data);
+            } else {
+                console.error('Failed to load departments:', result.message);
+                this.showMessage(result.message || 'Failed to load departments', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading departments:', error);
+            this.showMessage('Error loading departments. Please try again.', 'error');
+        }
+    }
+
     async loadProfileData() {
         try {
             const profileData = await this.fetchProfileData();
@@ -134,11 +141,21 @@ populateDepartmentDropdown(departments) {
 
     async fetchProfileData() {
         try {           
-            let unique_id = this.uniqueId
-            const response = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${unique_id}`);           
-            const result = await response.json();
+            let unique_id = this.uniqueId;
+            const response = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${unique_id}`);
+            
+            // Read as text first to prevent JSON crash
+            const text = await response.text();
+            let result;
+            
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                console.error('🚨 PHP Error Output (HTML detected instead of JSON):', text);
+                throw new Error('API returned HTML. Check console for PHP errors.');
+            }
+
             if (result.success && result.data) {
-                // showSuccess('we in fm')
                 const userData = result.data;
                 return {
                     first_name: userData.first_name || '',
