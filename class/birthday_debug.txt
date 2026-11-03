@@ -11,3 +11,12 @@ ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable 
 Broadcast notification created for young j Masayuki.
 Personal notification created for young j Masayuki.
 ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable to get local issuer certificate
+
+[2026-11-03 18:11:03] Script started. Looking for: 11-03
+Found 2 member(s) with this birthday.
+Broadcast notification created for Eshiozemhe Afuwape.
+Personal notification created for Eshiozemhe Afuwape.
+ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable to get local issuer certificate
+Broadcast notification created for young j Masayuki.
+Personal notification created for young j Masayuki.
+ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable to get local issuer certificate

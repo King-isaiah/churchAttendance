@@ -381,48 +381,99 @@ class Member extends Database {
     }
     
     
-private function validateMemberData($data, $isUpdate = false) {
-    $required = ['first_name', 'last_name', 'email'];
+// private function validateMemberData($data, $isUpdate = false) {
+//     $required = ['first_name', 'last_name', 'email'];
     
-    // 1. Check Required
-    foreach ($required as $field) {
-        if (empty($data[$field])) {
-            throw new Exception("$field is required", 400);
-        }
-    }
+//     // 1. Check Required
+//     foreach ($required as $field) {
+//         if (empty($data[$field])) {
+//             throw new Exception("$field is required", 400);
+//         }
+//     }
     
-    if (isset($data['email'])) {
-        // 2. Check Format
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Invalid email format", 400);
-        }
+//     if (isset($data['email'])) {
+//         // 2. Check Format
+//         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+//             throw new Exception("Invalid email format", 400);
+//         }
 
-        // 3. Check Length (Moved UP to prevent long-string DNS lookups)
-        if (strlen($data['email']) > 255) {
-            throw new Exception("Email is too long", 400);
+//         // 3. Check Length (Moved UP to prevent long-string DNS lookups)
+//         if (strlen($data['email']) > 255) {
+//             throw new Exception("Email is too long", 400);
+//         }
+        
+//         // 4. Check for duplicate email
+//         $existingId = $isUpdate ? ($data['id'] ?? null) : null;
+//         if ($this->valueExists('members', 'email', $data['email'], $existingId)) {
+//             throw new Exception("A member with this email already exists", 409);
+//         }
+
+        
+//         // 5. Level 3: Check DNS Records (MX ONLY)
+//         $domain = substr(strrchr($data['email'], "@"), 1);
+//         if (!checkdnsrr($domain, 'MX')) {
+//             throw new Exception("The email domain '$domain' does not have a valid mail server (MX record).", 400);
+//         }
+//     }
+    
+//     // Validate string lengths for names
+//     if (isset($data['first_name']) && strlen($data['first_name']) > 100) {
+//         throw new Exception("First name is too long", 400);
+//     }
+    
+//     if (isset($data['last_name']) && strlen($data['last_name']) > 100) {
+//         throw new Exception("Last name is too long", 400);
+//     }
+// }
+    private function validateMemberData($data, $isUpdate = false) {
+        $required = ['first_name', 'last_name', 'email'];
+        
+        // 1. Check Required
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                throw new Exception("$field is required", 400);
+            }
         }
         
-        // 4. Check for duplicate email
-        $existingId = $isUpdate ? ($data['id'] ?? null) : null;
-        if ($this->valueExists('members', 'email', $data['email'], $existingId)) {
-            throw new Exception("A member with this email already exists", 409);
+        if (isset($data['email'])) {
+            // 2. Check Format
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Invalid email format", 400);
+            }
+
+            // 3. Check Length (Moved UP to prevent long-string DNS lookups)
+            if (strlen($data['email']) > 255) {
+                throw new Exception("Email is too long", 400);
+            }
+            
+            // 4. Check for duplicate email
+            $existingId = $isUpdate ? ($data['id'] ?? null) : null;
+            if ($this->valueExists('members', 'email', $data['email'], $existingId)) {
+                throw new Exception("A member with this email already exists", 409);
+            }
+
+            // 5. Level 3: Check DNS Records (MX ONLY)
+            $domain = substr(strrchr($data['email'], "@"), 1);
+            if (!checkdnsrr($domain, 'MX')) {
+                throw new Exception("The email domain '$domain' does not have a valid mail server (MX record).", 400);
+            }
+        }
+        
+        // Validate string lengths for names
+        if (isset($data['first_name']) && strlen($data['first_name']) > 100) {
+            throw new Exception("First name is too long", 400);
+        }
+        
+        if (isset($data['last_name']) && strlen($data['last_name']) > 100) {
+            throw new Exception("Last name is too long", 400);
         }
 
-        
-        // 5. Level 3: Check DNS Records (MX ONLY)
-        $domain = substr(strrchr($data['email'], "@"), 1);
-        if (!checkdnsrr($domain, 'MX')) {
-            throw new Exception("The email domain '$domain' does not have a valid mail server (MX record).", 400);
+        // --- ADDED: VALIDATION FOR BIRTH MONTH AND DAY ---
+        if (isset($data['birth_month_day']) && !empty($data['birth_month_day'])) {
+            // Check if it matches MM-DD format (e.g., 01-05, 11-03, 12-25)
+            if (!preg_match('/^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/', $data['birth_month_day'])) {
+                throw new Exception("Invalid birth date format. Must be MM-DD.", 400);
+            }
         }
     }
-    
-    // Validate string lengths for names
-    if (isset($data['first_name']) && strlen($data['first_name']) > 100) {
-        throw new Exception("First name is too long", 400);
-    }
-    
-    if (isset($data['last_name']) && strlen($data['last_name']) > 100) {
-        throw new Exception("Last name is too long", 400);
-    }
-}
 }

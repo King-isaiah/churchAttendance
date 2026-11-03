@@ -154,6 +154,32 @@
                 <input type="tel" id="phone" placeholder=" ">
                 <label for="phone">Phone Number (Optional)</label>
             </div>
+            <!-- Birth Month & Day -->
+            <div class="form-group">
+                <label>Birthday (Month and Day)</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="birth_month" name="birth_month" required style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                        <option value="" disabled selected>Month</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    
+                    <select id="birth_day" name="birth_day" required style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                        <option value="" disabled selected>Day</option>
+                        <!-- We will populate days 1 to 31 using JavaScript below -->
+                    </select>
+                </div>
+            </div>
             <div class="field">
                 <select id="department_id" required>
                     <option value="" disabled selected>Select Department</option>
@@ -288,7 +314,42 @@
             submitBtn.textContent = 'Register';
         }
     });
+    // 1. Populate the Day dropdown
+document.addEventListener('DOMContentLoaded', () => {
+    const daySelect = document.getElementById('birth_day');
+    if (daySelect) {
+        for (let i = 1; i <= 31; i++) {
+            let day = i.toString().padStart(2, '0'); // Turns '1' into '01'
+            let option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelect.appendChild(option);
+        }
+    }
+});
+
+// 2. Inside your submit/register function:
+// Assuming you are gathering data into an object like this:
+const month = document.getElementById('birth_month').value;
+const day = document.getElementById('birth_day').value;
+
+// Combine them into "MM-DD" format
+const birth_month_day = `${month}-${day}`; 
+
+// Add this to the data object you send to the API
+const payload = {
+    first_name: document.getElementById('first_name').value,
+    last_name: document.getElementById('last_name').value,
+    email: document.getElementById('email').value,
+    phone: document.getElementById('phone').value,
+    password: document.getElementById('password').value,
+    birth_month_day: birth_month_day, // <--- Send the formatted date
+    // ... other fields
+};
+
+// Then proceed with your fetch/AJAX POST request to ApiHandler.php
 })();
+
 </script>
 </body>
 </html>

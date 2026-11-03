@@ -86,7 +86,7 @@ class Auth extends Database {
             'message' => 'Login successful',
             'user' => $user,
             'redirect' => $redirect,
-            'birthday_debug' => $birthdayDebug // <--- SHOWS IN NETWORK TAB
+            'birthday_debug' => $birthdayDebug 
         ];
     }
 
