@@ -60,7 +60,7 @@ class BirthdayNotifier extends Database {
             try {
                 $personalId = $this->insert('notifications', [
                     'title' => "🎂 Happy Birthday, {$member['first_name']}!",
-                    'message' => "We are so glad to have you in our church family. Wishing you a wonderful day!",
+                    'message' => "Hey Hubbers today's {$member['first_name']}. Let us send our warm regards and prayers. Wishing {$member['first_name']} a wonderful day!",
                     'notification_type' => 'system', 
                     'department_id' => null, 
                     'target_unique_id' => $memberUniqueId, 
