@@ -1,0 +1,32 @@
+
+[2026-11-03 12:26:03] --- STARTING INTEGRITY CHECK ---
+[2026-11-03 12:26:03] RESTORED TABLE: `statuses` | RESTORED ROW in `statuses`: {"id":1,"name":"Active","color":"#29db53","description":"Currently ongoing activities"} | RESTORED ROW in `statuses`: {"id":2,"name":"Upcoming","color":"#17a2b8","description":"Scheduled future activities"} | RESTORED ROW in `statuses`: {"id":3,"name":"Completed","color":"#6c757d","description":"Finished activities"} | RESTORED ROW in `statuses`: {"id":4,"name":"Cancelled","color":"#dc3545","description":"Cancelled activities"}
+[2026-11-03 12:26:03] ⚠️ ACTIONS TAKEN:
+RESTORED TABLE: `statuses`
+RESTORED ROW in `statuses`: {"id":1,"name":"Active","color":"#29db53","description":"Currently ongoing activities"}
+RESTORED ROW in `statuses`: {"id":2,"name":"Upcoming","color":"#17a2b8","description":"Scheduled future activities"}
+RESTORED ROW in `statuses`: {"id":3,"name":"Completed","color":"#6c757d","description":"Finished activities"}
+RESTORED ROW in `statuses`: {"id":4,"name":"Cancelled","color":"#dc3545","description":"Cancelled activities"}
+
+[2026-11-03 12:26:44] --- STARTING INTEGRITY CHECK ---
+[2026-11-03 12:26:44] RESTORED TABLE: `statuses` | RESTORED ROW in `statuses`: {"id":1,"name":"Active","color":"#29db53","description":"Currently ongoing activities"} | RESTORED ROW in `statuses`: {"id":2,"name":"Upcoming","color":"#17a2b8","description":"Scheduled future activities"} | RESTORED ROW in `statuses`: {"id":3,"name":"Completed","color":"#6c757d","description":"Finished activities"} | RESTORED ROW in `statuses`: {"id":4,"name":"Cancelled","color":"#dc3545","description":"Cancelled activities"}
+[2026-11-03 12:26:44] ⚠️ ACTIONS TAKEN:
+RESTORED TABLE: `statuses`
+RESTORED ROW in `statuses`: {"id":1,"name":"Active","color":"#29db53","description":"Currently ongoing activities"}
+RESTORED ROW in `statuses`: {"id":2,"name":"Upcoming","color":"#17a2b8","description":"Scheduled future activities"}
+RESTORED ROW in `statuses`: {"id":3,"name":"Completed","color":"#6c757d","description":"Finished activities"}
+RESTORED ROW in `statuses`: {"id":4,"name":"Cancelled","color":"#dc3545","description":"Cancelled activities"}
+
+[2026-11-03 12:28:59] --- STARTING INTEGRITY CHECK ---
+[2026-11-03 12:28:59] RESTORED TABLE: `attendance_methods` | RESTORED TABLE: `statuses` | RESTORED ROW in `statuses`: {"id":1,"name":"Active","color":"#29db53","description":"Currently ongoing activities"} | RESTORED ROW in `statuses`: {"id":2,"name":"Upcoming","color":"#17a2b8","description":"Scheduled future activities"} | RESTORED ROW in `statuses`: {"id":3,"name":"Completed","color":"#6c757d","description":"Finished activities"} | RESTORED ROW in `statuses`: {"id":4,"name":"Cancelled","color":"#dc3545","description":"Cancelled activities"} | RESTORED ROW in `attendance_methods`: {"id":1,"name":"QR Code","code":"qr_code","description":"Scan QR code to check in","is_active":"active"} | RESTORED ROW in `attendance_methods`: {"id":2,"name":"Numeric Code","code":"numeric_code","description":"Enter numeric code to check in","is_active":"active"} | RESTORED ROW in `attendance_methods`: {"id":3,"name":"Location","code":"gps","description":"GPS location-based check ins","is_active":"active"} | RESTORED ROW in `attendance_methods`: {"id":4,"name":"NFC\/RFID","code":"nfc","description":"Tap NFC\/RFID card to check in","is_active":"active"}
+[2026-11-03 12:28:59] ⚠️ ACTIONS TAKEN:
+RESTORED TABLE: `attendance_methods`
+RESTORED TABLE: `statuses`
+RESTORED ROW in `statuses`: {"id":1,"name":"Active","color":"#29db53","description":"Currently ongoing activities"}
+RESTORED ROW in `statuses`: {"id":2,"name":"Upcoming","color":"#17a2b8","description":"Scheduled future activities"}
+RESTORED ROW in `statuses`: {"id":3,"name":"Completed","color":"#6c757d","description":"Finished activities"}
+RESTORED ROW in `statuses`: {"id":4,"name":"Cancelled","color":"#dc3545","description":"Cancelled activities"}
+RESTORED ROW in `attendance_methods`: {"id":1,"name":"QR Code","code":"qr_code","description":"Scan QR code to check in","is_active":"active"}
+RESTORED ROW in `attendance_methods`: {"id":2,"name":"Numeric Code","code":"numeric_code","description":"Enter numeric code to check in","is_active":"active"}
+RESTORED ROW in `attendance_methods`: {"id":3,"name":"Location","code":"gps","description":"GPS location-based check ins","is_active":"active"}
+RESTORED ROW in `attendance_methods`: {"id":4,"name":"NFC\/RFID","code":"nfc","description":"Tap NFC\/RFID card to check in","is_active":"active"}

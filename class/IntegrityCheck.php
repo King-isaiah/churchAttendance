@@ -2,10 +2,8 @@
 require_once 'Database.php';
 
 class IntegrityCheck extends Database {
-    // 1. REMOVED private $db; (It inherits it from Database)
     private $log = [];
 
-    // 2. All tables with their exact CREATE TABLE statements from your SQL dump
     private $requiredTables = [
         'activities' => "CREATE TABLE IF NOT EXISTS `activities` (
             `id` int NOT NULL AUTO_INCREMENT,
@@ -221,7 +219,6 @@ class IntegrityCheck extends Database {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;"
     ];
 
-    // 3. Critical rows that must exist
     private $criticalRows = [
         'statuses' => [
             ['column' => 'id', 'value' => 1, 'data' => ['id' => 1, 'name' => 'Active', 'color' => '#29db53', 'description' => 'Currently ongoing activities']],
@@ -256,7 +253,6 @@ class IntegrityCheck extends Database {
         ]
     ];
 
-    // 4. FIXED CONSTRUCTOR: Just call the parent constructor
     public function __construct() {
         parent::__construct();
     }
@@ -275,10 +271,13 @@ class IntegrityCheck extends Database {
     private function checkTables() {
         foreach ($this->requiredTables as $tableName => $createSql) {
             try {
-                // 5. FIXED: Use $this->fetchOne instead of $this->db->fetchOne
-                $result = $this->fetchOne("SHOW TABLES LIKE ?", [$tableName]);
+                // Query information_schema instead of using SHOW TABLES LIKE ?
+                $result = $this->fetchOne(
+                    "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", 
+                    [$tableName]
+                );
+                
                 if (!$result) {
-                    // 6. FIXED: Use $this->executeQuery
                     $this->executeQuery($createSql);
                     $this->log[] = "RESTORED TABLE: `{$tableName}`";
                 }
@@ -296,7 +295,6 @@ class IntegrityCheck extends Database {
                     $value = $row['value'];
                     $insertData = $row['data'];
 
-                    // 7. FIXED: Use $this->fetchOne
                     $existing = $this->fetchOne(
                         "SELECT `{$column}` FROM `{$tableName}` WHERE `{$column}` = ?", 
                         [$value]
@@ -307,7 +305,6 @@ class IntegrityCheck extends Database {
                         $placeholders = array_fill(0, count($columns), '?');
                         $sql = "INSERT INTO `{$tableName}` (`" . implode('`, `', $columns) . "`) VALUES (" . implode(', ', $placeholders) . ")";
                         
-                        // 8. FIXED: Use $this->executeQuery
                         $this->executeQuery($sql, array_values($insertData));
                         $this->log[] = "RESTORED ROW in `{$tableName}`: " . json_encode($insertData);
                     }
@@ -319,7 +316,8 @@ class IntegrityCheck extends Database {
     }
 
     private function writeLog() {
-        $logFile = __DIR__ . '/../integrity_log.txt'; 
+        // Save log in the same folder as this file (class/)
+        $logFile = __DIR__ . '/integrity_log.txt'; 
         $timestamp = date('Y-m-d H:i:s');
         $message = "[{$timestamp}] " . implode(" | ", $this->log) . PHP_EOL;
         file_put_contents($logFile, $message, FILE_APPEND);

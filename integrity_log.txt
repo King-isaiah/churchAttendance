@@ -1,1 +1,47 @@
 [2026-11-03 11:09:41] ERROR checking table `activities`: A database error occurred. Please try again. | ERROR checking table `activity_qr_codes`: A database error occurred. Please try again. | ERROR checking table `attendance`: A database error occurred. Please try again. | ERROR checking table `attendance_methods`: A database error occurred. Please try again. | ERROR checking table `categories`: A database error occurred. Please try again. | ERROR checking table `departments`: A database error occurred. Please try again. | ERROR checking table `email_logs`: A database error occurred. Please try again. | ERROR checking table `events`: A database error occurred. Please try again. | ERROR checking table `locations`: A database error occurred. Please try again. | ERROR checking table `members`: A database error occurred. Please try again. | ERROR checking table `notifications`: A database error occurred. Please try again. | ERROR checking table `rsvp`: A database error occurred. Please try again. | ERROR checking table `speakers`: A database error occurred. Please try again. | ERROR checking table `statuses`: A database error occurred. Please try again. | ERROR checking table `testimonies`: A database error occurred. Please try again.
+[2026-11-03 12:15:22] --- INITIATING ADMIN DATABASE CHECK ---
+[2026-11-03 12:15:23] ERROR checking table `activities`: A database error occurred. Please try again. | ERROR checking table `activity_qr_codes`: A database error occurred. Please try again. | ERROR checking table `attendance`: A database error occurred. Please try again. | ERROR checking table `attendance_methods`: A database error occurred. Please try again. | ERROR checking table `categories`: A database error occurred. Please try again. | ERROR checking table `departments`: A database error occurred. Please try again. | ERROR checking table `email_logs`: A database error occurred. Please try again. | ERROR checking table `events`: A database error occurred. Please try again. | ERROR checking table `locations`: A database error occurred. Please try again. | ERROR checking table `members`: A database error occurred. Please try again. | ERROR checking table `notifications`: A database error occurred. Please try again. | ERROR checking table `rsvp`: A database error occurred. Please try again. | ERROR checking table `speakers`: A database error occurred. Please try again. | ERROR checking table `statuses`: A database error occurred. Please try again. | ERROR checking table `testimonies`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again.
+[2026-11-03 12:15:23] ⚠️ ACTIONS TAKEN:
+ERROR checking table `activities`: A database error occurred. Please try again.
+ERROR checking table `activity_qr_codes`: A database error occurred. Please try again.
+ERROR checking table `attendance`: A database error occurred. Please try again.
+ERROR checking table `attendance_methods`: A database error occurred. Please try again.
+ERROR checking table `categories`: A database error occurred. Please try again.
+ERROR checking table `departments`: A database error occurred. Please try again.
+ERROR checking table `email_logs`: A database error occurred. Please try again.
+ERROR checking table `events`: A database error occurred. Please try again.
+ERROR checking table `locations`: A database error occurred. Please try again.
+ERROR checking table `members`: A database error occurred. Please try again.
+ERROR checking table `notifications`: A database error occurred. Please try again.
+ERROR checking table `rsvp`: A database error occurred. Please try again.
+ERROR checking table `speakers`: A database error occurred. Please try again.
+ERROR checking table `statuses`: A database error occurred. Please try again.
+ERROR checking table `testimonies`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+
+[2026-11-03 12:17:32] --- INITIATING ADMIN DATABASE CHECK ---
+[2026-11-03 12:17:32] ERROR checking table `activities`: A database error occurred. Please try again. | ERROR checking table `activity_qr_codes`: A database error occurred. Please try again. | ERROR checking table `attendance`: A database error occurred. Please try again. | ERROR checking table `attendance_methods`: A database error occurred. Please try again. | ERROR checking table `categories`: A database error occurred. Please try again. | ERROR checking table `departments`: A database error occurred. Please try again. | ERROR checking table `email_logs`: A database error occurred. Please try again. | ERROR checking table `events`: A database error occurred. Please try again. | ERROR checking table `locations`: A database error occurred. Please try again. | ERROR checking table `members`: A database error occurred. Please try again. | ERROR checking table `notifications`: A database error occurred. Please try again. | ERROR checking table `rsvp`: A database error occurred. Please try again. | ERROR checking table `speakers`: A database error occurred. Please try again. | ERROR checking table `statuses`: A database error occurred. Please try again. | ERROR checking table `testimonies`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again. | ERROR checking row in `statuses`: A database error occurred. Please try again.
+[2026-11-03 12:17:32] ⚠️ ACTIONS TAKEN:
+ERROR checking table `activities`: A database error occurred. Please try again.
+ERROR checking table `activity_qr_codes`: A database error occurred. Please try again.
+ERROR checking table `attendance`: A database error occurred. Please try again.
+ERROR checking table `attendance_methods`: A database error occurred. Please try again.
+ERROR checking table `categories`: A database error occurred. Please try again.
+ERROR checking table `departments`: A database error occurred. Please try again.
+ERROR checking table `email_logs`: A database error occurred. Please try again.
+ERROR checking table `events`: A database error occurred. Please try again.
+ERROR checking table `locations`: A database error occurred. Please try again.
+ERROR checking table `members`: A database error occurred. Please try again.
+ERROR checking table `notifications`: A database error occurred. Please try again.
+ERROR checking table `rsvp`: A database error occurred. Please try again.
+ERROR checking table `speakers`: A database error occurred. Please try again.
+ERROR checking table `statuses`: A database error occurred. Please try again.
+ERROR checking table `testimonies`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+ERROR checking row in `statuses`: A database error occurred. Please try again.
+
