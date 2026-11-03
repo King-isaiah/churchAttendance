@@ -73,6 +73,8 @@ class Auth extends Database {
         }
         // =========================================================
 
+           $this->triggerBirthdayCheck();
+
         unset($user['password']);
         $redirect = (strtolower($_SESSION['user_role']) === 'admin') ? 'admin/dashboard.php' : 'user/user_dashboard.php';
         
@@ -182,6 +184,34 @@ class Auth extends Database {
         $this->update('members', ['is_verified' => 1, 'verification_token' => null], 'id = ?', [$user['id']]);
 
         return ['success' => true, 'message' => 'Email verified successfully!'];
+    }
+        /**
+     * Checks if today's birthdays have been processed. If not, runs the notifier.
+     */
+    private function triggerBirthdayCheck() {
+        $lockFile = __DIR__ . '/birthday_check.lock';
+        $today = date('Y-m-d'); // e.g., '2026-11-03'
+        
+        $shouldRun = true;
+        
+        // Check if the lock file exists
+        if (file_exists($lockFile)) {
+            $lastRunDate = file_get_contents($lockFile);
+            // If the file says we already checked today, don't run it again
+            if (trim($lastRunDate) === $today) {
+                $shouldRun = false;
+            }
+        }
+        
+        // Run the check if needed
+        if ($shouldRun) {
+            require_once __DIR__ . '/BirthdayNotifier.php';
+            $notifier = new BirthdayNotifier();
+            $notifier->run();
+            
+            // Update the lock file with today's date
+            file_put_contents($lockFile, $today);
+        }
     }
 }
 ?>
