@@ -12,6 +12,81 @@ class Auth extends Database {
         }
     }
 
+// public function login($data) {
+//     $user_name = $data['user_name'] ?? '';
+//     $password = $data['password'] ?? '';
+
+//     if (empty($user_name) || empty($password)) {
+//         throw new Exception("Username and password are required", 400);
+//     }
+
+//     // Fetch user from members table       
+//     $sql = "SELECT m.*, d.name as department_name,m.department_id AS department_id,m.primary_dept_id as primary_dept_id
+//                 FROM members m LEFT JOIN departments d ON m.primary_dept_id	 = d.id
+//                 WHERE m.user_name = ?";
+//     $user = $this->fetchOne($sql, [$user_name]);
+
+//     if (!$user) {
+//         throw new Exception("Invalid username or password", 401);
+//     }
+
+//     // Verify password (Supports both plain text legacy and hashed passwords)
+//     $isValidPassword = false;
+//     if (password_verify($password, $user['password'])) {
+//         $isValidPassword = true; // Hashed password
+//     } elseif ($password === $user['password']) {
+//         $isValidPassword = true; // Plain text (legacy)
+//     }
+
+//     if (!$isValidPassword) {
+//         throw new Exception("Invalid username or password", 401);
+//     }
+
+//     // Check if user is active
+//     if (isset($user['status']) && $user['status'] === 'inactive') {
+//         throw new Exception("Your account is deactivated. Please contact admin.", 403);
+//     }
+
+//     // --- LEVEL 4 ADDED: Block Unverified Users ---
+//     if (isset($user['is_verified']) && $user['is_verified'] == 0) {
+//         throw new Exception("Your email is not verified. Please check your inbox for the verification code.", 403);
+//     }
+//     // ---------------------------------------------
+
+//     // --- HEARTBEAT UPDATE ---
+//     $updateData = [
+//         'status' => 'online',
+//         // 'last_activity' => date('Y-m-d H:i:s')
+//     ];
+//     $this->update('members', $updateData, 'id = ?', [$user['id']]);
+//     // ------------------------
+    
+//     // Set Session Variables (Global User Variable)
+//     $_SESSION['user_id'] = $user['id'];
+//     $_SESSION['user_name'] = $user['user_name'];
+//     $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
+//     $_SESSION['user_email'] = $user['email'];
+//     $_SESSION['user_department'] = $user['department_name'];
+//     $_SESSION['primary_dept_id'] = $user['primary_dept_id'];        
+//     $_SESSION['unique_id'] = $user['unique_id'];  
+//     $_SESSION['user_role'] = $user['role'] ?? 'worker';       
+//     $_SESSION['first_name'] = $user['first_name'];
+//     $_SESSION['last_name'] = $user['last_name'];
+//     $_SESSION['current_streak'] = $user['current_streak'];
+
+//     // Remove password from returned data
+//     unset($user['password']);
+
+//     // Determine redirect based on role
+//     $redirect = ($_SESSION['user_role'] === 'admin') ? 'admin/dashboard.php' : 'user/user_dashboard.php';
+    
+//     return [
+//         'success' => true,
+//         'message' => 'Login successful',
+//         'user' => $user,
+//         'redirect' => $redirect
+//     ];
+// }
 public function login($data) {
     $user_name = $data['user_name'] ?? '';
     $password = $data['password'] ?? '';
@@ -22,7 +97,7 @@ public function login($data) {
 
     // Fetch user from members table       
     $sql = "SELECT m.*, d.name as department_name,m.department_id AS department_id,m.primary_dept_id as primary_dept_id
-                FROM members m LEFT JOIN departments d ON m.primary_dept_id	 = d.id
+                FROM members m LEFT JOIN departments d ON m.primary_dept_id = d.id
                 WHERE m.user_name = ?";
     $user = $this->fetchOne($sql, [$user_name]);
 
@@ -74,6 +149,39 @@ public function login($data) {
     $_SESSION['last_name'] = $user['last_name'];
     $_SESSION['current_streak'] = $user['current_streak'];
 
+    // =========================================================
+    // INTEGRITY CHECK TRIGGER (Runs max once per day for admins)
+    // =========================================================
+    if ($_SESSION['user_role'] === 'admin') {
+        // Define where the lock file will be saved (in the root folder)
+        $lockFile = __DIR__ . '/../integrity_check.lock';
+        
+        $shouldRun = true;
+        
+        // Check if the lock file exists
+        if (file_exists($lockFile)) {
+            $lastRunTime = (int)file_get_contents($lockFile);
+            $currentTime = time();
+            $interval = 24 * 60 * 60; // 24 hours in seconds (Change to 8 * 60 * 60 for 3 times a day)
+            
+            // If less than 24 hours have passed, skip the check
+            if (($currentTime - $lastRunTime) < $interval) {
+                $shouldRun = false;
+            }
+        }
+        
+        // Run the check if needed
+        if ($shouldRun) {
+            require_once __DIR__ . '/IntegrityCheck.php';
+            $checker = new IntegrityCheck($this);
+            $checker->run();
+            
+            // Update the lock file with the current timestamp
+            file_put_contents($lockFile, time());
+        }
+    }
+    // =========================================================
+
     // Remove password from returned data
     unset($user['password']);
 
@@ -87,7 +195,6 @@ public function login($data) {
         'redirect' => $redirect
     ];
 }
-
     // This method allows the frontend to fetch the logged-in user at any time
     public function getSessionUser() {
         if (isset($_SESSION['user_id'])) {
