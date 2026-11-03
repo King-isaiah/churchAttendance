@@ -1,0 +1,13 @@
+
+[2026-11-03 17:54:15] Script started. Looking for: 11-03
+Found 2 member(s) with this birthday.
+ERROR Broadcast: A database error occurred. Please try again.
+
+[2026-11-03 17:58:43] Script started. Looking for: 11-03
+Found 2 member(s) with this birthday.
+Broadcast notification created for Eshiozemhe Afuwape.
+Personal notification created for Eshiozemhe Afuwape.
+ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable to get local issuer certificate
+Broadcast notification created for young j Masayuki.
+Personal notification created for young j Masayuki.
+ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable to get local issuer certificate
