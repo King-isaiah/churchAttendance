@@ -90,6 +90,39 @@ $departments = $department->getAllDepartments();
                     <label>Phone</label>
                     <input type="tel" id="phone" name="phone">
                 </div>
+               
+
+                <!-- ADD THIS BLOCK -->
+                <div class="form-group">
+                    <label>Birthday (Month & Day)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="birthMonth" name="birth_month" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                            <option value="" disabled selected>Month</option>
+                            <option value="01">January</option>
+                            <option value="02">February</option>
+                            <option value="03">March</option>
+                            <option value="04">April</option>
+                            <option value="05">May</option>
+                            <option value="06">June</option>
+                            <option value="07">July</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                        <select id="birthDay" name="birth_day" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                            <option value="" disabled selected>Day</option>
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                <!-- END OF ADDED BLOCK -->
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" name="password">
+                </div>
                 <div class="form-group">
                     <label>Password</label>
                     <input type="password" id="password" name="password">

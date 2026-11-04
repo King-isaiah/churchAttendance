@@ -17,11 +17,24 @@ const departmentColors = [
 let departmentColorMap = {};
 
 // Initialize the page
-
 document.addEventListener('DOMContentLoaded', function() {
     loadMembers();
     populateDepartmentFilter();   
     initializeSearchAndPagination();
+    
+    // --- POPULATE BIRTH DAYS ---
+    const daySelect = document.getElementById('birthDay');
+    if (daySelect) {
+        for (let i = 1; i <= 31; i++) {
+            let day = i.toString().padStart(2, '0');
+            let option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelect.appendChild(option);
+        }
+    }
+    // ---------------------------
+
     document.querySelector('#departmentField1 .remove-department').style.display = 'none';
     document.querySelector('.btn-primary').addEventListener('click', function() {
         openMemberModal();
@@ -67,6 +80,7 @@ function getDepartmentColor(departmentName) {
     }
     return departmentColorMap[departmentName] || '#C9CBCF';
 }
+
 // Populate department filter dropdown from API
 async function populateDepartmentFilter() {
     try {
@@ -123,6 +137,7 @@ function memberHasDepartment(member, deptId) {
     const searchId = parseInt(deptId);
     return deptArray.some(id => id === searchId);
 }
+
 // Initialize search and pagination
 function initializeSearchAndPagination() {
     const searchInput = document.getElementById('memberSearch');
@@ -146,7 +161,6 @@ function initializeSearchAndPagination() {
 }
 
 // Filter members based on search and department
-
 function filterMembers() {
     if (currentSearchTerm === '' && currentDepartmentFilter === '') {
         filteredMembers = [...allMembers];
@@ -166,6 +180,7 @@ function filterMembers() {
     renderTable();
     renderPagination();
 }
+
 // Render the table with paginated data
 function renderTable() {
     const tbody = document.getElementById('memberTable');
@@ -280,7 +295,7 @@ function renderPagination() {
     pagination.appendChild(pageInfo);
 }
 
-// Modal functions - FIXED with management.js style
+// Modal functions
 function openMemberModal(memberId = null) {
     const modal = document.getElementById('memberModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -289,6 +304,11 @@ function openMemberModal(memberId = null) {
     // Reset form first
     document.getElementById('memberForm').reset();
     document.getElementById('memberId').value = '';
+    
+    // --- RESET BIRTHDAY DROPDOWNS ---
+    if(document.getElementById('birthMonth')) document.getElementById('birthMonth').value = '';
+    if(document.getElementById('birthDay')) document.getElementById('birthDay').value = '';
+    // --------------------------------
     
     if (memberId) {
         modalTitle.textContent = 'Edit Member';
@@ -327,10 +347,18 @@ async function loadMemberData(id) {
             document.getElementById('phone').value = member.phone || '';
             document.getElementById('password').value = member.password || '';
             document.getElementById('memberPrimaryDept').value = member.primary_dept_id || '';
-            // document.getElementById('department').value = member.department_id || '';
             document.getElementById('joinDate').value = member.join_date || '';
 
-            // Error: Error loading member: t is not defined
+            // --- LOAD BIRTHDAY DROPDOWNS ---
+            if (member.birth_month_day && member.birth_month_day.includes('-')) {
+                const parts = member.birth_month_day.split('-');
+                if(document.getElementById('birthMonth')) document.getElementById('birthMonth').value = parts[0];
+                if(document.getElementById('birthDay')) document.getElementById('birthDay').value = parts[1];
+            } else {
+                if(document.getElementById('birthMonth')) document.getElementById('birthMonth').value = '';
+                if(document.getElementById('birthDay')) document.getElementById('birthDay').value = '';
+            }
+            // -------------------------------
 
             const additionalDepartments = document.getElementById('additionalDepartments');
             additionalDepartments.innerHTML = '';
@@ -381,7 +409,6 @@ async function loadMemberData(id) {
 }
 
 // Handle form submission
-
 async function handleMemberSubmit(event) {
     event.preventDefault();
     
@@ -406,7 +433,7 @@ async function handleMemberSubmit(event) {
         console.log('Valid departments:', validDepartments);
     }
     
-    // --- NEW: Get the primary department ID and validate it ---
+    // --- Get the primary department ID and validate it ---
     const primaryDeptValue = formData.get('primary_dept_id');
     let primaryDeptId = primaryDeptValue ? parseInt(primaryDeptValue) : null;
     
@@ -417,7 +444,6 @@ async function handleMemberSubmit(event) {
             return;
         }
     } else if (validDepartments.length > 0 && primaryDeptId === null) {
-        // If we want to allow no primary (optional), we can skip; otherwise:
         showWarning('Please select a primary department');
         return;
     }
@@ -433,10 +459,27 @@ async function handleMemberSubmit(event) {
     
     // --- Add primary_dept_id to jsonData ---
     jsonData.primary_dept_id = primaryDeptId;
+
+    // --- ADD BIRTHDAY FORMATTING ---
+    const birthMonthElem = document.getElementById('birthMonth');
+    const birthDayElem = document.getElementById('birthDay');
     
-    // --- Add all other form fields (except id, department_id, primary_dept_id) ---
+    if (birthMonthElem && birthDayElem) {
+        const birthMonth = birthMonthElem.value;
+        const birthDay = birthDayElem.value;
+        
+        if (birthMonth && birthDay) {
+            jsonData.birth_month_day = `${birthMonth}-${birthDay}`;
+        } else {
+            jsonData.birth_month_day = null;
+        }
+    }
+    // -------------------------------
+
+    // --- Add all other form fields ---
     formData.forEach((value, key) => {
-        if (key !== 'id' && key !== 'department_id' && key !== 'primary_dept_id' && value !== '') {
+        // Exclude birth_month and birth_day from generic loop to avoid duplication
+        if (key !== 'id' && key !== 'department_id' && key !== 'primary_dept_id' && key !== 'birth_month' && key !== 'birth_day' && value !== '') {
             jsonData[key] = value;
         }
     });
@@ -469,6 +512,7 @@ async function handleMemberSubmit(event) {
         showError('Network error: ' + error.message);
     }
 }
+
 // Delete member
 async function deleteMember(id) {
     if (!confirm('Are you sure you want to delete this member?')) return;
@@ -520,10 +564,6 @@ function showLoading() {
     }
 }
 
-
-
-
-
 // Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('memberModal');
@@ -531,4 +571,3 @@ window.onclick = function(event) {
         closeMemberModal();
     }
 };
-
