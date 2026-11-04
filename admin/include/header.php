@@ -33,7 +33,8 @@ if (isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/activity.css">
     <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="../fontawesome/css/all.min.css">    
+    <link rel="stylesheet" href="../fontawesome/css/all.min.css">  
+    <link rel="icon" type="image/jpeg" href="../images/hublogo.jpg">  
 </head>
 <body>
     <div class="content">
