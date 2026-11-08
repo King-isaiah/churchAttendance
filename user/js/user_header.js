@@ -122,8 +122,8 @@ class UserHeader {
                 );
                 
                 console.log(`Distance to ${itemType} "${itemName}": ${distance.toFixed(2)}m`);
-                
-                if (distance <= 300) {
+                // come back and chamge to 100
+                if (distance <= 700) {
                     showSuccess(`You are at "${itemName}" location! (${distance.toFixed(0)}m away)`); 
 
                     try {
@@ -185,8 +185,9 @@ class UserHeader {
             console.log('GPS User Information:', userInfo);
             
             // Check if accuracy is good enough (in meters)
-            if (userInfo.accuracy > 100) {
-                console.warn(`GPS accuracy is ${userInfo.accuracy}m, may not be precise enough for 100m check`);
+            // change back for today testing
+            if (userInfo.accuracy > 700) {
+                console.warn(`GPS accuracy is ${userInfo.accuracy}m, may not be precise enough for 700m check`);
             }
             
             return userInfo;
