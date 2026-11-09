@@ -3,7 +3,7 @@ class EmailLogManager {
         this.allLogs = [];
         this.filteredLogs = [];
         this.currentPage = 1;
-        this.itemsPerPage = 10;
+        this.itemsPerPage = 4;
     }
 
     async loadLogs() {
