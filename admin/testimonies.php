@@ -58,12 +58,12 @@ include "include/header.php";
 </div>
 <!-- Pagination & Results Info -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-    <div class="results-count" style="font-size: 0.9rem; color: #6c757d;">
+    <div class="results-count" style="font-size: 0.9rem; color: #0add54;">
         Showing <span id="results-count">0</span> of <span id="total-count">0</span> records
     </div>
     <div class="pagination" id="pagination" style="display: flex; gap: 5px;"></div>
 </div>
-<div class="page-info" id="page-info" style="text-align: right; font-size: 0.9rem; color: #6c757d; margin-top: 5px;"></div>
+<div class="page-info" id="page-info" style="text-align: right; font-size: 0.9rem; color: #1a8a40; margin-top: 5px;"></div>
 
 <script src="js/admin_testimonies.js"></script>
 <?php include "include/footer.php"; ?>
