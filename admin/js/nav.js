@@ -29,3 +29,34 @@ if (searchInput) {
         document.body.classList.remove("collapsed");
     });
 }
+
+
+// 4. Fetch and Display Dynamic Member Count
+async function loadMemberCount() {
+    try {
+        // Make sure this path matches where your ApiHandler is relative to nav.js
+        const res = await fetch('../class/ApiHandler.php?action=getOthers&entity=members_count');
+        const json = await res.json();
+        
+        if (json.success && json.data !== undefined) {
+            const count = json.data;
+            
+            // Format the number (e.g., 6300 becomes 6.3k)
+            let formattedCount = count;
+            if (count >= 1000) {
+                formattedCount = (count / 1000).toFixed(1) + 'k';
+            }
+            
+            // Find the span and update the text
+            const workerSpan = document.getElementById('dynamicWorkerCount');
+            if (workerSpan) {
+                workerSpan.textContent = `${formattedCount} Workers`;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading member count:', error);
+    }
+}
+
+// Call the function when the script loads
+loadMemberCount();

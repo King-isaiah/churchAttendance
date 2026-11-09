@@ -51,12 +51,12 @@ class DashboardManager {
         }
         
         
-        if (rewardsResponse.success) {
-            // console.log("right here",rewardsResponse)
-            // showSuccess('Succesfully load rewardResponse data');
-          this.rewards = rewardsResponse.data;
-          this.renderRewards();
-        }
+        // if (rewardsResponse.success) {
+        //     // console.log("right here",rewardsResponse)
+        //     // showSuccess('Succesfully load rewardResponse data');
+        //   this.rewards = rewardsResponse.data;
+        //   this.renderRewards();
+        // }
         
 
       } catch (error) {

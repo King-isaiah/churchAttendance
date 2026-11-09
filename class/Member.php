@@ -250,7 +250,15 @@ class Member extends Database {
             'message' => "Successfully imported $importedCount members. ($failedCount skipped)."
         ];
     }
-    
+    public function getMemberCount() {
+        try {
+            $result = $this->fetchOne("SELECT COUNT(*) as count FROM members");
+            return $result ? (int)$result['count'] : 0;
+        } catch (Exception $e) {
+            error_log("Member count error: " . $e->getMessage());
+            return 0;
+        }
+    }
     public function updateMember($id, $data) {
         try {     
             $existing = $this->getMember($id);

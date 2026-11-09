@@ -48,8 +48,8 @@ if (isset($_SESSION['user_id'])) {
                         <div class="hide sidebar-top__company">
                             <span class="hub-name">
                                 Hub Church
-                            </span>
-                            <span class="hub-workers">6.3k Workers</span>
+                            </span>                            
+                            <span class="hub-workers" id="dynamicWorkerCount">6.3k Workers</span> 
                         </div>
                     </a>
                 </div>
@@ -102,7 +102,7 @@ if (isset($_SESSION['user_id'])) {
                 </div>
                 <div class="icon-square">
                     <a href="testimonies.php">
-                        <i class="fas fa-envelope-open-text"></i> 
+                        <i class="fas fa-comment-dots"></i>
                         <span class="hide">Testimonies</span>
                     </a>                     
                 </div>
