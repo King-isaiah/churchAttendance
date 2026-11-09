@@ -44,3 +44,9 @@ ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable 
 Broadcast notification created for Sonic The hetchhog.
 Personal notification created for Sonic The hetchhog.
 ERROR Email: Brevo API Error: HTTP 0 |  | cURL: SSL certificate problem: unable to get local issuer certificate
+
+[2026-11-08 13:32:22] Script started. Looking for: 11-08
+Found 0 member(s) with this birthday.
+
+[2026-11-09 08:29:23] Script started. Looking for: 11-09
+Found 0 member(s) with this birthday.

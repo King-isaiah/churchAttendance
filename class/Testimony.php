@@ -51,12 +51,16 @@ class Testimony extends Database {
     }
 
     // Admin updates status (approve/reject)
-    public function updateStatus($id, $status) {
+    public function updateStatus($id, $data) {
         try {
+            // Extract status if $data is an array, otherwise use it directly (backward compatibility)
+            $status = is_array($data) ? ($data['status'] ?? '') : $data;
+            
             $allowed = ['pending', 'approved', 'rejected'];
             if (!in_array($status, $allowed)) {
                 throw new Exception("Invalid status", 400);
             }
+            
             return $this->update('testimonies', ['status' => $status], 'id = ?', [$id]);
         } catch (Exception $e) {
             error_log("Testimony updateStatus error: " . $e->getMessage());

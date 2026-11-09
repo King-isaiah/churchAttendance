@@ -92,7 +92,8 @@ async function updateStatus(id, status) {
             loadTestimonies(); // Reload data
             loadStats();
         } else {
-            alert(json.message);
+            showError(json.message)
+            // alert(json.message);
         }
     } catch (error) {
         console.error(error);
