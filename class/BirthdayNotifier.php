@@ -93,9 +93,7 @@ class BirthdayNotifier extends Database {
         return $results;
     }
 
-    /**
-     * Sends an email to the admin about upcoming birthdays
-     */
+    
     private function notifyAdminOfUpcomingBirthdays($targetDate, $mailer) {
         // Join with departments table to get the department name
         $sql = "SELECT m.first_name, m.last_name, m.email, m.birth_month_day, d.name as department_name 
@@ -111,37 +109,60 @@ class BirthdayNotifier extends Database {
         // $adminEmail = 'eshiozemheafuwape@gmail.com';
         $adminEmail = 'eshiozemhea@gmail.com';
         
-        // Build the HTML Table for the admin
+        // Build the HTML Table for the admin with alternating row colors for readability
         $tableRows = '';
+        $counter = 1;
         foreach ($upcomingMembers as $m) {
             $dept = !empty($m['department_name']) ? $m['department_name'] : 'No Department';
+            // Alternate background color for the table rows
+            $rowColor = ($counter % 2 === 0) ? '#f9f9f9' : '#ffffff'; 
+            
             $tableRows .= "
-                <tr>
-                    <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{$m['first_name']} {$m['last_name']}</td>
-                    <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{$m['email']}</td>
-                    <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{$dept}</td>
-                    <td style='padding: 10px; border-bottom: 1px solid #ddd;'><strong>{$m['birth_month_day']}</strong></td>
+                <tr style='background-color: {$rowColor};'>
+                    <td style='padding: 12px 15px; border-bottom: 1px solid #eeeeee; color: #333333;'><strong>{$m['first_name']} {$m['last_name']}</strong></td>
+                    <td style='padding: 12px 15px; border-bottom: 1px solid #eeeeee; color: #555555;'>{$m['email']}</td>
+                    <td style='padding: 12px 15px; border-bottom: 1px solid #eeeeee; color: #555555;'>{$dept}</td>
+                    <td style='padding: 12px 15px; border-bottom: 1px solid #eeeeee; color: #FF7A00; font-weight: bold;'>{$m['birth_month_day']}</td>
                 </tr>
             ";
+            $counter++;
         }
+
+        // Convert YYYY-MM-DD to a more readable format like "November 12th"
+        $displayDate = date('F jS', strtotime(date('Y') . '-' . $targetDate));
 
         $html = "
         <div style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
-            <div style='max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);'>
-                <div style='background: #FF7A00; padding: 20px; text-align: center;'>
-                    <h2 style='color: #ffffff; margin: 0;'>Upcoming Birthdays Alert</h2>
+            <div style='max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);'>
+                
+                <!-- Top Orange Alert Bar -->
+                <div style='height: 6px; background: #FF7A00;'></div>
+                
+                <!-- Green Church Header -->
+                <div style='background: linear-gradient(135deg, #39FF14 0%, #2ECC0E 100%); padding: 30px; text-align: center;'>
+                    <h1 style='color: #000000; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;'>Hub Church Admin</h1>
                 </div>
-                <div style='padding: 30px;'>
-                    <p style='color: #333333; font-size: 16px;'>Hello Admin,</p>
-                    <p style='color: #333333; font-size: 16px;'>This is a friendly reminder that the following members will be celebrating their birthdays in <strong>2 days</strong> ({$targetDate}).</p>
+                
+                <!-- Email Body -->
+                <div style='padding: 35px 30px;'>
+                    <h2 style='color: #111111; margin-top: 0; font-size: 22px;'>Hi Admin, Great day! 👋</h2>
                     
-                    <table style='width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;'>
+                    <p style='color: #444444; font-size: 16px; line-height: 1.6;'>
+                        This is a friendly reminder that the following members will be celebrating their birthdays in <strong>2 days</strong> (on <span style='color: #1A8C06; font-weight: bold;'>{$displayDate}</span>).
+                    </p>
+                    
+                    <p style='color: #444444; font-size: 16px; line-height: 1.6; margin-bottom: 20px;'>
+                        You may want to prepare a special shoutout, a gift, or coordinate with their department heads to make their day special.
+                    </p>
+                    
+                    <!-- Data Table -->
+                    <table style='width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden;'>
                         <thead>
-                            <tr style='background-color: #39FF14; color: #000000;'>
-                                <th style='padding: 10px; text-align: left;'>Name</th>
-                                <th style='padding: 10px; text-align: left;'>Email</th>
-                                <th style='padding: 10px; text-align: left;'>Department</th>
-                                <th style='padding: 10px; text-align: left;'>Birthday</th>
+                            <tr style='background-color: #111111; color: #ffffff;'>
+                                <th style='padding: 15px; text-align: left; font-weight: 600;'>Name</th>
+                                <th style='padding: 15px; text-align: left; font-weight: 600;'>Email</th>
+                                <th style='padding: 15px; text-align: left; font-weight: 600;'>Department</th>
+                                <th style='padding: 15px; text-align: left; font-weight: 600;'>Birthday</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -149,15 +170,22 @@ class BirthdayNotifier extends Database {
                         </tbody>
                     </table>
                     
-                    <p style='color: #333333; font-size: 16px; margin-top: 30px;'>You might want to prepare a shoutout or a gift!</p>
+                    <div style='margin-top: 35px; padding-top: 20px; border-top: 1px solid #eeeeee;'>
+                        <p style='color: #444444; font-size: 16px; margin: 0;'>Blessings,</p>
+                        <p style='color: #111111; font-size: 16px; font-weight: bold; margin: 5px 0 0 0;'>Hub Church System</p>
+                    </div>
                 </div>
-                <div style='background: #111111; padding: 15px; text-align: center;'>
-                    <p style='color: #ffffff; margin: 0; font-size: 12px;'>Hub Church Admin System</p>
+                
+                <!-- Black Footer -->
+                <div style='background: #111111; padding: 20px; text-align: center;'>
+                    <p style='color: #ffffff; margin: 0; font-size: 14px;'>© " . date('Y') . " Hub Church. All rights reserved.</p>
+                    <p style='color: #888888; margin: 5px 0 0 0; font-size: 12px;'>This is an automated admin alert. Please do not reply directly to this email.</p>
                 </div>
+                
             </div>
         </div>";
 
-        $mailer->sendEmail($adminEmail, "Admin", "🚨 Alert: Upcoming Birthdays in 2 Days", $html);
+        $mailer->sendEmail($adminEmail, "Admin", "🚨 Upcoming Birthdays in 2 Days", $html);
     }
 
     /**
