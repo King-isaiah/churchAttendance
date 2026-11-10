@@ -252,7 +252,10 @@ class QRCodeScanner {
             return true;
         } catch (err) {
             console.error('Camera enumeration failed:', err);
-            this.updateStatus('camera', 'Camera permission denied', 'error');
+            // this.updateStatus('camera', 'Camera permission denied', 'error');
+            const errorMsg = 'Camera permission denied or no camera found';
+            this.updateStatus('camera', errorMsg, 'error');
+            if (typeof showError === 'function') showError(errorMsg);
             return false;
         }
     }
@@ -299,7 +302,10 @@ class QRCodeScanner {
             this.clearResult('camera');
         } catch (err) {
             console.error('Camera start failed:', err);
-            this.updateStatus('camera', 'Could not start camera: ' + (err.message || err), 'error');
+            // this.updateStatus('camera', 'Could not start camera: ' + (err.message || err), 'error');
+            const errorMsg = 'Could not start camera: ' + (err.message || err);
+            this.updateStatus('camera', errorMsg, 'error');
+            showError(errorMsg);
             this.stopCamera();
         }
     }
@@ -416,18 +422,26 @@ class QRCodeScanner {
                 this.processAttendanceFromQR(qrResponse, panel);
             } else {
                 // Show the exact error message (e.g., "This QR Code has expired")
-                this.showResult(panel, qrResponse.message || 'Invalid QR code', 'error');
+                // this.showResult(panel, qrResponse.message || 'Invalid QR code', 'error');
+                const errorMsg = qrResponse.message || 'Invalid QR code';
+                this.showResult(panel, errorMsg, 'error');
+                if (typeof showError === 'function') showError(errorMsg);
             }
             
         } catch (error) {
             console.error("Process scanned data error:", error);
+            const errorMsg = 'Unrecognized QR code format';
             this.showResult(panel, 'Unrecognized QR code format', 'error');
+            if (typeof showError === 'function') showError(errorMsg);
         }
     }
 
     async processAttendanceFromQR(qrData, panel = 'camera') {
         if (!qrData || typeof qrData !== 'object' || !qrData.data || !qrData.data.activity_id) {
-            this.showResult(panel, 'The system doesn\'t recognize this code', 'error');
+            // this.showResult(panel, 'The system doesn\'t recognize this code', 'error');
+            const errorMsg = 'The system doesn\'t recognize this code';
+            this.showResult(panel, errorMsg, 'error');
+            showError(errorMsg);
             return;
         }
         await this.submitAttendance(qrData.data.activity_id, qrData, panel);
@@ -473,12 +487,19 @@ class QRCodeScanner {
                     });
                 }
                 this.showResult(panel, 'Attendance recorded!', 'success');
+                if (typeof showSuccess === 'function') showSuccess('Attendance recorded successfully!');
                 setTimeout(() => this.closeScanner(), 2000);
             } else {
-                throw new Error(result.message || 'Failed to record attendance');
+                // throw new Error(result.message || 'Failed to record attendance');
+                const errorMsg = 'Submission failed: ' + result.message;
+                this.showResult(panel, errorMsg, 'error');
+                showError(errorMsg)
             }
         } catch (err) {
-            this.showResult(panel, 'Submission failed: ' + err.message, 'error');
+            // this.showResult(panel, 'Submission failed: ' + err.message, 'error');
+            const errorMsg = 'Submission failed: ' + err.message;
+            this.showResult(panel, errorMsg, 'error');
+            showError(errorMsg);
         }
     }
 
@@ -500,8 +521,12 @@ class QRCodeScanner {
             this.processScannedData(decodedText, 'image'); 
             
         } catch (err) {
-            console.error('File scan failed:', err);
-            this.showResult('image', 'No QR code found in this image', 'error');
+           
+            // this.showResult('image', 'No QR code found in this image', 'error');
+            console.error('File scan failed:', err);            
+            const errorMsg = 'No QR code found in this image';
+            this.showResult('image', errorMsg, 'error');
+            if (typeof showError === 'function') showError(errorMsg);
         }
     }
 

@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let allTestimonies = [];
 let filteredTestimonies = [];
 let currentPage = 1;
-const itemsPerPage = 5; // You can change this to 10 if you want more per page
+const itemsPerPage = 4; // You can change this to 10 if you want more per page
 
 async function loadStats() {
     try {

@@ -389,50 +389,56 @@ class Member extends Database {
     }
     
     
-// private function validateMemberData($data, $isUpdate = false) {
-//     $required = ['first_name', 'last_name', 'email'];
-    
-//     // 1. Check Required
-//     foreach ($required as $field) {
-//         if (empty($data[$field])) {
-//             throw new Exception("$field is required", 400);
-//         }
-//     }
-    
-//     if (isset($data['email'])) {
-//         // 2. Check Format
-//         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-//             throw new Exception("Invalid email format", 400);
-//         }
+   
+    public function updateUserProfile($uniqueId, $data) {
+        try {
+            // 1. Verify user exists using unique_id
+            $existing = $this->getMemberByUniqueId($uniqueId);
+            if (!$existing) {
+                throw new Exception("User not found", 404);
+            }
+            $dbId = $existing['id'];
 
-//         // 3. Check Length (Moved UP to prevent long-string DNS lookups)
-//         if (strlen($data['email']) > 255) {
-//             throw new Exception("Email is too long", 400);
-//         }
-        
-//         // 4. Check for duplicate email
-//         $existingId = $isUpdate ? ($data['id'] ?? null) : null;
-//         if ($this->valueExists('members', 'email', $data['email'], $existingId)) {
-//             throw new Exception("A member with this email already exists", 409);
-//         }
+            // 2. Strictly filter allowed fields
+            $allowedFields = ['first_name', 'last_name', 'email', 'phone'];
+            $updateData = [];
+            
+            foreach ($allowedFields as $field) {
+                if (isset($data[$field])) {
+                    $updateData[$field] = $data[$field];
+                }
+            }
 
-        
-//         // 5. Level 3: Check DNS Records (MX ONLY)
-//         $domain = substr(strrchr($data['email'], "@"), 1);
-//         if (!checkdnsrr($domain, 'MX')) {
-//             throw new Exception("The email domain '$domain' does not have a valid mail server (MX record).", 400);
-//         }
-//     }
-    
-//     // Validate string lengths for names
-//     if (isset($data['first_name']) && strlen($data['first_name']) > 100) {
-//         throw new Exception("First name is too long", 400);
-//     }
-    
-//     if (isset($data['last_name']) && strlen($data['last_name']) > 100) {
-//         throw new Exception("Last name is too long", 400);
-//     }
-// }
+            // 3. Handle password update securely (if they submitted a new one)
+            if (!empty($data['password'])) {
+                $updateData['password'] = $data['password']; // Add hashing here if your system uses it
+            }
+
+            // 4. Validate the data (merge with existing to ensure required fields aren't empty)
+            $validationData = array_merge($existing, $updateData);
+            $this->validateMemberData($validationData, true);
+
+            // 5. Execute update using the internal DB ID
+            $result = $this->update('members', $updateData, 'id = ?', [$dbId]);
+            
+            if ($result === false) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to update profile. Please try again.',
+                    'status' => 400 
+                ];
+            }
+
+            return [
+                'success' => true,
+                'id' => $dbId,
+                'message' => "Profile updated successfully."
+            ];
+        } catch (Exception $e) {
+            error_log("User profile update error [UniqueID: $uniqueId]: " . $e->getMessage());
+            throw $e;
+        }
+    }
     private function validateMemberData($data, $isUpdate = false) {
         $required = ['first_name', 'last_name', 'email'];
         

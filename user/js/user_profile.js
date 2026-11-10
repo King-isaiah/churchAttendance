@@ -48,31 +48,7 @@ populateDepartmentDropdown(departments) {
 
 
 
-    setupEventListeners() {
-        const profileForm = document.getElementById('profileForm');
-        const passwordForm = document.getElementById('passwordForm');
-        
-        if (profileForm) {
-            profileForm.addEventListener('submit', (e) => this.updateProfile(e));
-            profileForm.addEventListener('submit', (e) => this.handleProfileSubmit(e));
-        }
-        
-        if (passwordForm) {
-            passwordForm.addEventListener('submit', (e) => this.handlePasswordSubmit(e));
-        }
-        
-        // Modal close events
-        document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', () => this.closeModal(btn.closest('.modal')));
-        });
-
-        // Close modals when clicking outside
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                this.closeModal(e.target);
-            }
-        });
-    }
+    
 
     getCurrentUserId() {      
         const uniqueIdElement = document.getElementById('unique_id');
@@ -144,15 +120,14 @@ populateDepartmentDropdown(departments) {
             let unique_id = this.uniqueId;
             const response = await fetch(`../class/ApiHandler.php?action=get&entity=members&id=${unique_id}`);
             
-            // Read as text first to prevent JSON crash
             const text = await response.text();
             let result;
             
             try {
                 result = JSON.parse(text);
             } catch (e) {
-                console.error('🚨 PHP Error Output (HTML detected instead of JSON):', text);
-                throw new Error('API returned HTML. Check console for PHP errors.');
+                console.error('🚨 PHP Error Output:', text);
+                throw new Error('API returned HTML. Check console.');
             }
 
             if (result.success && result.data) {
@@ -162,12 +137,13 @@ populateDepartmentDropdown(departments) {
                     last_name: userData.last_name || '',
                     email: userData.email || '',
                     phone: userData.phone || '',
-                    department: userData.department || '',
-                    join_date: userData.join_date || '',
+                    // FIXED: Use department_name from the SQL query
+                    department: userData.department_name || '', 
+                    // FIXED: Check if join_date exists, otherwise fallback to created_at
+                    join_date: userData.join_date || userData.created_at || '', 
                     membership_id: userData.unique_id || ''
                 };
             } else {
-                console.error('API returned error:', result.message);
                 this.showMessage(result.message || 'Failed to load profile data', 'error');
                 return null;
             }
@@ -204,49 +180,7 @@ populateDepartmentDropdown(departments) {
         this.updateDisplayName(data.department, data.first_name, data.last_name);
     }
 
-    toggleEditMode() {
-        this.isEditMode = !this.isEditMode;
-        const form = document.getElementById('profileForm');
-        if (!form) return;
-        
-        const inputs = form.querySelectorAll('input, select');
-        const actions = document.getElementById('profileActions');
-        const editBtn = document.querySelector('.edit-profile-btn');
-
-        if (this.isEditMode) {
-            // Enable editing (except non-editable fields)
-            inputs.forEach(input => {
-                if (!input.classList.contains('non-editable')) {
-                    input.readOnly = false;
-                    input.disabled = false;
-                }
-            });
-            
-            if (actions) actions.style.display = 'flex';
-            
-            if (editBtn) {
-                editBtn.innerHTML = '<i class="fas fa-times"></i> Cancel Editing';
-                editBtn.classList.add('editing');
-            }
-        } else {
-            // Disable editing and reset form
-            inputs.forEach(input => {
-                input.readOnly = true;
-                input.disabled = true;
-            });
-            
-            if (actions) actions.style.display = 'none';
-            
-            if (editBtn) {
-                editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Profile';
-                editBtn.classList.remove('editing');
-            }
-            
-            // Reset form to original data
-            this.populateProfileForm(this.originalData);
-        }
-    }
-
+   
     formatJoinDate(dateString) {
         if (!dateString) return '';
         
@@ -260,70 +194,202 @@ populateDepartmentDropdown(departments) {
             year: 'numeric'
         });
     }
-async handleProfileSubmit(e) {
-    e.preventDefault();
+// async handleProfileSubmit(e) {
+//     e.preventDefault();
     
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+//     const formData = new FormData(e.target);
+//     const data = Object.fromEntries(formData.entries());
     
-    // Add unique_id to the data
-    data.unique_id = this.uniqueId;
+//     // Add unique_id to the data
+//     data.unique_id = this.uniqueId;
 
-    try {
+//     try {
           
-        const notNow = {
-            unique_id: this.uniqueId,
-            first_name: data.first_name,               
-            last_name: data.last_name,               
-            email: data.email,               
-            phone: data.phone,               
-            department_id: data.department_id,               
-            // department_id: '12',               
-        };
+//         const notNow = {
+//             unique_id: this.uniqueId,
+//             first_name: data.first_name,               
+//             last_name: data.last_name,               
+//             email: data.email,               
+//             phone: data.phone,               
+//             department_id: data.department_id,               
+//             // department_id: '12',               
+//         };
     
-        const url = `../class/ApiHandler.php?action=update&entity=members&id=${this.uniqueId}`;
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(notNow)
+        
+//         
+//         const response = await fetch(url, {
+//             method: 'PUT',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify(notNow)
+//         });
+    
+//         if (response){
+//             showSuccess('Succesfully updated')
+//             return await response.json();
+//         }
+            
+        
+        
+//         if (response && response.success) {
+//             this.showMessage('Profile updated successfully!', 'success');
+
+//             this.originalData = { 
+//                 ...this.originalData,
+//                 first_name: data.first_name,
+//                 last_name: data.last_name,
+//                 email: data.email,
+//                 phone: data.phone,
+//                 department: data.department,
+//                 unique_id: this.uniqueId,
+//                 join_date: this.formatJoinDate(data.join_date)  
+//             };
+//             this.toggleEditMode();
+            
+//             // Update displayed name
+//             this.updateDisplayName(data.department, data.first_name, data.last_name);
+//         } else {
+//             this.showMessage(response?.message || 'Failed to update profile', 'error');
+//         }
+//     } catch (error) {
+//         console.error('Error updating profile:', error);
+//         this.showMessage('Error updating profile. Please try again.', 'error');
+//     }
+// }
+
+    setupEventListeners() {
+        const profileForm = document.getElementById('profileForm');
+        const passwordForm = document.getElementById('passwordForm');
+        
+        if (profileForm) {
+            // FIXED: Removed the `this.updateProfile` listener that was causing the crash
+            profileForm.addEventListener('submit', (e) => this.handleProfileSubmit(e));
+        }
+        
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', (e) => this.handlePasswordSubmit(e));
+        }
+        
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', () => this.closeModal(btn.closest('.modal')));
         });
-    
-        if (response){
-            showSuccess('Succesfully updated')
-            return await response.json();
-        }
-            
-        
-        
-        if (response && response.success) {
-            this.showMessage('Profile updated successfully!', 'success');
 
-            this.originalData = { 
-                ...this.originalData,
-                first_name: data.first_name,
-                last_name: data.last_name,
-                email: data.email,
-                phone: data.phone,
-                department: data.department,
-                unique_id: this.uniqueId,
-                join_date: this.formatJoinDate(data.join_date)  
-            };
-            this.toggleEditMode();
-            
-            // Update displayed name
-            this.updateDisplayName(data.department, data.first_name, data.last_name);
-        } else {
-            this.showMessage(response?.message || 'Failed to update profile', 'error');
-        }
-    } catch (error) {
-        console.error('Error updating profile:', error);
-        this.showMessage('Error updating profile. Please try again.', 'error');
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                this.closeModal(e.target);
+            }
+        });
     }
-}
 
+    toggleEditMode() {
+        this.isEditMode = !this.isEditMode;
+        const form = document.getElementById('profileForm');
+        if (!form) return;
+        
+        const inputs = form.querySelectorAll('input, select');
+        const actions = document.getElementById('profileActions');
+        const editBtn = document.querySelector('.edit-profile-btn');
 
+        if (this.isEditMode) {
+            inputs.forEach(input => {
+                // FIXED: Do NOT unlock join_date or department_id
+                if (input.name !== 'join_date' && input.name !== 'department_id' && !input.classList.contains('non-editable')) {
+                    input.readOnly = false;
+                    input.disabled = false;
+                }
+            });
+            
+            if (actions) actions.style.display = 'flex';
+            if (editBtn) {
+                editBtn.innerHTML = '<i class="fas fa-times"></i> Cancel Editing';
+                editBtn.classList.add('editing');
+            }
+        } else {
+            inputs.forEach(input => {
+                input.readOnly = true;
+                input.disabled = true;
+            });
+            
+            if (actions) actions.style.display = 'none';
+            if (editBtn) {
+                editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Profile';
+                editBtn.classList.remove('editing');
+            }
+            
+            this.populateProfileForm(this.originalData);
+        }
+    }
+
+    async handleProfileSubmit(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            // FIXED: Only send the fields we actually want to update. 
+            // Excluding join_date and department_id entirely prevents accidental changes.
+            const payload = {
+                unique_id: this.uniqueId,
+                first_name: data.first_name,               
+                last_name: data.last_name,               
+                email: data.email,               
+                phone: data.phone,
+            };
+        
+          
+            const url = `../class/ApiHandler.php?action=update&entity=user_profile&id=${this.uniqueId}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+                
+            if (result.success) {
+                this.showMessage('Profile updated successfully!', 'success');
+                this.originalData = { 
+                    ...this.originalData,
+                    first_name: data.first_name,
+                    last_name: data.last_name,
+                    email: data.email,
+                    phone: data.phone,
+                };
+                this.toggleEditMode();
+                this.updateDisplayName(this.originalData.department, data.first_name, data.last_name);
+            } else {
+                this.showMessage(result.message || 'Failed to update profile', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            this.showMessage('Error updating profile. Please try again.', 'error');
+        }
+    }
+
+    async updatePassword(data) {
+        try {
+            const passwordData = {
+                unique_id: this.uniqueId,
+                password: data.new_password                
+            };
+            
+            // FIXED: Changed entity from 'members' to 'user_profile'
+            const url = `../class/ApiHandler.php?action=update&entity=user_profile&id=${this.uniqueId}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(passwordData)
+            });
+            
+            return await response.json();
+            
+        } catch (error) {
+            console.error('Error updating password:', error);
+            throw error;
+        }
+    }
 
     async handlePasswordSubmit(e) {
         e.preventDefault();
@@ -361,31 +427,7 @@ async handleProfileSubmit(e) {
         }
     }
 
-    async updatePassword(data) {
-        try {
-            const passwordData = {
-                unique_id: this.uniqueId,
-                password: data.new_password                
-            };
-            
-            const url = `../class/ApiHandler.php?action=update&entity=members&id=${this.uniqueId}`;
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(passwordData)
-            });
-            if (response){
-                showSuccess('yh its working')
-                return await response.json();
-            }
-            
-        } catch (error) {
-            console.error('Error updating password:', error);
-            throw error;
-        }
-    }
+   
 
     validatePasswordStrength(password) {
         // At least 8 characters, contains letters and numbers
