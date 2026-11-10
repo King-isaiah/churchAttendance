@@ -107,7 +107,7 @@ class BirthdayNotifier extends Database {
         }
 
         // $adminEmail = 'eshiozemheafuwape@gmail.com';
-        $adminEmail = 'eshiozemhea@gmail.com';
+        $adminEmail = 'blackzeno785@gmail.com';
         
         // Build the HTML Table for the admin with alternating row colors for readability
         $tableRows = '';
