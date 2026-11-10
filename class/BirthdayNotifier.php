@@ -108,7 +108,8 @@ class BirthdayNotifier extends Database {
             return; // No upcoming birthdays, don't send an email
         }
 
-        $adminEmail = 'eshiozemheafuwape@gmail.com';
+        // $adminEmail = 'eshiozemheafuwape@gmail.com';
+        $adminEmail = 'eshiozemhea@gmail.com';
         
         // Build the HTML Table for the admin
         $tableRows = '';
