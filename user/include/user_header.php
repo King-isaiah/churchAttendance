@@ -2,7 +2,7 @@
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
-
+$version = time();
 
 
 // 1. Start the session if it hasn't been started yet
@@ -29,13 +29,13 @@ if (isset($_SESSION['user_id'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/user_header.css">    
-    <link rel="stylesheet" href="css/scanner.css">
+    <link rel="stylesheet" href="css/user_header.css?v=<?php echo $version; ?>">    
+    <link rel="stylesheet" href="css/scanner.css?v=<?php echo $version; ?>">
     <link rel="icon" type="image/jpeg" href="../images/hublogo.jpg">
-    
 </head>
 
 <body>
