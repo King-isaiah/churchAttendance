@@ -27,7 +27,7 @@ function showQRCodeModal(activityId) {
                                     <option value="3" selected>3 hours</option>
                                     <option value="6">6 hours</option>
                                     <option value="24">24 hours</option>
-                                    <option value="24">To infinity and beyond</option>
+                                    <option value="69843480">To infinity and beyond</option>
                                 </select>
                             </div>
                             
