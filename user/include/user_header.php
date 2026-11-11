@@ -37,6 +37,7 @@ if (isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="css/user_header.css?v=<?php echo $version; ?>">    
     <link rel="stylesheet" href="css/scanner.css?v=<?php echo $version; ?>">
     <link rel="icon" type="image/jpeg" href="../images/hublogo.jpg">
+    <link rel="stylesheet" href="../fontawesome/css/all.min.css">
 </head>
 
 <body>
