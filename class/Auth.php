@@ -90,38 +90,38 @@ class Auth extends Database {
         ];
     }
     // this is for test to see if it works
-    private function triggerBirthdayCheck() {
-        // Bypassed the 24-hour lock for testing as requested
-        require_once __DIR__ . '/BirthdayNotifier.php';
-        $notifier = new BirthdayNotifier();
-        return $notifier->run(); 
-    }
-    // thos is for the 24 hrs check
+    // private function triggerBirthdayCheck() {
+    //     // Bypassed the 24-hour lock for testing as requested
+    //     require_once __DIR__ . '/BirthdayNotifier.php';
+    //     $notifier = new BirthdayNotifier();
+    //     return $notifier->run(); 
+    // }
+    // this is for the 24 hrs check
         /**
      * Checks if today's birthdays have been processed. If not, runs the notifier.
      */
-    // private function triggerBirthdayCheck() {
-    //     $lockFile = __DIR__ . '/birthday_check.lock';
-    //     $today = date('Y-m-d'); // e.g., '2026-11-03'
+    private function triggerBirthdayCheck() {
+        $lockFile = __DIR__ . '/birthday_check.lock';
+        $today = date('Y-m-d'); // e.g., '2026-11-03'
         
-    //     // 1. Check if the lock file exists and if it says we already ran today
-    //     if (file_exists($lockFile)) {
-    //         $lastRunDate = trim(file_get_contents($lockFile));
-    //         if ($lastRunDate === $today) {
-    //             return ["Debug: Birthday check already ran today ({$today})."]; 
-    //         }
-    //     }
+        // 1. Check if the lock file exists and if it says we already ran today
+        if (file_exists($lockFile)) {
+            $lastRunDate = trim(file_get_contents($lockFile));
+            if ($lastRunDate === $today) {
+                return ["Debug: Birthday check already ran today ({$today})."]; 
+            }
+        }
         
-    //     // 2. If we haven't run today, load the notifier and run it
-    //     require_once __DIR__ . '/BirthdayNotifier.php';
-    //     $notifier = new BirthdayNotifier();
-    //     $results = $notifier->run();
+        // 2. If we haven't run today, load the notifier and run it
+        require_once __DIR__ . '/BirthdayNotifier.php';
+        $notifier = new BirthdayNotifier();
+        $results = $notifier->run();
         
-    //     // 3. Save today's date to the lock file so it doesn't run again today
-    //     file_put_contents($lockFile, $today);
+        // 3. Save today's date to the lock file so it doesn't run again today
+        file_put_contents($lockFile, $today);
         
-    //     return $results;
-    // }
+        return $results;
+    }
 
     private function runIntegrityCheck() {
         require_once __DIR__ . '/IntegrityCheck.php';
