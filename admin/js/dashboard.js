@@ -144,7 +144,7 @@ class DashboardManager {
             </div>
         `;
     }
-
+   
     initializeAllChart() {
         const filter = document.getElementById('chart-filter').value;
     const contentFilter = document.getElementById("chartTitle");

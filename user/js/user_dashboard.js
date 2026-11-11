@@ -15,7 +15,93 @@ class UserDashboard {
         this.initializeQRScanner();
     }
 
-    centerDiv() {
+    // centerDiv() {
+    //     const centerDiv = document.getElementById('center-div');
+    //     if (!centerDiv) {
+    //         console.error('center-div element not found!');
+    //         return;
+    //     }
+        
+    //     const content = `<div class="user-dashboard">
+    //                         <div class="welcome-section">
+    //                             <h1 id="welcomeMessage"></h1>
+    //                             <p>Here's your attendance overview and upcoming activities</p>
+    //                         </div>
+
+    //                         <div class="stats-grid">
+    //                             <div class="stat-card">
+    //                                 <div class="stat-icon present">
+    //                                     <i class="fas fa-check-circle"></i>
+    //                                 </div>
+    //                                 <div class="stat-info">
+    //                                     <h3 id="presentCount">0</h3>
+    //                                     <p>Present Days</p>
+    //                                 </div>
+    //                             </div>
+                                
+    //                             <div class="stat-card">
+    //                                 <div class="stat-icon upcoming">
+    //                                     <i class="fas fa-calendar-alt"></i>
+    //                                 </div>
+    //                                 <div class="stat-info">
+    //                                     <h3 id="upcomingCount">0</h3>
+    //                                     <p>Upcoming Activities</p>
+    //                                 </div>
+    //                             </div>
+                                
+    //                             <div class="stat-card">
+    //                                 <div class="stat-icon rate">
+    //                                     <i class="fas fa-chart-line"></i>
+    //                                 </div>
+    //                                 <div class="stat-info">
+    //                                     <h3 id="attendanceRate">0%</h3>
+    //                                     <p>Attendance Rate</p>
+    //                                 </div>
+    //                             </div>
+                                
+    //                             <div class="stat-card">
+    //                                 <div class="stat-icon streak">
+    //                                     <i class="fas fa-fire"></i>
+    //                                 </div>
+    //                                 <div class="stat-info">
+    //                                     <h3 id="currentStreak">0</h3>
+    //                                     <p>Current Streak</p>
+    //                                 </div>
+    //                             </div>
+    //                         </div>
+
+    //                         <div class="dashboard-content">
+    //                             <div class="dashboard-section">
+    //                                 <div class="section-header">
+    //                                     <h3>Upcoming Activities</h3>
+    //                                     <a href="activities.php" class="view-all">View All</a>
+    //                                 </div>
+    //                                 <div class="activities-list" id="upcomingActivities">
+    //                                     <div class="no-data">
+    //                                         <i class="fas fa-spinner fa-spin"></i>
+    //                                         <p>Loading upcoming activities...</p>
+    //                                     </div>
+    //                                 </div>
+    //                             </div>
+
+    //                             <div class="dashboard-section">
+    //                                 <div class="section-header">
+    //                                     <h3>Recent Attendance</h3>
+    //                                     <a href="attendance_history.php" class="view-all">View All</a>
+    //                                 </div>
+    //                                 <div class="attendance-list" id="recentAttendance">
+    //                                     <div class="no-data">
+    //                                         <i class="fas fa-spinner fa-spin"></i>
+    //                                         <p>Loading recent attendance...</p>
+    //                                     </div>
+    //                                 </div>
+    //                             </div>
+    //                         </div>
+    //                     </div>`;
+        
+    //     centerDiv.innerHTML = content;
+    // }
+        centerDiv() {
         const centerDiv = document.getElementById('center-div');
         if (!centerDiv) {
             console.error('center-div element not found!');
@@ -29,7 +115,8 @@ class UserDashboard {
                             </div>
 
                             <div class="stats-grid">
-                                <div class="stat-card">
+                                <!-- 1. Present Days -->
+                                <a href="attendance_history.php" class="stat-card">
                                     <div class="stat-icon present">
                                         <i class="fas fa-check-circle"></i>
                                     </div>
@@ -37,9 +124,10 @@ class UserDashboard {
                                         <h3 id="presentCount">0</h3>
                                         <p>Present Days</p>
                                     </div>
-                                </div>
+                                </a>
                                 
-                                <div class="stat-card">
+                                <!-- 2. Upcoming Activities -->
+                                <a href="activities.php" class="stat-card">
                                     <div class="stat-icon upcoming">
                                         <i class="fas fa-calendar-alt"></i>
                                     </div>
@@ -47,9 +135,10 @@ class UserDashboard {
                                         <h3 id="upcomingCount">0</h3>
                                         <p>Upcoming Activities</p>
                                     </div>
-                                </div>
+                                </a>
                                 
-                                <div class="stat-card">
+                                <!-- 3. Attendance Rate -->
+                                <a href="attendance_history.php" class="stat-card">
                                     <div class="stat-icon rate">
                                         <i class="fas fa-chart-line"></i>
                                     </div>
@@ -57,9 +146,10 @@ class UserDashboard {
                                         <h3 id="attendanceRate">0%</h3>
                                         <p>Attendance Rate</p>
                                     </div>
-                                </div>
+                                </a>
                                 
-                                <div class="stat-card">
+                                <!-- 4. Current Streak -->
+                                <a href="profile.php" class="stat-card">
                                     <div class="stat-icon streak">
                                         <i class="fas fa-fire"></i>
                                     </div>
@@ -67,7 +157,7 @@ class UserDashboard {
                                         <h3 id="currentStreak">0</h3>
                                         <p>Current Streak</p>
                                     </div>
-                                </div>
+                                </a>
                             </div>
 
                             <div class="dashboard-content">
@@ -101,7 +191,6 @@ class UserDashboard {
         
         centerDiv.innerHTML = content;
     }
-
     getCurrentUserId() {
         const uniqueIdElement = document.getElementById('unique_id');
         if (uniqueIdElement && uniqueIdElement.value) {
@@ -172,7 +261,7 @@ class UserDashboard {
             this.updateDashboardStats([]);
         }
     }
-
+    
     updateDashboardStats(memberReport) {
         const attendanceRecords = memberReport.data || [];
     

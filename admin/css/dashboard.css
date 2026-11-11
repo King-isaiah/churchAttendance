@@ -6,6 +6,18 @@
     margin-bottom: 0.5rem !important; /* Added to pull the charts closer to the title */
 }
 
+/* Make the link wrapper behave exactly like the old stat card */
+a.stat-card {
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+a.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
 .charts {
     display: flex;
     width: 100%;
