@@ -1,0 +1,30 @@
+/* =========================================
+   THEME VARIABLES (Global)
+   ========================================= */
+:root {
+    /* LIGHT MODE (Default) */
+    --bg-main: #f4f4f4;           
+    --bg-card: #ffffff;           
+    --text-main: #111111;         
+    --text-muted: #555555;        
+    --border-color: #222222;      
+    --border-soft: #eeeeee;
+    --nav-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); 
+    --sidebar-bg: #111111;
+    --input-bg: #ffffff;
+    --primary-green: #39FF14;
+    --primary-orange: #FF7A00;
+}
+
+[data-theme="dark"] {
+    /* DARK MODE OVERRIDES */
+    --bg-main: #121212;           
+    --bg-card: #1e1e1e;           
+    --text-main: #f8f9fa;         
+    --text-muted: #a0a0a0;        
+    --border-color: #333333;      
+    --border-soft: #2a2a2a;
+    --nav-bg: #1a1a1a;            
+    --sidebar-bg: #0a0a0a;
+    --input-bg: #2a2a2a;
+}

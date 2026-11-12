@@ -9,7 +9,7 @@
 
 /* Calendar Styles - Smaller */
 .calendar-container {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 1rem; /* Added padding to match the white box in the screenshot */
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -29,7 +29,7 @@
 
 .calendar-header h3 {
     margin: 0;
-    color: #333;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 1.1rem;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .calendar-grid {
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
     border-radius: 8px;
     overflow: hidden;
     font-size: 0.8rem;
@@ -48,15 +48,15 @@
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    background: var(--bg-main); /* THEME UPDATE */
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
 }
 
 .calendar-weekdays > div {
     padding: 0.5rem 0.25rem;
     text-align: center;
     font-weight: 600;
-    color: #495057;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.75rem;
 }
 
@@ -68,8 +68,8 @@
 /* Consolidated Calendar Day rules */
 .calendar-day {
     min-height: 38px; /* Reduced from 45px to match 80% height */
-    border-right: 1px solid #e9ecef;
-    border-bottom: 1px solid #e9ecef;
+    border-right: 1px solid var(--border-soft); /* THEME UPDATE */
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
     padding: 2px;
     position: relative;
     cursor: pointer;
@@ -81,11 +81,11 @@
 }
 
 .calendar-day:hover {
-    background-color: #f8f9fa;
+    background-color: var(--bg-main); /* THEME UPDATE */
 }
 
 .calendar-day.empty {
-    background-color: #f8f9fa;
+    background-color: var(--bg-main); /* THEME UPDATE */
     cursor: default;
 }
 
@@ -104,7 +104,7 @@
     display: block;
     text-align: center;
     margin-bottom: 1px;
-    color: #333;
+    color: var(--text-main); /* THEME UPDATE */
     line-height: 1.2;
 }
 
@@ -125,7 +125,7 @@
 
 /* Table Container - Larger */
 .table-container {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 1.2rem; /* Reduced from 1.5rem */
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -136,7 +136,7 @@
 
 .table-container h3 {
     margin: 0 0 0.8rem 0; /* Reduced from 1rem */
-    color: #333;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 1.2rem; /* Reduced from 1.3rem */
 }
 
@@ -160,27 +160,31 @@
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #6c757d;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .search-box input {
     width: 100%;
     padding: 0.4rem 1rem 0.4rem 2.5rem; /* Reduced vertical padding */
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     border-radius: 4px;
     font-size: 0.85rem; /* Reduced from 0.9rem */
 }
 
 .search-container select {
     padding: 0.4rem 1rem; /* Reduced vertical padding */
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     border-radius: 4px;
     font-size: 0.85rem; /* Reduced from 0.9rem */
     min-width: 150px;
 }
 
 .results-count {
-    color: #6c757d;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.85rem; /* Reduced from 0.9rem */
     white-space: nowrap;
 }
@@ -193,24 +197,25 @@
 }
 
 .data-table th {
-    background: #f8f9fa;
+    background: var(--bg-main); /* THEME UPDATE */
     padding: 0.6rem 0.8rem; /* Reduced from 1rem */
     text-align: left;
     font-weight: 600;
-    color: #495057;
-    border-bottom: 2px solid #dee2e6;
+    color: var(--text-main); /* THEME UPDATE */
+    border-bottom: 2px solid var(--border-color); /* THEME UPDATE */
     font-size: 0.85rem; /* Reduced from 0.9rem */
 }
 
 .data-table td {
     padding: 0.6rem 0.8rem; /* Reduced from 1rem */
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
     vertical-align: top;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.85rem; /* Added to match headers */
 }
 
 .data-table tr:hover {
-    background-color: #f8f9fa;
+    background-color: var(--bg-main); /* THEME UPDATE */
 }
 
 /* Pagination Styles */
@@ -224,8 +229,9 @@
 
 .pagination button {
     padding: 0.4rem 0.8rem; /* Reduced from 0.5rem 1rem */
-    border: 1px solid #ddd;
-    background: white;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
+    background: var(--bg-card); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
@@ -233,7 +239,7 @@
 }
 
 .pagination button:hover:not(:disabled) {
-    background: #f8f9fa;
+    background: var(--bg-main); /* THEME UPDATE */
 }
 
 .pagination button.active {
@@ -249,7 +255,7 @@
 
 .page-info {
     text-align: center;
-    color: #6c757d;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.85rem; /* Reduced from 0.9rem */
     margin-bottom: 0.8rem; /* Reduced from 1rem */
 }
@@ -293,7 +299,7 @@
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--bg-card); /* THEME UPDATE */
     margin: 5% auto;
     padding: 0;
     border-radius: 12px;
@@ -308,20 +314,20 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
 }
 
-.modal-header h3 { margin: 0; color: #333; }
+.modal-header h3 { margin: 0; color: var(--text-main); } /* THEME UPDATE */
 
 .close {
-    color: #6c757d;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
     line-height: 1;
 }
 
-.close:hover { color: #495057; }
+.close:hover { color: var(--text-main); } /* THEME UPDATE */
 .modal form { padding: 1.5rem; }
 
 .form-row {
@@ -348,19 +354,19 @@
     display: flex;
     align-items: flex-start;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
 }
 
 .detail-row:last-child { border-bottom: none; }
 .detail-row label {
     font-weight: 600;
-    color: #495057;
+    color: var(--text-main); /* THEME UPDATE */
     min-width: 150px;
     margin-right: 1rem;
 }
 
 .detail-row span {
-    color: #6c757d;
+    color: var(--text-muted); /* THEME UPDATE */
     flex: 1;
 }
 
@@ -401,7 +407,7 @@
 
 .hint {
     display: block;
-    color: #6c757d;
+    color: var(--text-muted); /* THEME UPDATE */
     margin-top: 5px;
 }
 

@@ -10,13 +10,13 @@
 }
 
 .page-header h2 {
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     margin-bottom: 0.5rem;
     font-size: 2.5rem;
 }
 
 .page-header p {
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 1.1rem;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .profile-card {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
@@ -56,28 +56,28 @@
 
 .profile-info h3 {
     margin: 0 0 0.5rem 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 1.5rem;
 }
 
 .profile-info p {
     margin: 0 0 0.5rem 0;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 1rem;
 }
 
 .member-id {
     font-size: 0.8rem;
-    color: #555555;
+    color: var(--text-muted); /* THEME UPDATE */
     font-family: monospace;
 }
 
 .edit-profile-btn {
     padding: 0.75rem 1.5rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     background: transparent;
     border-radius: 8px;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -87,8 +87,8 @@
 }
 
 .edit-profile-btn:hover {
-    background: #f4f4f4;
-    border-color: #000000;
+    background: var(--bg-main); /* THEME UPDATE */
+    border-color: var(--border-color); /* THEME UPDATE */
 }
 
 .profile-sections {
@@ -97,7 +97,7 @@
 }
 
 .profile-section {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
@@ -105,10 +105,10 @@
 
 .profile-section h4 {
     margin: 0 0 1.5rem 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 1.25rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid var(--border-color); /* THEME UPDATE */
 }
 
 .profile-form {
@@ -131,24 +131,25 @@
 
 .form-group label {
     font-weight: 500;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .form-group input,
 .form-group select {
     padding: 0.75rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
     font-size: 0.9rem;
-    background: white;
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     transition: all 0.2s ease;
 }
 
 .form-group input:read-only,
 .form-group select:disabled {
-    background: #f4f4f4;
-    color: #333333;
+    background: var(--border-soft); /* THEME UPDATE */
+    color: var(--text-muted); /* THEME UPDATE */
     cursor: not-allowed;
 }
 
@@ -177,7 +178,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
     transition: all 0.2s ease;
 }
@@ -189,30 +190,30 @@
 
 .setting-info h5 {
     margin: 0 0 0.25rem 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 1rem;
 }
 
 .setting-info p {
     margin: 0;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .btn-outline {
     padding: 0.75rem 1.5rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     background: transparent;
     border-radius: 8px;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s ease;
 }
 
 .btn-outline:hover {
-    background: #f4f4f4;
-    border-color: #000000;
+    background: var(--bg-main); /* THEME UPDATE */
+    border-color: var(--border-color); /* THEME UPDATE */
 }
 
 /* Modal Styles */
@@ -229,7 +230,7 @@
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--bg-card); /* THEME UPDATE */
     margin: 5% auto;
     padding: 0;
     border-radius: 12px;
@@ -244,22 +245,22 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid var(--border-color); /* THEME UPDATE */
 }
 
 .modal-header h3 {
     margin: 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .close-modal {
     font-size: 1.5rem;
     cursor: pointer;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .close-modal:hover {
-    color: #000000;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .modal-body {
@@ -370,7 +371,7 @@
 
 .btn-outline:hover {
     background: rgba(57, 255, 20, 0.1);
-    color: #000000;
+    color: var(--text-main); /* THEME UPDATE */
     border-color: #1A8C06;
 }
 
@@ -383,8 +384,8 @@
     justify-content: flex-end;
     gap: 1rem;
     padding: 1.5rem;
-    background-color: #f4f4f4;
-    border-top: 1px solid #222222;
+    background-color: var(--bg-main); /* THEME UPDATE */
+    border-top: 1px solid var(--border-color); /* THEME UPDATE */
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
 }
@@ -395,10 +396,11 @@
 .modal-body select {
     width: 100%;
     padding: 0.85rem 1rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
     font-size: 0.95rem;
-    background: #fff;
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     transition: all 0.2s ease;
 }
 
@@ -436,7 +438,7 @@ input[type="radio"] {
 }
 
 .notification-option:hover, .privacy-option:hover {
-    background: #f4f4f4;
+    background: var(--bg-main); /* THEME UPDATE */
 }
 
 .notification-option label, .privacy-option label {
@@ -444,17 +446,17 @@ input[type="radio"] {
     align-items: center;
     cursor: pointer;
     font-weight: 500;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .notification-option .description, .privacy-option .description {
     margin: 0.25rem 0 0 28px;
     font-size: 0.85rem;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .modal-body h5 {
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 1rem;
     margin-bottom: 1rem;
     font-weight: 600;

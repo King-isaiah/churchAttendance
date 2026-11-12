@@ -44,7 +44,7 @@ a.stat-card:hover {
 }
 
 .stat-card {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 1.5rem;
     display: flex;
@@ -77,12 +77,12 @@ a.stat-card:hover {
 .stat-info h3 {
     font-size: 2rem;
     margin: 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .stat-info p {
     margin: 0;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
@@ -93,7 +93,7 @@ a.stat-card:hover {
 }
 
 .dashboard-section {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
@@ -105,12 +105,12 @@ a.stat-card:hover {
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid var(--border-color); /* THEME UPDATE */
 }
 
 .section-header h3 {
     margin: 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .view-all {
@@ -129,7 +129,7 @@ a.stat-card:hover {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
     margin-bottom: 0.75rem;
     transition: all 0.2s ease;
@@ -142,19 +142,19 @@ a.stat-card:hover {
 
 .activity-info h4, .attendance-details h4 {
     margin: 0 0 0.25rem 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .activity-info p, .attendance-details p {
     margin: 0.25rem 0;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .activity-info i, .attendance-details i {
     width: 16px;
     margin-right: 0.5rem;
-    color: #555555;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .activity-actions {
@@ -165,18 +165,18 @@ a.stat-card:hover {
 .attendance-date {
     text-align: center;
     padding-right: 1rem;
-    border-right: 1px solid #222222;
+    border-right: 1px solid var(--border-color); /* THEME UPDATE */
 }
 
 .attendance-date strong {
     display: block;
     font-size: 1.2rem;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .attendance-date span {
     font-size: 0.8rem;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     text-transform: uppercase;
 }
 
@@ -209,7 +209,7 @@ a.stat-card:hover {
 .no-data {
     text-align: center;
     padding: 3rem;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .no-data i {
@@ -230,7 +230,7 @@ a.stat-card:hover {
 
 .user-role {
     font-size: 0.8rem;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .user-actions {

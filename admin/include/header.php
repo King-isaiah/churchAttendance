@@ -38,6 +38,8 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../../css/theme.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/activity.css">
     <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -139,7 +141,7 @@ if (isset($_SESSION['user_id'])) {
                 <h6 style="color: greenyellow;">Hub Church</h6>
                 
                 <!-- THEME TOGGLE BUTTON -->
-                <button title="Toggle Dark Mode" >
+                <button title="Toggle Dark Mode" id="themeToggle">
                 <!-- <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode" style="position: absolute; right: 20px; top: 30px; background: transparent; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer;"> -->
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>

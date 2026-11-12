@@ -237,7 +237,7 @@ canvas {
 .stat-card {
     display: flex;
     align-items: center;
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 0.6rem 1rem; 
     flex: 1;
@@ -262,11 +262,12 @@ canvas {
     margin: 0;
     font-size: 1.2rem; 
     font-weight: bold;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .stat-info p {
     margin: 0;
-    color: #718096;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.8rem;
 }
 
@@ -281,10 +282,11 @@ canvas {
 }
 
 #chart-filter {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
     border-radius: 6px;
     padding: 0.3rem 0.6rem;
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.85rem;
 }
 
@@ -311,35 +313,35 @@ canvas {
 }
 
 .activity-list { border-radius: 12px; padding: 1rem; margin-left: 1rem; width: 75%; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); margin-bottom: 1em; }
-.activity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
-.activity-header h4 { margin: 0; }
+.activity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-soft); padding-bottom: 0.5rem; } /* THEME UPDATE */
+.activity-header h4 { margin: 0; color: var(--text-main); } /* THEME UPDATE */
 .activity-header a { color: #8786E3; text-decoration: none; font-size: 0.9rem; }
-.activity-item { align-items: center; border-bottom: 1px solid #f7fafc; width: 20em; }
+.activity-item { align-items: center; border-bottom: 1px solid var(--border-soft); width: 20em; } /* THEME UPDATE */
 .activity-item:last-child { border-bottom: none; }
-.activity-info h5 { margin: 0 0 0.3rem 0; font-size: 1rem; }
-.activity-info p { margin: 0; color: #718096; font-size: 0.8rem; }
-.attendance-count { background: #f7fafc; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.9rem; color: #4a5568; }
-.btn-group { display: flex; background: #f7fafc; border-radius: 30px; padding: 0.3rem; margin: 1rem 0; }
-.btn-group button { flex: 1; border: none; padding: 0.5rem; border-radius: 30px; background: transparent; cursor: pointer; font-size: 0.9rem; }
-.btn-group .btn-active { background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+.activity-info h5 { margin: 0 0 0.3rem 0; font-size: 1rem; color: var(--text-main); } /* THEME UPDATE */
+.activity-info p { margin: 0; color: var(--text-muted); font-size: 0.8rem; } /* THEME UPDATE */
+.attendance-count { background: var(--bg-main); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.9rem; color: var(--text-main); } /* THEME UPDATE */
+.btn-group { display: flex; background: var(--bg-main); border-radius: 30px; padding: 0.3rem; margin: 1rem 0; } /* THEME UPDATE */
+.btn-group button { flex: 1; border: none; padding: 0.5rem; border-radius: 30px; background: transparent; cursor: pointer; font-size: 0.9rem; color: var(--text-main); } /* THEME UPDATE */
+.btn-group .btn-active { background: var(--bg-card); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); color: var(--text-main); } /* THEME UPDATE */
 .rewards-container { display: flex; justify-content: space-around; }
 .reward-item { text-align: center; }
 .reward-badge { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; color: white; font-size: 1.2rem; }
-.reward-item p { margin: 0; font-size: 0.75rem; color: #4a5568; }
+.reward-item p { margin: 0; font-size: 0.75rem; color: var(--text-muted); } /* THEME UPDATE */
 
 /* ---------- Online members view ---------- */
-.online-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; color: #94a3b8; font-size: .95rem; text-align: center; gap: .5rem; }
+.online-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; color: var(--text-muted); font-size: .95rem; text-align: center; gap: .5rem; } /* THEME UPDATE */
 .online-wrapper { display: flex; flex-direction: column; gap: .5rem; }
-.online-header { display: flex; justify-content: space-between; align-items: center; padding: 0 .25rem .5rem .25rem; border-bottom: 1px solid #e2e8f0; }
-.online-header h4 { margin: 0; font-size: 1rem; color: #1e293b; }
+.online-header { display: flex; justify-content: space-between; align-items: center; padding: 0 .25rem .5rem .25rem; border-bottom: 1px solid var(--border-soft); } /* THEME UPDATE */
+.online-header h4 { margin: 0; font-size: 1rem; color: var(--text-main); } /* THEME UPDATE */
 .online-count { background: #dcfce7; color: #16a34a; font-size: .8rem; font-weight: 600; padding: .15rem .55rem; border-radius: 999px; }
 .online-list { display: flex; flex-direction: column; gap: .35rem; max-height: 220px; overflow-y: auto; padding-right: 4px; }
-.online-member-item { display: flex; align-items: center; gap: .6rem; padding: .5rem .65rem; border-radius: 10px; background: #f8fafc; transition: background .15s; }
-.online-member-item:hover { background: #eef2ff; }
+.online-member-item { display: flex; align-items: center; gap: .6rem; padding: .5rem .65rem; border-radius: 10px; background: var(--bg-main); transition: background .15s; } /* THEME UPDATE */
+.online-member-item:hover { background: var(--border-soft); } /* THEME UPDATE */
 .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, .2); flex: 0 0 auto; }
 .online-member-info { display: flex; flex-direction: column; line-height: 1.15; }
-.online-member-name { margin: 0; font-size: .9rem; font-weight: 500; color: #0f172a; }
-.online-member-dept { color: #64748b; font-size: .75rem; }
+.online-member-name { margin: 0; font-size: .9rem; font-weight: 500; color: var(--text-main); } /* THEME UPDATE */
+.online-member-dept { color: var(--text-muted); font-size: .75rem; } /* THEME UPDATE */
 
 /* =========================================
    RESPONSIVE QUERIES: TABLETS (iPads)
@@ -367,9 +369,6 @@ canvas {
     }
 }
 
-/* =========================================
-   RESPONSIVE QUERIES: MOBILE (iPhones & Androids)
-   ========================================= */
 /* =========================================
    RESPONSIVE QUERIES: MOBILE (iPhones & Androids)
    ========================================= */

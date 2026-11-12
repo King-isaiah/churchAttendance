@@ -10,13 +10,13 @@
 }
 
 .page-header h2 {
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     margin-bottom: 0.5rem;
     font-size: 2.5rem;
 }
 
 .page-header p {
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 1.1rem;
 }
 
@@ -25,7 +25,7 @@
     gap: 1rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     padding: 1.5rem;
     border-radius: 12px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
@@ -39,16 +39,19 @@
 .search-box input {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
     font-size: 0.9rem;
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .filter-group select {
     padding: 0.75rem 1rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.9rem;
     min-width: 150px;
 }
@@ -60,12 +63,12 @@
 }
 
 .activity-card {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
 }
 
 .activity-card:hover {
@@ -76,7 +79,7 @@
 
 .activity-header {
     padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid var(--border-color); /* THEME UPDATE */
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -84,7 +87,7 @@
 
 .activity-header h3 {
     margin: 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 1.25rem;
     flex: 1;
 }
@@ -117,7 +120,7 @@
 }
 
 .activity-description {
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     margin-bottom: 1.5rem;
     line-height: 1.5;
 }
@@ -132,20 +135,20 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .detail-item i {
     width: 16px;
-    color: #555555;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .activity-footer {
     padding: 1rem 1.5rem 1.5rem;
     display: flex;
     gap: 0.75rem;
-    border-top: 1px solid #222222;
+    border-top: 1px solid var(--border-color); /* THEME UPDATE */
 }
 
 .btn-primary, .btn-secondary, .btn-outline {
@@ -183,20 +186,20 @@
 
 .btn-outline {
     background: transparent;
-    border: 1px solid #222222;
-    color: #111111;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .btn-outline:hover {
-    background: #f4f4f4;
-    border-color: #000000;
+    background: var(--bg-main); /* THEME UPDATE */
+    border-color: var(--border-color); /* THEME UPDATE */
 }
 
 .no-activities {
     grid-column: 1 / -1;
     text-align: center;
     padding: 4rem 2rem;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .no-activities i {
@@ -207,7 +210,7 @@
 
 .no-activities h3 {
     margin-bottom: 0.5rem;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .no-activities p {
@@ -228,7 +231,7 @@
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--bg-card); /* THEME UPDATE */
     margin: 5% auto;
     padding: 0;
     border-radius: 12px;
@@ -244,18 +247,18 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid var(--border-color); /* THEME UPDATE */
 }
 
 .modal-header h3 {
     margin: 0;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .close-modal {
     font-size: 1.5rem;
     cursor: pointer;
-    color: #333333;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .close-modal:hover {
@@ -274,15 +277,17 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #111111;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .form-group input {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #222222;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
     font-size: 0.9rem;
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .form-group input:focus {
@@ -340,15 +345,15 @@
 }
 
 .modal-header {
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
+    background: var(--bg-main); /* THEME UPDATE */
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
     padding: 20px 25px;
 }
 
 .modal-header h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: #333;
+    color: var(--text-main); /* THEME UPDATE */
     font-weight: 600;
 }
 
@@ -378,10 +383,10 @@
 }
 
 .modern-activity-details .detail-desc {
-    color: #555;
+    color: var(--text-muted); /* THEME UPDATE */
     line-height: 1.6;
     margin-bottom: 25px;
-    background: #f8f9fa;
+    background: var(--bg-main); /* THEME UPDATE */
     padding: 15px;
     border-radius: 8px;
     border-left: 4px solid #0d6efd;
@@ -398,8 +403,8 @@
     align-items: flex-start;
     gap: 12px;
     padding: 12px;
-    background: #fdfdfd;
-    border: 1px solid #eee;
+    background: var(--bg-main); /* THEME UPDATE */
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
     border-radius: 10px;
     transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -421,7 +426,7 @@
 }
 
 .detail-item-modern small {
-    color: #888;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -429,7 +434,7 @@
 }
 
 .detail-item-modern span {
-    color: #333;
+    color: var(--text-main); /* THEME UPDATE */
     font-weight: 500;
     font-size: 0.95rem;
 }

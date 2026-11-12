@@ -10,13 +10,13 @@
 }
 
 .page-header h2 {
-    color: #1f2937;
+    color: var(--text-main); /* THEME UPDATE */
     margin-bottom: 0.5rem;
     font-size: 2.5rem;
 }
 
 .page-header p {
-    color: #6b7280;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 1.1rem;
 }
 
@@ -28,7 +28,7 @@
 }
 
 .summary-card {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 1.5rem;
     display: flex;
@@ -56,17 +56,17 @@
 .summary-info h3 {
     font-size: 1.75rem;
     margin: 0;
-    color: #1f2937;
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .summary-info p {
     margin: 0;
-    color: #6b7280;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .filters-section {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     padding: 1.5rem;
     border-radius: 12px;
     margin-bottom: 2rem;
@@ -85,21 +85,22 @@
 
 .filter-group label {
     font-weight: 500;
-    color: #374151;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .filter-group select {
     padding: 0.75rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--border-color); /* THEME UPDATE */
     border-radius: 8px;
-    background: white;
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.9rem;
     min-width: 150px;
 }
 
 .table-container {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -112,23 +113,23 @@
 }
 
 .attendance-table th {
-    background: #f8fafc;
+    background: var(--bg-main); /* THEME UPDATE */
     padding: 1rem;
     text-align: left;
     font-weight: 600;
-    color: #374151;
-    border-bottom: 1px solid #e5e7eb;
+    color: var(--text-main); /* THEME UPDATE */
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .attendance-table td {
     padding: 1rem;
-    border-bottom: 1px solid #f3f4f6;
-    color: #4b5563;
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .attendance-row:hover {
-    background: #f9fafb;
+    background: var(--bg-main); /* THEME UPDATE */
 }
 
 .attendance-row.status-present {
@@ -145,12 +146,12 @@
 }
 
 .date-cell strong {
-    color: #1f2937;
+    color: var(--text-main); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .date-cell span {
-    color: #6b7280;
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.8rem;
     text-transform: uppercase;
 }
@@ -174,14 +175,14 @@
 }
 
 .no-checkin {
-    color: #9ca3af;
+    color: var(--text-muted); /* THEME UPDATE */
     font-style: italic;
 }
 
 .no-data {
     text-align: center;
     padding: 3rem;
-    color: #6b7280;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .no-data i {
@@ -261,8 +262,8 @@
 
 /* Late status — RED */
 .attendance-row.status-late {
-    background-color: #fef2f2;      /* soft red background */
-    border-left: 4px solid #e53e3e; /* red accent bar */
+    background-color: #fef2f2;      
+    border-left: 4px solid #e53e3e; 
 }
 
 .status-badge.status-late {
@@ -304,23 +305,23 @@
     padding: 0 0.75rem;
     font-size: 0.9rem;
     font-weight: 500;
-    color: #4b5563; /* Dark gray text */
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb; /* Light gray border */
-    border-radius: 8px; /* Rounded corners */
+    color: var(--text-main); /* THEME UPDATE */
+    background-color: var(--bg-card); /* THEME UPDATE */
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
+    border-radius: 8px; 
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .pagination-btn:hover:not(.active):not(.disabled) {
-    background-color: #f3f4f6; /* Light gray on hover */
-    border-color: #d1d5db;
-    color: #111827; /* Darker text on hover */
+    background-color: var(--bg-main); /* THEME UPDATE */
+    border-color: var(--border-color); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .pagination-btn.active {
-    background-color: #8786e3; /* Use your theme color (purple/blue) */
+    background-color: #8786e3; 
     border-color: #8786e3;
     color: #ffffff;
     font-weight: 600;
@@ -331,7 +332,7 @@
 .pagination-btn.disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background-color: #f9fafb;
+    background-color: var(--bg-main); /* THEME UPDATE */
     box-shadow: none;
 }
 

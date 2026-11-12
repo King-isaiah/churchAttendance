@@ -2,7 +2,7 @@
 
 .email-log-container {
     padding: 1.5rem;
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     margin: 1rem;
@@ -15,7 +15,7 @@
     align-items: flex-end;
     margin-bottom: 1.5rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
 }
 
 .search-box {
@@ -29,13 +29,15 @@
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #888;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .search-box input {
     width: 100%;
     padding: 0.7rem 1rem 0.7rem 2.5rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     border-radius: 8px;
 }
 
@@ -48,12 +50,14 @@
 .filter-group label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #555;
+    color: var(--text-muted); /* THEME UPDATE */
 }
 
 .filter-group input {
     padding: 0.7rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
+    background: var(--bg-main); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     border-radius: 8px;
 }
 
@@ -74,29 +78,29 @@
 }
 
 .data-table th {
-    background: #f8f9fa;
+    background: var(--bg-main); /* THEME UPDATE */
     padding: 1rem;
     text-align: left;
     font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #dee2e6;
+    color: var(--text-main); /* THEME UPDATE */
+    border-bottom: 2px solid var(--border-color); /* THEME UPDATE */
 }
 
 .data-table td {
     padding: 1rem;
-    border-bottom: 1px solid #eee;
-    color: #555;
+    border-bottom: 1px solid var(--border-soft); /* THEME UPDATE */
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .data-table tr:hover {
-    background: #fdfdfd;
+    background: var(--bg-main); /* THEME UPDATE */
 }
 
 /* Buttons */
 .btn-success { background: #28a745; color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;}
 .btn-dark { background: #343a40; color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;}
-.btn-secondary { background: #e2e8f0; color: #333; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;}
+.btn-secondary { background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border-soft); padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;} /* THEME UPDATE */
 .btn-primary { background: #8786E3; color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;}
 
 /* Print styles */
