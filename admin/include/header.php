@@ -27,6 +27,14 @@ if (isset($_SESSION['user_id'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
@@ -126,6 +134,12 @@ if (isset($_SESSION['user_id'])) {
            
 
         </div>
-        <div class="center-div">
+        <div class="center-div">  
             <div class="top-nav">
                 <h6 style="color: greenyellow;">Hub Church</h6>
+                
+                <!-- THEME TOGGLE BUTTON -->
+                <button title="Toggle Dark Mode" >
+                <!-- <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode" style="position: absolute; right: 20px; top: 30px; background: transparent; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer;"> -->
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>

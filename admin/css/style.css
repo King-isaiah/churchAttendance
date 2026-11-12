@@ -4,21 +4,38 @@
     padding: 0;    
     box-sizing: border-box;
 }
-:root{
-    --primary:#39FF14; /* Neon Green */
-    --light-primary:#111111; /* Black */
+
+/* =========================================
+   THEME VARIABLES & TOGGLE BUTTON
+   ========================================= */
+:root {
+    /* LIGHT MODE (Default) */
+    --bg-main: #f4f4f4;           
+    --bg-card: #ffffff;           
+    --text-main: #111111;         
+    --text-muted: #555555;        
+    --border-color: #222222;      
+    --border-soft: #eeeeee;
+    --nav-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); 
+    --sidebar-bg: #111111;
+    --input-bg: #ffffff;
+    --primary-green: #39FF14;
+    --primary-orange: #FF7A00;
+
+    /* Original Variables */
+    --primary:#39FF14; 
+    --light-primary:#111111; 
     --transparent-overlay: rgba(255, 255, 255, 0.5);
-    --primary-purple:#39FF14; /* Replaced with Neon Green */
-    --apple-logo:#FF7A00; /* Orange */
-    --exotic-can:#2ECC0E; /* Darker Neon Green */
+    --primary-purple:#39FF14; 
+    --apple-logo:#FF7A00; 
+    --exotic-can:#2ECC0E; 
     --black-color:#000000;
     --white-color:#ffffff;
-    --exotic-logo:#39FF14; /* Neon Green */
+    --exotic-logo:#39FF14; 
     --pear-background:rgba(57, 255, 20, 0.15);
     --apple-background:rgba(255, 122, 0, 0.15);
     --exotic-background:rgba(57, 255, 20, 0.1);
     
-    /* Additional variables used but missing in original root */
     --link-hover: rgba(57, 255, 20, 0.15);
     --alarm: #FF7A00;
     --tooltip-bg: #111111;
@@ -28,6 +45,38 @@
     --text-link: #ffffff;
 }
 
+[data-theme="dark"] {
+    /* DARK MODE OVERRIDES */
+    --bg-main: #121212;           
+    --bg-card: #1e1e1e;           
+    --text-main: #f8f9fa;         
+    --text-muted: #a0a0a0;        
+    --border-color: #333333;      
+    --border-soft: #2a2a2a;
+    --nav-bg: #1a1a1a;            
+    --sidebar-bg: #0a0a0a;
+    --input-bg: #2a2a2a;
+}
+
+/* THEME TOGGLE BUTTON STYLES */
+.theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+.theme-toggle:hover {
+    background: var(--border-soft);
+    transform: scale(1.05);
+}
 
 .page-header {
     display: flex;
@@ -42,7 +91,7 @@
     width: 100%;
     height: 100vh;        
     overflow: hidden;        
-    background-color: #f4f4f4; 
+    background-color: var(--bg-main); /* THEME UPDATE */
 }
 
 .icon-square {
@@ -52,7 +101,6 @@
     height: 37px;
     margin-bottom: 1em;
     font-size: 1.2em;    
-    /* ADDED: Flexbox to center the link perfectly inside the box */
     display: flex;
     align-items: center;
     justify-content: center;  
@@ -61,25 +109,19 @@
 .icon-square a {
     color: white;
     text-decoration: none;
-    
-    /* ADDED: These 4 lines force the link to fill the entire div */
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
-    
-    /* Keep the border-radius matching the parent so the hover effect looks right */
     border-radius: 12px; 
 }
 .icon-square a:hover {
     text-decoration: none;
 }
 
-
 .top-space{
     margin-top: 20em;
-    
 }
 .text-nav{
     display: flex;    
@@ -90,7 +132,8 @@
     border-radius: 12px;
     width: 15em;
     border: none;
-    background-color: #f4f4f4; /* Replaced aliceblue */
+    background-color: var(--input-bg); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
 }
 .text-nav img{
     border-radius: 50%;
@@ -105,56 +148,41 @@
     flex-direction: column;
     overflow: hidden;        
     padding: 0 1rem;         
-    
-    /* CHANGED: Matches the new 15rem sidebar width */
     margin-left: calc(15rem + 1em); 
 }
 
-/* This collapsed state is fine as is */
+body.collapsed .center-div {
+    margin-left: calc(5rem + 1em);
+}
 body.collapsed .center-div {
     margin-left: calc(5rem + 1em);
 }
 
-/* ADD THIS: Pushes content past the collapsed sidebar */
-body.collapsed .center-div {
-    margin-left: calc(5rem + 1em);
-}
-
-/* .admin-card { */
 .top-nav {
     flex: 1; 
     height: 10vh;                
-    /* display: flex; */
     flex-direction: column;
     overflow: hidden;        
-    /* background: rgba(255, 255, 255, 0.96);
-    border-radius: 2rem;
-    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2);
-    padding: 1.8rem;         
-    animation: fadeSlideUp 0.4s ease;  */
 }
 .admin-header,
 .admin-tabs-carousel {
-    flex-shrink: 0;          /* don't shrink */
-    /* keep your existing styles */
+    flex-shrink: 0;          
 }
 
-
 .tab-panel {
-    flex: 1;                 /* take all remaining space */
-    overflow-y: auto;        /* scroll vertically if needed */
-    display: none;           /* hidden by default */
+    flex: 1;                 
+    overflow-y: auto;        
+    display: none;           
 }
 
 .tab-panel.active {
-    display: block;          /* show when active */
+    display: block;          
 }
 #content-display {
     flex: 1;
     overflow-y: auto;
 }
 
-/* Ensure flex children can shrink below content height */
 .admin-card,
 .tab-panel,
 .tab-pane,
@@ -164,7 +192,6 @@ body.collapsed .center-div {
     min-height: 0;
 }
 
-/* Make active panels scrollable */
 .tab-panel.active,
 .tab-pane.active,
 .panel-content.active,
@@ -173,22 +200,11 @@ body.collapsed .center-div {
     overflow-y: auto;
 }
 
-/* If you use .management-content directly (like in management.php) */
 .management-content {
     flex: 1;
     overflow-y: auto;
 }
 
-/* .dept-attendance{
-    height: 30vh;
-    display: flex;
-} */
-/* .dept{
-    width: 40%;
-    background-color: #ffffff;
-    border-radius: 20px;
-    margin: 1em;
-} */
 .last{
     margin-left:1em;
     width: 20%;  
@@ -201,21 +217,21 @@ body.collapsed .center-div {
 }
 .last-text h5{
    font-size: 1em; 
-
 }
 .last-text h6{    
     font-size: .7em;
-    color: #1A8C06; /* Replaced purple with darker neon green for readability */
+    color: #1A8C06; 
 }
 .btn button{
     width: 18vh;
     border-radius: 30px;
     border: none;
-    background-color: white;
+    background-color: var(--bg-card); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     height: 5vh;
 }
 .btn-active{
-    color: #1A8C06; /* Replaced purple with darker neon green */
+    color: #1A8C06; 
 }
 
 
@@ -228,17 +244,14 @@ body.collapsed .center-div {
     height: 95vh;
     flex-shrink: 0;  
     padding: 1rem;
-    margin: 1em; /* You can change this to 0.5em if you want it tighter to the screen edge */
+    margin: 1em; 
     border-radius: 0.75rem;
-    
-    /* CHANGED: Reduced from 18rem to 15rem */
     max-width: 15rem; 
-    
     min-width: 4rem;
     display: flex;
     color: var(--white-color);
     flex-direction: column;
-    background: #111111; 
+    background: var(--sidebar-bg); /* THEME UPDATE */
     box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
     transition: max-width 0.2s ease-in-out;
     z-index: 1000;              
@@ -251,8 +264,6 @@ body.collapsed .hide{
     position: absolute;
     visibility: hidden;
 }
-
-
 
 /* ? sidebar top */
 .sidebar-top-wrapper{
@@ -277,12 +288,12 @@ body.collapsed .hide{
 }
 .hub-name{
     font-size: 1.25rem;
-    color: #ffffff; /* White for contrast on black */
+    color: #ffffff; 
     white-space: nowrap;
 }
 .hub-workers{
     font-size: 1rem;
-    color: #cccccc; /* Light gray for contrast on black */
+    color: #cccccc; 
     font-weight: 600;
     font-size: 0.85rem;
 }
@@ -290,7 +301,7 @@ body.collapsed .hide{
 .logo__wrapper{
     display: flex;
     align-items: center;
-    color: #cccccc; /* Light gray for contrast on black */
+    color: #cccccc; 
     font-weight: 700;
     text-decoration: none;
     font-size: 1.35rem;
@@ -348,23 +359,23 @@ body.collapsed .expand-btn svg{
     flex-direction: column;
 }
 .sidebar-links li{
-    color: #ffffff; /* White for contrast on black */
+    color: #ffffff; 
     min-width: 3rem;
 }
 .sidebar-link li .notification{
     background: var(--alarm);
 }
 .sidebar-links li svg{
-    stroke: #cccccc; /* Light gray for contrast on black */
+    stroke: #cccccc; 
     width: 1.5rem;
     height: 1.5rem;
     min-width: 1.75rem;
 }
 .sidebar-links li a:hover{
-    background: rgba(57, 255, 20, 0.15); /* Neon green tint */
+    background: rgba(57, 255, 20, 0.15); 
 }
 .sidebar-links li a {
-    color: #ffffff; /* White for contrast on black */
+    color: #ffffff; 
     width: 100%;
     padding-left: 0.6rem;
     font-size: 1.1rem;
@@ -396,11 +407,11 @@ body.collapsed .expand-btn svg{
 }
 
 .sidebar-links .active:hover{
-    background: rgba(57, 255, 20, 0.15); /* Neon green tint */
+    background: rgba(57, 255, 20, 0.15); 
 }
 
 .sidebar-links .active svg{
-    stroke: #39FF14; /* Neon Green */
+    stroke: #39FF14; 
 }
 
 .sidebar-links--bottom{
@@ -441,23 +452,20 @@ body.collapsed .expand-btn svg{
     visibility: visible;
 }
 
-
-
 /* slider */
 .slider__btn {
   position: absolute;
   top: 40%;
   z-index: 5;
   border: none;
-  background: #39FF14; /* Neon Green */
+  background: #39FF14; 
   font-family: inherit;
-  color: #000000; /* Black */
+  color: #000000; 
   border-radius: 50%;
   height: 1.5rem;
   width: 1.5rem;
   font-size: 1rem;
   cursor: pointer;
-  /* overflow: hidden; */
 }
 
 .slider__btn--left {
@@ -473,13 +481,11 @@ body.collapsed .expand-btn svg{
 .dots {
   margin-top: 33em;
   position: absolute;
-  /* bottom: 0.1%; */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
 }
 .dots__dot {
-    
   border: none;
   background-color: #b9b9b9;
   opacity: 0.7;
@@ -489,34 +495,22 @@ body.collapsed .expand-btn svg{
   margin-right: 1.75rem;
   cursor: pointer;
   transition: all 0.5s;
-
-  /* Only necessary when overlying images */
-  /* box-shadow: 0 0.6rem 1.5rem rgba(0, 0, 0, 0.7); */
 }
 
-/* .dots__dot:last-child { */
-  /* margin: 0; */
-/* } */
-
 .dots__dot--active {
-  background-color: #39FF14; /* Neon Green */
+  background-color: #39FF14; 
   opacity: 1;
 }
 
-/* Style for the active link */
 .icon-square.active {
-    background-color: #39FF14; /* Neon Green */
+    background-color: #39FF14; 
 }
 
 .icon-square.active a {
-    color: #000000; /* Black icon text */
+    color: #000000; 
 }
 
 @media (max-width: 1000px) {
-    
-    /* .text-nav h3{
-        font-size: 1em;
-    } */
     .navigation{
         margin-left: 6px;
         padding-top: 1rem;
@@ -531,7 +525,6 @@ body.collapsed .expand-btn svg{
     .text-nav input{
         width: 10em;      
     }
-   
 }
 @media (max-width: 800px) {
     .icon-square{
@@ -546,22 +539,12 @@ body.collapsed .expand-btn svg{
     .expand-btn{
         display: none;
     }
-    
-}
-@media (max-width: 576px) {
-   
-    /* .btn-group button {
-        font-size: 0.8rem;
-        padding: 0.4rem;
-    }
-     */
-    
 }
 
 
 /* Calendar Styles */
 .calendar-view {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
@@ -593,7 +576,7 @@ body.collapsed .expand-btn svg{
 .calendar-weekdays div {
     text-align: center;
     font-weight: 600;
-    color: #111111; /* Black */
+    color: var(--text-main); /* THEME UPDATE */
     padding: 0.5rem;
 }
 
@@ -608,14 +591,14 @@ body.collapsed .expand-btn svg{
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background: #f8f9fa;
+    background: var(--border-soft); /* THEME UPDATE */
     position: relative;
     cursor: pointer;
 }
 
 .calendar-day.has-event {
-    background: rgba(57, 255, 20, 0.1); /* Neon Green tint */
-    border: 1px solid #39FF14; /* Neon Green */
+    background: rgba(57, 255, 20, 0.1); 
+    border: 1px solid #39FF14; 
 }
 
 .calendar-day.has-event:hover {
@@ -625,7 +608,7 @@ body.collapsed .expand-btn svg{
 .event-dot {
     width: 6px;
     height: 6px;
-    background: #39FF14; /* Neon Green */
+    background: #39FF14; 
     border-radius: 50%;
     position: absolute;
     bottom: 4px;
@@ -640,7 +623,7 @@ body.collapsed .expand-btn svg{
 }
 
 .summary-card {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 1.5rem;
     text-align: center;
@@ -649,14 +632,14 @@ body.collapsed .expand-btn svg{
 
 .summary-card h4 {
     margin: 0 0 0.5rem 0;
-    color: #333333; /* Dark Gray */
+    color: var(--text-muted); /* THEME UPDATE */
     font-size: 0.9rem;
 }
 
 .summary-card h3 {
     margin: 0 0 0.5rem 0;
     font-size: 2rem;
-    color: #111111; /* Black */
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 .trend {
@@ -665,11 +648,11 @@ body.collapsed .expand-btn svg{
 }
 
 .trend.positive {
-    color: #1A8C06; /* Darker Neon Green */
+    color: #1A8C06; 
 }
 
 .trend.negative {
-    color: #FF7A00; /* Orange */
+    color: #FF7A00; 
 }
 
 /* Progress Bar */
@@ -683,8 +666,8 @@ body.collapsed .expand-btn svg{
 
 .progress-fill {
     height: 100%;
-    background: #39FF14; /* Neon Green */
-    color: #000000; /* Black */
+    background: #39FF14; 
+    color: #000000; 
     font-size: 0.7rem;
     display: flex;
     align-items: center;
@@ -759,7 +742,7 @@ body.collapsed .expand-btn svg{
 
 /* Toastify Notification */
 .toastify {
-    background: white;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 15px;
@@ -789,23 +772,23 @@ body.collapsed .expand-btn svg{
 
 /* Toast Types */
 .toastify.success {
-    border-left-color: #39FF14; /* Neon Green */
-    background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), #ffffff);
+    border-left-color: #39FF14; 
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), var(--bg-card)); /* THEME UPDATE */
 }
 
 .toastify.error {
-    border-left-color: #FF7A00; /* Orange */
-    background: linear-gradient(135deg, rgba(255, 122, 0, 0.1), #ffffff);
+    border-left-color: #FF7A00; 
+    background: linear-gradient(135deg, rgba(255, 122, 0, 0.1), var(--bg-card)); /* THEME UPDATE */
 }
 
 .toastify.warning {
-    border-left-color: #FFD700; /* Yellow */
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), #ffffff);
+    border-left-color: #FFD700; 
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), var(--bg-card)); /* THEME UPDATE */
 }
 
 .toastify.info {
-    border-left-color: #111111; /* Black */
-    background: linear-gradient(135deg, #f4f4f4, #ffffff);
+    border-left-color: #111111; 
+    background: linear-gradient(135deg, var(--bg-main), var(--bg-card)); /* THEME UPDATE */
 }
 
 /* Toast Content */
@@ -829,29 +812,29 @@ body.collapsed .expand-btn svg{
 }
 
 .toastify.success .toastify-icon {
-    background: #39FF14; /* Neon Green */
-    color: #000000; /* Black */
+    background: #39FF14; 
+    color: #000000; 
 }
 
 .toastify.error .toastify-icon {
-    background: #FF7A00; /* Orange */
-    color: #000000; /* Black */
+    background: #FF7A00; 
+    color: #000000; 
 }
 
 .toastify.warning .toastify-icon {
-    background: #FFD700; /* Yellow */
-    color: #000000; /* Black */
+    background: #FFD700; 
+    color: #000000; 
 }
 
 .toastify.info .toastify-icon {
-    background: #111111; /* Black */
+    background: #111111; 
     color: #ffffff;
 }
 
 .toastify-message {
     flex: 1;
     font-size: 14px;
-    color: #111111; /* Black */
+    color: var(--text-main); /* THEME UPDATE */
     line-height: 1.4;
     font-weight: 500;
 }
@@ -861,7 +844,7 @@ body.collapsed .expand-btn svg{
     border: none;
     font-size: 18px;
     cursor: pointer;
-    color: #333333; /* Dark Gray */
+    color: var(--text-muted); /* THEME UPDATE */
     margin-left: 10px;
     width: 24px;
     height: 24px;
@@ -874,8 +857,8 @@ body.collapsed .expand-btn svg{
 }
 
 .toastify-close:hover {
-    background: #f4f4f4;
-    color: #111111; /* Black */
+    background: var(--border-soft); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
 }
 
 /* Progress Bar */
@@ -895,53 +878,27 @@ body.collapsed .expand-btn svg{
     animation: progressBar 5s linear forwards;
 }
 
-.toastify.success .toastify-progress-bar {
-    background: #39FF14; /* Neon Green */
-}
-
-.toastify.error .toastify-progress-bar {
-    background: #FF7A00; /* Orange */
-}
-
-.toastify.warning .toastify-progress-bar {
-    background: #FFD700; /* Yellow */
-}
-
-.toastify.info .toastify-progress-bar {
-    background: #111111; /* Black */
-}
+.toastify.success .toastify-progress-bar { background: #39FF14; }
+.toastify.error .toastify-progress-bar { background: #FF7A00; }
+.toastify.warning .toastify-progress-bar { background: #FFD700; }
+.toastify.info .toastify-progress-bar { background: #111111; }
 
 @keyframes progressBar {
-    0% {
-        transform: scaleX(1);
-    }
-    100% {
-        transform: scaleX(0);
-    }
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
 }
 
 /* Toastify Animations */
 @keyframes slideInRight {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(400px); opacity: 0; }
 }
+
 /* Modal Styles */
 .modal {
     display: none;
@@ -951,20 +908,21 @@ body.collapsed .expand-btn svg{
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Kept structural */
+    background-color: rgba(0, 0, 0, 0.5); 
     backdrop-filter: blur(5px);
-    overflow: hidden; /* Prevent body scrolling */
+    overflow: hidden; 
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--bg-card); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     margin: 5% auto;
     padding: 2rem;
     border-radius: 12px;
     width: 90%;
     max-width: 500px;
-    max-height: 80vh; /* Limit the height to 80% of the viewport height */
-    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: 80vh; 
+    overflow-y: auto; 
     position: relative;
     animation: modalSlideIn 0.3s ease-out;
     display: flex;
@@ -973,50 +931,30 @@ body.collapsed .expand-btn svg{
 
 .modal-body {
     flex: 1;
-    overflow-y: auto; /* Make the body scrollable */
-    padding-right: 5px; /* Prevent content shift when scrollbar appears */
+    overflow-y: auto; 
+    padding-right: 5px; 
 }
 
 .modal-footer {
-    flex-shrink: 0; /* Prevent footer from shrinking */
+    flex-shrink: 0; 
     padding-top: 1.5rem;
-    margin-top: auto; /* Push footer to bottom */
-    border-top: 1px solid #e2e8f0; /* Kept soft */
+    margin-top: auto; 
+    border-top: 1px solid var(--border-soft); /* THEME UPDATE */
 }
 
-/* Custom scrollbar for better appearance */
-.modal-content::-webkit-scrollbar {
-    width: 6px;
-}
-
-.modal-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-    background: #c1c1c1; /* Kept soft */
-    border-radius: 3px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
+.modal-content::-webkit-scrollbar { width: 6px; }
+.modal-content::-webkit-scrollbar-track { background: var(--bg-main); border-radius: 3px; } /* THEME UPDATE */
+.modal-content::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; } /* THEME UPDATE */
+.modal-content::-webkit-scrollbar-thumb:hover { background: var(--border-color); } /* THEME UPDATE */
 
 @keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .btn-secondary {
-    background: #FFD700; /* Yellow */
-    color: #000000; /* Black */
+    background: #FFD700; 
+    color: #000000; 
     border: none;
     padding: 0.8rem 1.5rem;
     border-radius: 8px;
@@ -1026,9 +964,8 @@ body.collapsed .expand-btn svg{
 }
 
 .btn-secondary:hover {
-    background: #E6C200; /* Darker Yellow */
+    background: #E6C200; 
 }
-
 
 .pagination {
     display: flex;
@@ -1039,26 +976,27 @@ body.collapsed .expand-btn svg{
 
 .pagination button {
     padding: 8px 15px;
-    border: 1px solid #ddd; /* Kept soft */
-    background-color: white;
+    border: 1px solid var(--border-soft); /* THEME UPDATE */
+    background-color: var(--bg-card); /* THEME UPDATE */
+    color: var(--text-main); /* THEME UPDATE */
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.3s;
 }
 
 .pagination button:hover {
-    background-color: #f8f9fa;
+    background-color: var(--border-soft); /* THEME UPDATE */
 }
 
 .pagination button.active {
-    background-color: #39FF14; /* Neon Green */
-    color: #000000; /* Black */
+    background-color: #39FF14; 
+    color: #000000; 
     border-color: #2ECC0E;
 }
 
 .pagination button:disabled {
-    background-color: #f8f9fa;
-    color: #bdc3c7;
+    background-color: var(--border-soft); /* THEME UPDATE */
+    color: var(--text-muted); /* THEME UPDATE */
     cursor: not-allowed;
 }
 
@@ -1066,33 +1004,24 @@ body.collapsed .expand-btn svg{
    SCROLLING FIX FOR TABLETS & MOBILE
    ========================================= */
 @media (max-width: 1024px) {
-    /* 1. Allow the browser window to scroll normally */
     html, body {
         height: auto !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
     }
-
-    /* 2. Remove the height lock so the page can grow taller than the screen */
     .content {
         height: auto !important;
         min-height: 100vh;
         overflow: visible !important;
     }
-
-    /* 3. Remove the height lock from the content area */
     .center-div {
         height: auto !important;
         overflow: visible !important;
     }
-
-    /* 4. CRITICAL FIX: Stop the green chart from stretching infinitely */
     .charts {
-        height: 70vh !important; /* Locks the height so it doesn't grow forever */
-        flex-direction: column !important; /* Stacks the green and red boxes so they fit beside the sidebar */
+        height: 70vh !important; 
+        flex-direction: column !important; 
     }
-
-    /* 5. Keep the sidebar locked to the screen while scrolling */
     .sidebar {
         height: 95vh;
         position: sticky;
@@ -1103,34 +1032,26 @@ body.collapsed .expand-btn svg{
 /* =========================================
    RESPONSIVE QUERIES: MOBILE SIDEBAR
    ========================================= */
-/* =========================================
-   RESPONSIVE QUERIES: MOBILE SIDEBAR
-   ========================================= */
 @media (max-width: 768px) {
-    /* 1. Lock the sidebar to the screen */
     .sidebar {
-        position: fixed !important; /* Fixes it so it doesn't scroll up */
+        position: fixed !important; 
         top: 0 !important;
         left: 0 !important;
-        height: 100vh !important; /* Takes full height of the device */
-        margin: 0 !important; /* Removes the gap around it */
-        border-radius: 0 !important; /* Square edges for mobile */
+        height: 100vh !important; 
+        margin: 0 !important; 
+        border-radius: 0 !important; 
         min-width: 4rem !important;
         max-width: 4rem !important; 
         padding: 0.5rem !important;
-        z-index: 1000; /* Ensures it stays on top of the content */
+        z-index: 1000; 
     }
-    
-    /* 2. Hide the text labels in the sidebar */
     .sidebar .hub-name, 
     .sidebar .hub-workers, 
     .sidebar .link { 
         display: none !important; 
     }
-    
-    /* 3. Push the main content to the right so it doesn't hide under the sidebar */
     .center-div {
-        margin-left: 4rem !important; /* Matches the sidebar width */
+        margin-left: 4rem !important; 
         padding: 0 0.5rem !important; 
         width: calc(100% - 4rem) !important; 
     }

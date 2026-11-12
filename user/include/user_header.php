@@ -32,6 +32,15 @@ if (isset($_SESSION['user_id'])) {
 <html lang="en">
 
 <head>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/user_header.css?v=<?php echo $version; ?>">    
@@ -83,6 +92,9 @@ if (isset($_SESSION['user_id'])) {
                 </div>
                 
                 <div class="nav-right">
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
                     <!-- Quick Scan Button -->
                     <button class="quick-scan-btn" onclick="openQRScanner()">
                     <!-- <button class="quick-scan-btn"> -->

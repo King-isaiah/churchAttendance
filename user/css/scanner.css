@@ -1,12 +1,59 @@
-/* ==========================================================
-   QR SCANNER - MODERN UI with real camera control
-   ========================================================== */
+/* =========================================
+   THEME VARIABLES & TOGGLE BUTTON
+   ========================================= */
+:root {
+    /* LIGHT MODE (Default) */
+    --bg-main: #f4f4f4;           
+    --bg-card: #ffffff;           
+    --text-main: #111111;         
+    --text-muted: #555555;        
+    --border-color: #222222;      
+    --border-soft: #eeeeee;
+    --nav-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); 
+    --sidebar-bg: #111111;
+    --input-bg: #ffffff;
+    --primary-green: #39FF14;
+    --primary-orange: #FF7A00;
+}
+
+[data-theme="dark"] {
+    /* DARK MODE OVERRIDES */
+    --bg-main: #121212;           
+    --bg-card: #1e1e1e;           
+    --text-main: #f8f9fa;         
+    --text-muted: #a0a0a0;        
+    --border-color: #333333;      
+    --border-soft: #2a2a2a;
+    --nav-bg: #1a1a1a;            
+    --sidebar-bg: #0a0a0a;
+    --input-bg: #2a2a2a;
+}
+
+/* THEME TOGGLE BUTTON STYLES */
+.theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+.theme-toggle:hover {
+    background: var(--border-soft);
+    transform: scale(1.05);
+}
 
 .qr-scanner-modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: #f0f2f5;
+    background: var(--bg-main); /* THEME UPDATE */
     z-index: 999999;
     overflow-y: auto;
     padding: 20px;
@@ -15,7 +62,7 @@
 .qr-scanner-content {
     width: 100%;
     max-width: 480px;
-    background: #fff;
+    background: var(--bg-card); /* THEME UPDATE */
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,.15);
     overflow: hidden;
@@ -24,23 +71,24 @@
 }
 
 /* Header */
-.qr-scanner-header { display: flex; justify-content: flex-end; padding: 16px 16px 0; background: #fff; }
+.qr-scanner-header { display: flex; justify-content: flex-end; padding: 16px 16px 0; background: var(--bg-card); } /* THEME UPDATE */
 .close-scanner {
     width: 40px; height: 40px;
-    background: #f5f5f5; border: none; border-radius: 50%;
-    font-size: 22px; cursor: pointer; color: #333;
+    background: var(--border-soft); /* THEME UPDATE */
+    border: none; border-radius: 50%;
+    font-size: 22px; cursor: pointer; color: var(--text-main); /* THEME UPDATE */
     display: flex; align-items: center; justify-content: center;
     padding: 0; line-height: 1;
 }
-.close-scanner:hover { background: #e8e8e8; }
+.close-scanner:hover { background: var(--border-color); } /* THEME UPDATE */
 
-.qr-scanner-body { padding: 16px 20px 20px; background: #fff; }
+.qr-scanner-body { padding: 16px 20px 20px; background: var(--bg-card); } /* THEME UPDATE */
 
 /* Tabs */
-.scan-tabs { display: flex; border-bottom: 1px solid #eee; margin-bottom: 16px; }
+.scan-tabs { display: flex; border-bottom: 1px solid var(--border-soft); margin-bottom: 16px; } /* THEME UPDATE */
 .scan-tab {
     flex: 1; padding: 14px 10px; background: none; border: none; cursor: pointer;
-    font-family: inherit; font-size: 14px; font-weight: 500; color: #888;
+    font-family: inherit; font-size: 14px; font-weight: 500; color: var(--text-muted); /* THEME UPDATE */
     display: flex; align-items: center; justify-content: center; gap: 8px;
     border-bottom: 3px solid transparent; transition: all .2s;
 }
@@ -52,14 +100,14 @@
 
 /* ---------- CAMERA OFF ---------- */
 .camera-off-box {
-    width: 100%; aspect-ratio: 1/1; background: #f8f9fa;
+    width: 100%; aspect-ratio: 1/1; background: var(--bg-main); /* THEME UPDATE */
     border-radius: 16px; display: flex; flex-direction: column;
     align-items: center; justify-content: center; padding: 30px;
-    text-align: center; margin-bottom: 16px; border: 1px dashed #ddd;
+    text-align: center; margin-bottom: 16px; border: 1px dashed var(--border-soft); /* THEME UPDATE */
 }
-.camera-off-icon { font-size: 64px; color: #bbb; margin-bottom: 16px; }
-.camera-off-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; }
-.camera-off-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.camera-off-icon { font-size: 64px; color: var(--text-muted); margin-bottom: 16px; } /* THEME UPDATE */
+.camera-off-title { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; } /* THEME UPDATE */
+.camera-off-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; } /* THEME UPDATE */
 .btn-start-camera {
     width: 100%; max-width: 280px; padding: 14px 20px;
     background: #4A90E2; color: #fff; border: none; border-radius: 12px;
@@ -140,18 +188,18 @@
 .btn-stop-camera .stop-square { width: 12px; height: 12px; background: #fff; border-radius: 2px; }
 .btn-icon-circle {
     width: 50px; height: 50px; flex: 0 0 50px;
-    border: 1px solid #e0e0e0; background: #fff; border-radius: 12px;
+    border: 1px solid var(--border-soft); background: var(--bg-card); border-radius: 12px; /* THEME UPDATE */
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: #333; font-size: 20px;
+    color: var(--text-main); font-size: 20px; /* THEME UPDATE */
 }
-.btn-icon-circle:hover { background: #f5f5f5; border-color: #ccc; }
+.btn-icon-circle:hover { background: var(--bg-main); border-color: var(--border-color); } /* THEME UPDATE */
 .btn-icon-circle.active { background: #4A90E2; color: #fff; border-color: #4A90E2; }
 
 /* Camera dropdown */
 .camera-select {
     width: 100%; padding: 14px 16px;
     border: 2px solid #4A90E2; border-radius: 10px;
-    background: #fff; font-size: 14px; font-family: inherit; color: #333;
+    background: var(--bg-card); font-size: 14px; font-family: inherit; color: var(--text-main); /* THEME UPDATE */
     cursor: pointer; margin-bottom: 12px; appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat; background-position: right 14px center;
@@ -161,10 +209,10 @@
 
 /* Zoom */
 .zoom-control { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.zoom-label { font-size: 14px; color: #333; font-weight: 500; min-width: 45px; }
+.zoom-label { font-size: 14px; color: var(--text-main); font-weight: 500; min-width: 45px; } /* THEME UPDATE */
 .zoom-slider {
     flex: 1; height: 4px; -webkit-appearance: none; appearance: none;
-    background: #e0e0e0; border-radius: 2px; outline: none;
+    background: var(--border-soft); border-radius: 2px; outline: none; /* THEME UPDATE */
 }
 .zoom-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 18px; height: 18px;
@@ -175,20 +223,20 @@
     width: 18px; height: 18px; border-radius: 50%;
     background: #4A90E2; cursor: pointer; border: none;
 }
-.zoom-value { font-size: 13px; color: #666; font-weight: 500; min-width: 40px; text-align: right; }
+.zoom-value { font-size: 13px; color: var(--text-muted); font-weight: 500; min-width: 40px; text-align: right; } /* THEME UPDATE */
 
 /* Scanned Result */
-.scanned-result-section { border-top: 1px solid #eee; padding-top: 20px; }
+.scanned-result-section { border-top: 1px solid var(--border-soft); padding-top: 20px; } /* THEME UPDATE */
 .scanned-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.scanned-result-header h3 { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+.scanned-result-header h3 { font-size: 18px; font-weight: 700; color: var(--text-main); } /* THEME UPDATE */
 .history-btn {
     display: flex; align-items: center; gap: 8px;
-    padding: 8px 14px; background: #f5f5f5; border: none; border-radius: 8px;
-    font-size: 13px; font-weight: 500; cursor: pointer; color: #333; font-family: inherit;
+    padding: 8px 14px; background: var(--border-soft); border: none; border-radius: 8px; /* THEME UPDATE */
+    font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-main); font-family: inherit; /* THEME UPDATE */
 }
-.history-btn:hover { background: #e8e8e8; }
+.history-btn:hover { background: var(--border-color); } /* THEME UPDATE */
 .history-dot { width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; box-shadow: 0 0 0 3px rgba(76,175,80,.15); }
-.scan-status { display: flex; align-items: center; gap: 10px; color: #888; font-size: 14px; margin-bottom: 14px; }
+.scan-status { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 14px; margin-bottom: 14px; } /* THEME UPDATE */
 .scan-status-dot {
     width: 10px; height: 10px; border-radius: 50%;
     background: #FFC107; box-shadow: 0 0 0 4px rgba(255,193,7,.2);
@@ -201,9 +249,9 @@
 
 .scan-result-box {
     min-height: 110px; padding: 24px 20px;
-    background: #f8f9fa; border-radius: 12px;
+    background: var(--bg-main); border-radius: 12px; /* THEME UPDATE */
     display: flex; align-items: center; justify-content: center;
-    text-align: center; color: #999; font-style: italic; font-size: 14px;
+    text-align: center; color: var(--text-muted); font-style: italic; font-size: 14px; /* THEME UPDATE */
     transition: all .3s;
 }
 .scan-result-box.success { background: rgba(57,255,20,.1); color: #1A8C06; font-style: normal; font-weight: 600; }
@@ -213,15 +261,15 @@
 /* Scan Image tab */
 .image-drop-zone {
     width: 100%; min-height: 260px;
-    border: 2px dashed #d0d0d0; border-radius: 16px;
-    background: #f8f9fa; display: flex; flex-direction: column;
+    border: 2px dashed var(--border-soft); border-radius: 16px; /* THEME UPDATE */
+    background: var(--bg-main); display: flex; flex-direction: column; /* THEME UPDATE */
     align-items: center; justify-content: center;
     padding: 30px; text-align: center; margin-bottom: 16px; cursor: pointer;
 }
-.image-drop-zone:hover { border-color: #4A90E2; background: #f0f7ff; }
+.image-drop-zone:hover { border-color: #4A90E2; background: var(--bg-card); } /* THEME UPDATE */
 .folder-icon { font-size: 64px; margin-bottom: 20px; }
-.image-drop-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
-.image-drop-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.image-drop-title { font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; } /* THEME UPDATE */
+.image-drop-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; } /* THEME UPDATE */
 .btn-browse-files {
     padding: 12px 28px; background: #4A90E2; color: #fff;
     border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
