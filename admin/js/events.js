@@ -1,4 +1,3 @@
-
 let allDepartments = '';
 let departmentCounter = 1;
 const maxDepartments = 7;
@@ -602,34 +601,19 @@ async function loadEventData(id) {
             additionalDepartments.innerHTML = '';
             departmentCounter = 1;
             
-            let departmentIds = [];
-            if (event.department_id) {
-                try {
-                    if (typeof event.department_id === 'string' && event.department_id.startsWith('[')) {
-                        departmentIds = JSON.parse(event.department_id);
-                    } else if (event.department_id !== 'null' && event.department_id !== '0') {
-                        departmentIds = [parseInt(event.department_id)];
-                    }
-                } catch (e) {
-                    if (event.department_id !== 'null' && event.department_id !== '0') {
-                        departmentIds = [parseInt(event.department_id)];
-                    }
-                }
-            }
-
-            // Filter out invalid values (0, null, etc.)
-            departmentIds = departmentIds.filter(dId => dId && dId !== '0');
+            // FIX: Use the viewdept array coming directly from your PHP
+            const viewdept = Array.isArray(event.viewdept) ? event.viewdept : [];
             
-            if (departmentIds.length === 0) {
+            if (viewdept.length === 0) {
                 document.getElementById('eventDepartment1').value = '0';
             } else {
-                document.getElementById('eventDepartment1').value = departmentIds[0];
+                document.getElementById('eventDepartment1').value = viewdept[0].id;
                 
-                for (let i = 1; i < departmentIds.length; i++) {
+                for (let i = 1; i < viewdept.length; i++) {
                     await addDepartmentField();
                     const newSelect = document.getElementById('eventDepartment' + (i + 1));
                     if (newSelect) {
-                        newSelect.value = departmentIds[i];
+                        newSelect.value = viewdept[i].id;
                     }
                 }
             }
@@ -855,12 +839,20 @@ async function handleEventSubmit(event) {
         }
     }
     
-    // Add all other form fields (excluding department_id[] and id)
+    // FIX: Process fields, trim time, and include ID
     formData.forEach((value, key) => {
-        if (key !== 'id' && key !== 'department_id' && value !== '') {
-            jsonData[key] = value;
+        if (key !== 'department_id' && value !== '') {
+            if ((key === 'event_time' || key === 'time_exp') && typeof value === 'string' && value.length > 5) {
+                jsonData[key] = value.substring(0, 5);
+            } else {
+                jsonData[key] = value;
+            }
         }
     });
+
+    if (eventId) {
+        jsonData.id = eventId;
+    }
     
     console.log('Final JSON to send:', jsonData);
     
@@ -993,10 +985,7 @@ async function addDepartmentField() {
     
     container.appendChild(newField);
     
-    // Show remove button on first field
-    if (departmentCounter === 2) {
-        document.querySelector('#departmentField1 .remove-department').style.display = 'block';
-    }
+    // FIX: Removed the crashing line that tried to show the remove button on the first field.
     
     // Disable button if max reached
     if (departmentCounter >= maxDepartments) {
@@ -1095,4 +1084,3 @@ function renumberDepartmentFields() {
         newCounter++;
     });
 }
-
