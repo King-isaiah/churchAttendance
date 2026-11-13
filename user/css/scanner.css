@@ -94,7 +94,7 @@
     transition: 0.3s;
 }
 
-/* ADD THIS LINE TO FIX THE GIANT ICONS */
+/* FIX FOR GIANT ICONS */
 .scan-tab svg { 
     width: 20px; 
     height: 20px; 
@@ -189,6 +189,49 @@
 #qr-reader {
     width: 100% !important;
     border: none !important;
+}
+
+/* =========================================
+   RESTORED CORNER BRACKETS & LASER LINE
+   ========================================= */
+
+/* Corner brackets */
+.corner-bracket {
+    position: absolute; 
+    width: 44px; 
+    height: 44px;
+    border-color: #FFC107; 
+    border-style: solid;
+    pointer-events: none; 
+    z-index: 10;
+}
+.corner-tl { top: 30px; left: 30px; border-width: 4px 0 0 4px; border-top-left-radius: 10px; }
+.corner-tr { top: 30px; right: 30px; border-width: 4px 4px 0 0; border-top-right-radius: 10px; }
+.corner-bl { bottom: 30px; left: 30px; border-width: 0 0 4px 4px; border-bottom-left-radius: 10px; }
+.corner-br { bottom: 30px; right: 30px; border-width: 0 4px 4px 0; border-bottom-right-radius: 10px; }
+
+/* Laser Animation */
+.scan-laser {
+    position: absolute;
+    left: 30px; 
+    right: 30px; 
+    height: 3px;
+    background: linear-gradient(to right, transparent, #FFC107 20%, #FF9800 50%, #FFC107 80%, transparent);
+    box-shadow: 0 0 12px #FFC107, 0 0 24px rgba(255,152,0,.6);
+    z-index: 5; 
+    border-radius: 2px;
+    display: none;
+}
+
+.scan-laser.running { 
+    display: block; 
+    animation: scanAnim 2.5s ease-in-out infinite; 
+}
+
+@keyframes scanAnim {
+    0%   { top: 30px; }
+    50%  { top: calc(100% - 33px); }
+    100% { top: 30px; }
 }
 
 /* =========================================
