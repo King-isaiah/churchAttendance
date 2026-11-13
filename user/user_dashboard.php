@@ -8,9 +8,9 @@ include_once "include/user_header.php";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard - Hub Church</title>
-    <link rel="stylesheet" href="css/user_header.css">
+   
     <link rel="stylesheet" href="css/user_dashboard.css">
-    <link rel="stylesheet" href="../fontawesome/css/all.min.css">
+    
 </head>
 <body>
 

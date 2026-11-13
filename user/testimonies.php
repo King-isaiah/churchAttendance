@@ -1,7 +1,9 @@
 <?php
 include_once "include/user_header.php";
 ?>
-
+<head>
+     <title>Testimonies - Hub Church</title>
+</head>
 <div class="main-content" style="padding: 30px; max-width: 1000px; margin: 0 auto;">
     
     <div class="card" style="background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">

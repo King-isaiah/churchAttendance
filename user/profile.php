@@ -1,18 +1,12 @@
 <?php
    include_once "include/user_header.php"; 
-    
-    $departments = ['Worship Team', 'Youth Ministry', 'Children Ministry', 'Outreach', 'Administration'];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - Hub Church</title>
-    <link rel="stylesheet" href="css/user_header.css">
-    <link rel="stylesheet" href="css/user_profile.css">
-    <link rel="stylesheet" href="../fontawesome/css/all.min.css">
+<head>  
+    <title>User Profile - Hub Church</title> 
+    <link rel="stylesheet" href="css/user_profile.css">        
 </head>
 <body>
    
