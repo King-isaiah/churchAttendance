@@ -142,6 +142,6 @@ if (isset($_SESSION['user_id'])) {
                 
                 <!-- THEME TOGGLE BUTTON -->
                 <button title="Toggle Dark Mode" id="themeToggle">
-                <!-- <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode" style="position: absolute; right: 20px; top: 30px; background: transparent; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer;"> -->
+                
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>

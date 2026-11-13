@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Events - Hub Church</title>
-    <link rel="stylesheet" href="css/user_header.css">
-    <link rel="stylesheet" href="css/user_events.css">
-    <link rel="stylesheet" href="../fontawesome/css/all.min.css">
+<?php include_once "include/user_header.php"; ?>
+
+<head> 
+    <title>Events - Hub Church</title>    
+    <link rel="stylesheet" href="css/user_events.css">  
 </head>
-<body>
-    <?php include_once "include/user_header.php"; ?>
+
+    
 
     <div class="center-div">           
         <div class="events-page">

@@ -17,14 +17,41 @@
 }
 
 [data-theme="dark"] {
-    /* DARK MODE OVERRIDES */
-    --bg-main: #121212;           
-    --bg-card: #1e1e1e;           
-    --text-main: #f8f9fa;         
-    --text-muted: #a0a0a0;        
-    --border-color: #333333;      
-    --border-soft: #2a2a2a;
-    --nav-bg: #1a1a1a;            
-    --sidebar-bg: #0a0a0a;
-    --input-bg: #2a2a2a;
+    /* DARK MODE OVERRIDES (DARK GREEN THEME) */
+    --bg-main: #091a09;           
+    --bg-card: #112411;           
+    --text-main: #e2f4e2;         
+    --text-muted: #88a688;        
+    --border-color: #2a4d2a;      
+    --border-soft: #1a361a;       
+    --nav-bg: #0c1f0c;            
+    --sidebar-bg: #051005;        
+    --input-bg: #163016;          
+}
+
+/* THEME TOGGLE BUTTON STYLES */
+.theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+.theme-toggle:hover {
+    background: var(--border-soft);
+    transform: scale(1.05);
+}
+
+/* CRITICAL FIX: Apply theme to the whole body */
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
