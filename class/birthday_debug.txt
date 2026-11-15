@@ -59,3 +59,5 @@ Found 0 member(s) with this birthday.
 [2026-11-12 08:45:32] Script started. Looking for today: 11-12 and upcoming: 11-14
 
 [2026-11-13 08:36:45] Script started. Looking for today: 11-13 and upcoming: 11-15
+
+[2026-11-15 13:11:26] Script started. Looking for today: 11-15 and upcoming: 11-17
