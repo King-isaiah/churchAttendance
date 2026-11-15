@@ -123,7 +123,7 @@ class UserHeader {
                 
                 console.log(`Distance to ${itemType} "${itemName}": ${distance.toFixed(2)}m`);
                 // come back and chamge to 100
-                if (distance <= 700) {
+                if (distance <= 3000) {
                     showSuccess(`You are at "${itemName}" location! (${distance.toFixed(0)}m away)`); 
 
                     try {
