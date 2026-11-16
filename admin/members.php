@@ -123,10 +123,7 @@ $departments = $department->getAllDepartments();
                     <label>Password</label>
                     <input type="password" id="password" name="password">
                 </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" name="password">
-                </div>
+                
                 <div class="primaryDept">
                     <div class="form-group department-field" id="primaryDeptField">
                         <div class="form-group">
