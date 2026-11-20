@@ -27,6 +27,9 @@ if (isset($_SESSION['user_id'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#091a09" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f4f4f4" media="(prefers-color-scheme: light)">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
