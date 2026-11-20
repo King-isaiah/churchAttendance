@@ -55,3 +55,29 @@ body {
     color: var(--text-main) !important;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+/* =========================================
+   TABLE READABILITY FIX FOR DARK MODE
+   ========================================= */
+
+/* Force text in table body to black */
+[data-theme="dark"] table tbody td,
+[data-theme="dark"] .data-table tbody td,
+[data-theme="dark"] .attendance-table tbody td {
+    color: #000000 !important;
+    font-weight: 500; /* Optional: makes the black text a bit bolder and easier to read */
+}
+
+/* Force table headers to black if they have a light background */
+[data-theme="dark"] table thead th,
+[data-theme="dark"] .data-table thead th,
+[data-theme="dark"] .attendance-table thead th {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+/* Optional: If your table rows have a very light background, 
+   make the border a bit darker so they don't blend together */
+[data-theme="dark"] table td, 
+[data-theme="dark"] table th {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
