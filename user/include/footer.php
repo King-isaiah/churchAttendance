@@ -6,6 +6,7 @@
     <script src="js/notification.js?v=<?php echo $version; ?>"></script>     
     <script src="../js/main.js?v=<?php echo $version; ?>"></script>
     <script src="js/qrcode.js?v=<?php echo $version; ?>"></script>
+    <script src="../js/theme.js?v=<?php echo $version; ?>"></script>
    
 </body>
 </html>
